@@ -33,11 +33,20 @@ dist_libPARAVIS_la_SOURCES =	\
 	PVGUI_Module.h		\
 	PVGUI_Module.cxx        \
 	PVGUI_ProcessModuleHelper.h \
-	PVGUI_ProcessModuleHelper.cxx
+	PVGUI_ProcessModuleHelper.cxx \
+	PVGUI_ViewManager.h \
+	PVGUI_ViewManager.cxx \
+	PVGUI_ViewModel.h \
+	PVGUI_ViewModel.cxx \
+	PVGUI_ViewWindow.h \
+	PVGUI_ViewWindow.cxx
 
 # MOC pre-processing
 MOC_FILES = \
-	PVGUI_Module_moc.cxx 
+	PVGUI_Module_moc.cxx \
+	PVGUI_ViewManager_moc.cxx \
+	PVGUI_ViewModel_moc.cxx \
+	PVGUI_ViewWindow_moc.cxx
 
 nodist_libPARAVIS_la_SOURCES = $(MOC_FILES)
 

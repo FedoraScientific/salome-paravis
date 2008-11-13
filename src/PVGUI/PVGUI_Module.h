@@ -71,7 +71,10 @@ private:
  
   //! Create actions for ParaView GUI operations
   //! duplicating menus and toolbars in pqMainWindow ParaView class
-  void                   pvCreateActions();           
+  void                   pvCreateActions();  
+
+  //! Shows or hides ParaView view window
+  void                   showView( bool );         
 
 public slots:
   virtual bool           activateModule( SUIT_Study* );

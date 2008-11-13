@@ -25,15 +25,14 @@
 
 #include "PVGUI_Module.h"
 #include "PVGUI_ProcessModuleHelper.h"
+#include "PVGUI_ViewModel.h"
+#include "PVGUI_ViewManager.h"
 
 #include <SUIT_MessageBox.h>
 #include <SUIT_Desktop.h>
+#include <SUIT_Session.h>
 #include <LightApp_Application.h>
 #include <LightApp_SelectionMgr.h>
-#include <LightApp_Selection.h>
-#include <OCCViewer_ViewManager.h>
-#include <SOCC_ViewModel.h>
-#include <SOCC_Prs.h>
 
 #include <QApplication>
 #include <QInputDialog>
@@ -146,6 +145,13 @@ void PVGUI_Module::initialize( CAM_Application* app )
   LightApp_Module::initialize( app );
 
   SUIT_Desktop* desk = application()->desktop();
+
+  /*
+  int i = 1;
+  while( i ){
+    i = i;
+  }
+  */
 
   if ( pvInit() ) {
     pvCreateActions();
@@ -291,6 +297,23 @@ void PVGUI_Module::pvShutdown()
 {
   // TODO...
 }  
+
+/*!
+  \brief Shows (toShow = true) or hides ParaView view window
+*/
+void PVGUI_Module::showView( bool toShow )
+{
+  // TODO: check if ParaView view already exists
+  LightApp_Application* anApp = getApp();
+  SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
+  PVGUI_ViewManager* viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
+  anApp->addViewManager( viewMgr );
+  connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
+	   anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
+  //connect( viewMgr, SIGNAL( viewCreated( SUIT_ViewWindow* ) ), vm, SLOT( onViewCreated( SUIT_ViewWindow* ) ) );
+  //connect( viewMgr, SIGNAL( deleteView( SUIT_ViewWindow* ) ), this, SLOT( onViewDeleted( SUIT_ViewWindow* ) ) );
+  SUIT_ViewWindow* wnd = viewMgr->createViewWindow();  
+}
  
 /*!
   \brief Create actions for ParaView GUI operations
@@ -313,6 +336,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   if ( !isDone ) return false;
 
   setMenuShown( true );
+
+  showView( true );
 
   return isDone;
 }
