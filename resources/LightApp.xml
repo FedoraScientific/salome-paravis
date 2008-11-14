@@ -2,7 +2,7 @@
   <section name="PARAVIS">
     <!-- Major module parameters -->
     <parameter name="name" value="ParaViS"/>
-    <parameter name="icon" value="PARAVIS.png"/>
+    <parameter name="icon" value="pqAppIcon22.png"/>
   </section>
   <section name="resources">
     <!-- Module resources -->

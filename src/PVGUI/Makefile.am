@@ -68,3 +68,11 @@ libPARAVIS_la_LDFLAGS = \
 nodist_salomeres_DATA = \
            PARAVIS_images.qm \
            PARAVIS_msg_en.qm
+
+# Copying ParaView icons to a convenient location
+install-data-local:
+	@echo
+	@echo "Copying ParaView icons to $(salomeresdir)..."
+	@cp -f $(PVHOME)/src/Qt/Components/Resources/Icons/*.png $(salomeresdir)
+	@echo "Copying done"
+	@echo

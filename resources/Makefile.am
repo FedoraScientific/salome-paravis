@@ -26,6 +26,5 @@
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
 dist_salomeres_DATA = \
-	PARAVIS.png \
 	LightApp.xml \
 	SalomeApp.xml
