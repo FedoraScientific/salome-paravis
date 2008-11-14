@@ -34,8 +34,11 @@ class LightApp_SelectionMgr;
 class PVGUI_ProcessModuleHelper;
 class vtkPVMain;
 class pqOptions;
+class pqServer;
+class pqActiveServer;
+class pqViewManager;
 
-class PVGUI_Module: public LightApp_Module
+class PVGUI_Module : public LightApp_Module
 {
   Q_OBJECT
    
@@ -60,6 +63,9 @@ public:
 
   //virtual LightApp_Selection* createSelection() const;
 
+  pqServer*              getActiveServer() const;
+  pqViewManager*         getMultiViewManager() const;
+
 protected:
   //virtual CAM_DataModel* createDataModel();
 
@@ -76,6 +82,8 @@ private:
   //! Shows or hides ParaView view window
   void                   showView( bool );         
 
+  void                   makeDefaultConnectionIfNoneExists();
+
 public slots:
   virtual bool           activateModule( SUIT_Study* );
   virtual bool           deactivateModule( SUIT_Study* );
@@ -84,6 +92,9 @@ private:
   static vtkPVMain*                 myPVMain;
   static pqOptions*                 myPVOptions;
   static PVGUI_ProcessModuleHelper* myPVHelper;
+
+  //! pqMainWindowCore stuff
+  pqActiveServer*                   myActiveServer;
 };
 
 #endif // PVGUI_Module_H

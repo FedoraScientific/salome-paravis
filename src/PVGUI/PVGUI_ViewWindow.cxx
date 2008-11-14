@@ -87,3 +87,11 @@ void PVGUI_ViewWindow::setVisualParameters( const QString& parameters )
 {
   SUIT_ViewWindow::setVisualParameters( parameters );
 }
+
+/*!
+  \brief Returns the ParaView multi-view manager for this view window
+*/
+pqViewManager* PVGUI_ViewWindow::getMultiViewManager() const
+{
+  return myPVMgr;
+}

@@ -23,6 +23,7 @@
 
 class SUIT_Desktop;
 class SUIT_Study;
+class pqViewManager;
 
 class PVGUI_ViewManager : public SUIT_ViewManager
 {
@@ -31,6 +32,8 @@ class PVGUI_ViewManager : public SUIT_ViewManager
 public:
   PVGUI_ViewManager( SUIT_Study*, SUIT_Desktop* );
   ~PVGUI_ViewManager();
+
+  pqViewManager*     getMultiViewManager();
 };
 
 #endif

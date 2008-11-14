@@ -44,6 +44,7 @@ public:
   virtual QString   getVisualParameters();
   virtual void      setVisualParameters( const QString& );
   
+  pqViewManager*    getMultiViewManager() const;
 
 private:
   PVGUI_Viewer*     myModel;

@@ -18,6 +18,7 @@
 //
 #include <PVGUI_ViewManager.h>
 #include <PVGUI_ViewModel.h>
+#include <PVGUI_ViewWindow.h>
 
 
 /*!
@@ -36,3 +37,14 @@ PVGUI_ViewManager::~PVGUI_ViewManager()
 {
 }
 
+/*!
+  \brief Returns the ParaView multi-view manager for the active view window
+*/
+pqViewManager* PVGUI_ViewManager::getMultiViewManager()
+{
+  pqViewManager* aMVM = 0;
+  PVGUI_ViewWindow* aVW = dynamic_cast<PVGUI_ViewWindow*>( getActiveView() );
+  if ( aVW )
+    aMVM = aVW->getMultiViewManager();
+  return aMVM;
+}

@@ -42,6 +42,13 @@
 #include <QString>
 
 #include <pqOptions.h>
+#include <pqApplicationCore.h>
+#include <pqActiveServer.h>
+#include <pqObjectBuilder.h>
+#include <pqServer.h>
+#include <pqServerManagerModel.h>
+#include <pqServerResource.h>
+#include <pqViewManager.h>
 #include <vtkPVMain.h>
 #include <vtkProcessModule.h>
 
@@ -125,7 +132,8 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::myPVHelper = 0;
   \brief Constructor. Sets the default name for the module.
 */
 PVGUI_Module::PVGUI_Module()
-: LightApp_Module( "PARAVIS" )
+  : LightApp_Module( "PARAVIS" ),
+    myActiveServer( 0 )
 {
 }
 
@@ -282,8 +290,7 @@ bool PVGUI_Module::pvInit()
       ret = myPVHelper->Run(myPVOptions);
     }
 
-    //delete[] argv;
-    cout << "*** ParaView client initalized!!!" << endl;
+    delete[] argv;
     return !ret;
   }
   
@@ -325,6 +332,50 @@ void PVGUI_Module::pvCreateActions()
 }
 
 /*!
+  \brief Returns the active ParaView server connection.
+*/
+pqServer* PVGUI_Module::getActiveServer() const
+{
+  return myActiveServer->current();
+}
+
+/*!
+  \brief Returns the ParaView multi-view manager.
+*/
+pqViewManager* PVGUI_Module::getMultiViewManager() const
+{
+  pqViewManager* aMVM = 0; 
+  LightApp_Application* anApp = getApp();
+  PVGUI_ViewManager* aPVMgr = dynamic_cast<PVGUI_ViewManager*>( anApp->activeViewManager() );
+  if ( aPVMgr )
+    aMVM = aPVMgr->getMultiViewManager();
+  return aMVM;
+}
+
+/*!
+  \brief Creates a built-in server connection.
+*/
+void PVGUI_Module::makeDefaultConnectionIfNoneExists()
+{
+  if (this->getActiveServer())
+    {
+    return ;
+    }
+
+  pqApplicationCore* core = pqApplicationCore::instance();
+  if (core->getServerManagerModel()->getNumberOfItems<pqServer*>() != 0)
+    {
+    // cannot really happen, however, if no active server, yet
+    // server connection exists, we don't try to make a new server connection.
+    return ;
+    }
+
+  pqServerResource resource = pqServerResource("builtin:");
+  core->getObjectBuilder()->createServer(resource);
+}
+
+
+/*!
   \brief Activate module.
   \param study current study
   \return \c true if activaion is done successfully or 0 to prevent
@@ -339,8 +390,19 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   showView( true );
 
+  // Make default server connection
+  // see pqMainWindowCore::makeDefaultConnectionIfNoneExists()
+  if ( !myActiveServer && getMultiViewManager() ) {
+    myActiveServer = new pqActiveServer( this );
+    QObject::connect ( myActiveServer, SIGNAL(changed(pqServer*)),
+                       getMultiViewManager(), SLOT(setActiveServer(pqServer*)) );
+  }
+
+  makeDefaultConnectionIfNoneExists();
+
   return isDone;
 }
+
 
 /*!
   \brief Deactivate module.
