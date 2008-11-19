@@ -44,6 +44,7 @@ public:
   virtual QString   getVisualParameters();
   virtual void      setVisualParameters( const QString& );
   
+  void              setMultiViewManager( pqViewManager* );
   pqViewManager*    getMultiViewManager() const;
 
 private:

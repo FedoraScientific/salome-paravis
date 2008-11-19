@@ -63,7 +63,6 @@ public:
 
   //virtual LightApp_Selection* createSelection() const;
 
-  pqServer*              getActiveServer() const;
   pqViewManager*         getMultiViewManager() const;
 
 protected:
@@ -79,22 +78,19 @@ private:
   //! duplicating menus and toolbars in pqMainWindow ParaView class
   void                   pvCreateActions();  
 
+  //! Create dock widgets for ParaView widgets
+  void                   setupDockWidgets();
+
   //! Shows or hides ParaView view window
   void                   showView( bool );         
-
-  void                   makeDefaultConnectionIfNoneExists();
 
 public slots:
   virtual bool           activateModule( SUIT_Study* );
   virtual bool           deactivateModule( SUIT_Study* );
 
 private:
-  static vtkPVMain*                 myPVMain;
-  static pqOptions*                 myPVOptions;
-  static PVGUI_ProcessModuleHelper* myPVHelper;
-
-  //! pqMainWindowCore stuff
-  pqActiveServer*                   myActiveServer;
+  class pqImplementation;
+  pqImplementation*                 Implementation;
 };
 
 #endif // PVGUI_Module_H

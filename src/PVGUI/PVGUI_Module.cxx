@@ -27,6 +27,7 @@
 #include "PVGUI_ProcessModuleHelper.h"
 #include "PVGUI_ViewModel.h"
 #include "PVGUI_ViewManager.h"
+#include "PVGUI_ViewWindow.h"
 
 #include <SUIT_MessageBox.h>
 #include <SUIT_Desktop.h>
@@ -44,6 +45,7 @@
 #include <pqOptions.h>
 #include <pqApplicationCore.h>
 #include <pqActiveServer.h>
+#include <pqMainWindowCore.h>
 #include <pqObjectBuilder.h>
 #include <pqServer.h>
 #include <pqServerManagerModel.h>
@@ -118,9 +120,52 @@ void ParaViewInitializeInterpreter(vtkProcessModule* pm)
   vtkXdmfCS_Initialize(pm->GetInterpreter());
 }
 
-vtkPVMain*                 PVGUI_Module::myPVMain = 0;
-pqOptions*                 PVGUI_Module::myPVOptions = 0;
-PVGUI_ProcessModuleHelper* PVGUI_Module::myPVHelper = 0;
+//////////////////////////////////////////////////////////////////////////////
+// PVGUI_Module::pqImplementation
+
+class PVGUI_Module::pqImplementation
+{
+public:
+  pqImplementation(QWidget* parent) :
+    //AssistantClient(0),
+    Core(parent)//,
+    //RecentFilesMenu(0),
+    //ViewMenu(0),
+    //ToolbarsMenu(0)
+  {
+  }
+
+  ~pqImplementation()
+  {
+    //delete this->ViewMenu;
+    //delete this->ToolbarsMenu;
+    //if(this->AssistantClient)
+    //  {
+    //  this->AssistantClient->closeAssistant();
+    //  delete this->AssistantClient;
+    //  }
+  }
+
+  //QPointer<QAssistantClient> AssistantClient;
+  //Ui::MainWindow UI;
+  pqMainWindowCore Core;
+  //pqRecentFilesMenu* RecentFilesMenu;
+  //pqViewMenu* ViewMenu;
+  //pqViewMenu* ToolbarsMenu;
+  //QLineEdit* CurrentTimeWidget;
+  //QSpinBox* CurrentTimeIndexWidget;
+  QPointer<pqServer> ActiveServer;
+  QString DocumentationDir;
+
+  static vtkPVMain* myPVMain;
+  static pqOptions* myPVOptions;
+  static PVGUI_ProcessModuleHelper* myPVHelper;
+};
+
+
+vtkPVMain*                 PVGUI_Module::pqImplementation::myPVMain = 0;
+pqOptions*                 PVGUI_Module::pqImplementation::myPVOptions = 0;
+PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
 
 /*!
   \class PVGUI_Module
@@ -133,7 +178,7 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::myPVHelper = 0;
 */
 PVGUI_Module::PVGUI_Module()
   : LightApp_Module( "PARAVIS" ),
-    myActiveServer( 0 )
+    Implementation( 0 )
 {
 }
 
@@ -152,8 +197,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
 {
   LightApp_Module::initialize( app );
 
-  SUIT_Desktop* desk = application()->desktop();
-
   /*
   int i = 1;
   while( i ){
@@ -161,9 +204,8 @@ void PVGUI_Module::initialize( CAM_Application* app )
   }
   */
 
-  if ( pvInit() ) {
-    pvCreateActions();
-  }
+  pvInit();
+
   /*
   createAction( lgLoadFile, tr( "TOP_LOAD_FILE" ), QIcon(), tr( "MEN_LOAD_FILE" ),
                 tr( "STB_LOAD_FILE" ), 0, desk, false, this, SLOT( onLoadFile() ) );
@@ -258,7 +300,7 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 */
 bool PVGUI_Module::pvInit()
 {
-  if ( !myPVMain ){
+  if ( !pqImplementation::myPVMain ){
     // Obtain command-line arguments
     int argc = 0;
     QStringList args = QApplication::arguments();
@@ -272,22 +314,24 @@ bool PVGUI_Module::pvInit()
     // TODO: Set plugin dir from preferences
     //QApplication::setLibraryPaths(QStringList(dir.absolutePath()));
 
-    myPVMain = vtkPVMain::New();
-    if ( !myPVOptions )
-      myPVOptions = pqOptions::New();
-    if ( !myPVHelper )
-      myPVHelper = PVGUI_ProcessModuleHelper::New();
+    pqImplementation::myPVMain = vtkPVMain::New();
+    if ( !pqImplementation::myPVOptions )
+      pqImplementation::myPVOptions = pqOptions::New();
+    if ( !pqImplementation::myPVHelper )
+      pqImplementation::myPVHelper = PVGUI_ProcessModuleHelper::New();
 
-    myPVOptions->SetProcessType(vtkPVOptions::PVCLIENT);
+    pqImplementation::myPVOptions->SetProcessType(vtkPVOptions::PVCLIENT);
 
     // This creates the Process Module and initializes it.
-    int ret = myPVMain->Initialize(myPVOptions, myPVHelper, ParaViewInitializeInterpreter,
-                                   argc, argv);
+    int ret = pqImplementation::myPVMain->Initialize(pqImplementation::myPVOptions, 
+                                                     pqImplementation::myPVHelper, 
+                                                     ParaViewInitializeInterpreter,
+                                                     argc, argv);
     if (!ret){
       // Tell process module that we support Multiple connections.
       // This must be set before starting the event loop.
       vtkProcessModule::GetProcessModule()->SupportMultipleConnectionsOn();
-      ret = myPVHelper->Run(myPVOptions);
+      ret = pqImplementation::myPVHelper->Run(pqImplementation::myPVOptions);
     }
 
     delete[] argv;
@@ -311,15 +355,25 @@ void PVGUI_Module::pvShutdown()
 void PVGUI_Module::showView( bool toShow )
 {
   // TODO: check if ParaView view already exists
-  LightApp_Application* anApp = getApp();
-  SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
-  PVGUI_ViewManager* viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
-  anApp->addViewManager( viewMgr );
-  connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
-	   anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
-  //connect( viewMgr, SIGNAL( viewCreated( SUIT_ViewWindow* ) ), vm, SLOT( onViewCreated( SUIT_ViewWindow* ) ) );
-  //connect( viewMgr, SIGNAL( deleteView( SUIT_ViewWindow* ) ), this, SLOT( onViewDeleted( SUIT_ViewWindow* ) ) );
-  SUIT_ViewWindow* wnd = viewMgr->createViewWindow();  
+  if ( !Implementation ){
+    LightApp_Application* anApp = getApp();
+    SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
+    PVGUI_ViewManager* viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
+    anApp->addViewManager( viewMgr );
+    connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
+             anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
+    //connect( viewMgr, SIGNAL( viewCreated( SUIT_ViewWindow* ) ), vm, SLOT( onViewCreated( SUIT_ViewWindow* ) ) );
+    //connect( viewMgr, SIGNAL( deleteView( SUIT_ViewWindow* ) ), this, SLOT( onViewDeleted( SUIT_ViewWindow* ) ) );
+    SUIT_ViewWindow* wnd = viewMgr->createViewWindow();  
+
+    // Simulate ParaView client main window
+    Implementation = new pqImplementation( wnd );
+    PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( wnd );
+    pvWnd->setMultiViewManager( &Implementation->Core.multiViewManager() );
+
+    pvCreateActions();
+    setupDockWidgets();
+  }
 }
  
 /*!
@@ -329,14 +383,22 @@ void PVGUI_Module::showView( bool toShow )
 void PVGUI_Module::pvCreateActions()
 {
   // TODO...
+  SUIT_Desktop* desk = application()->desktop();
+
+  // TEST
+  int actionManagePlugins = 999;
+  createAction( actionManagePlugins, tr( "TOP_MANAGE_PLUGINS" ), QIcon(), tr( "MEN_MANAGE_PLUGINS" ),
+                tr( "STB_MANAGE_PLUGINS" ), 0, desk, false, &Implementation->Core, SLOT( onManagePlugins() ) );
+  int aPVMnu = createMenu( tr( "MEN_TEST_PARAVIEW" ), -1, -1, 50 );
+  createMenu( actionManagePlugins, aPVMnu, 10 );
 }
 
+
 /*!
-  \brief Returns the active ParaView server connection.
+  \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
 */
-pqServer* PVGUI_Module::getActiveServer() const
+void PVGUI_Module::setupDockWidgets()
 {
-  return myActiveServer->current();
 }
 
 /*!
@@ -345,33 +407,9 @@ pqServer* PVGUI_Module::getActiveServer() const
 pqViewManager* PVGUI_Module::getMultiViewManager() const
 {
   pqViewManager* aMVM = 0; 
-  LightApp_Application* anApp = getApp();
-  PVGUI_ViewManager* aPVMgr = dynamic_cast<PVGUI_ViewManager*>( anApp->activeViewManager() );
-  if ( aPVMgr )
-    aMVM = aPVMgr->getMultiViewManager();
+  if ( Implementation )
+    aMVM = &Implementation->Core.multiViewManager();
   return aMVM;
-}
-
-/*!
-  \brief Creates a built-in server connection.
-*/
-void PVGUI_Module::makeDefaultConnectionIfNoneExists()
-{
-  if (this->getActiveServer())
-    {
-    return ;
-    }
-
-  pqApplicationCore* core = pqApplicationCore::instance();
-  if (core->getServerManagerModel()->getNumberOfItems<pqServer*>() != 0)
-    {
-    // cannot really happen, however, if no active server, yet
-    // server connection exists, we don't try to make a new server connection.
-    return ;
-    }
-
-  pqServerResource resource = pqServerResource("builtin:");
-  core->getObjectBuilder()->createServer(resource);
 }
 
 
@@ -391,14 +429,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   showView( true );
 
   // Make default server connection
-  // see pqMainWindowCore::makeDefaultConnectionIfNoneExists()
-  if ( !myActiveServer && getMultiViewManager() ) {
-    myActiveServer = new pqActiveServer( this );
-    QObject::connect ( myActiveServer, SIGNAL(changed(pqServer*)),
-                       getMultiViewManager(), SLOT(setActiveServer(pqServer*)) );
-  }
-
-  makeDefaultConnectionIfNoneExists();
+  if ( Implementation )
+    Implementation->Core.makeDefaultConnectionIfNoneExists();
 
   return isDone;
 }

@@ -44,11 +44,6 @@ PVGUI_ViewWindow::PVGUI_ViewWindow( SUIT_Desktop* theDesktop, PVGUI_Viewer* theM
   : SUIT_ViewWindow( theDesktop ), myPVMgr( 0 )
 {
   myModel = theModel;
-  myPVMgr = new pqViewManager( this );
-
-  setCentralWidget( myPVMgr );
-
-  myPVMgr->installEventFilter( this );
 }
 
 /*!
@@ -89,7 +84,18 @@ void PVGUI_ViewWindow::setVisualParameters( const QString& parameters )
 }
 
 /*!
-  \brief Returns the ParaView multi-view manager for this view window
+  \brief Sets the ParaView multi-view manager for this view window
+*/
+void PVGUI_ViewWindow::setMultiViewManager( pqViewManager* viewMgr )
+{
+  myPVMgr = viewMgr;
+  myPVMgr->setParent( this );
+  setCentralWidget( myPVMgr );
+  myPVMgr->installEventFilter( this );
+}
+
+/*!
+  \brief Returns the ParaView multi-view manager previously set with setMultiViewManager()
 */
 pqViewManager* PVGUI_ViewWindow::getMultiViewManager() const
 {
