@@ -82,7 +82,10 @@ private:
   void                   setupDockWidgets();
 
   //! Shows or hides ParaView view window
-  void                   showView( bool );         
+  void                   showView( bool );    
+
+  //! Returns QMenu object for a given menu id
+  QMenu*                 getMenu( const int );
 
 public slots:
   virtual bool           activateModule( SUIT_Study* );

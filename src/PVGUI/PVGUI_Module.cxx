@@ -34,6 +34,7 @@
 #include <SUIT_Session.h>
 #include <LightApp_Application.h>
 #include <LightApp_SelectionMgr.h>
+#include <QtxActionMenuMgr.h>
 
 #include <QApplication>
 #include <QInputDialog>
@@ -367,7 +368,7 @@ void PVGUI_Module::showView( bool toShow )
     SUIT_ViewWindow* wnd = viewMgr->createViewWindow();  
 
     // Simulate ParaView client main window
-    Implementation = new pqImplementation( wnd );
+    Implementation = new pqImplementation( anApp->desktop() );
     PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( wnd );
     pvWnd->setMultiViewManager( &Implementation->Core.multiViewManager() );
 
@@ -378,19 +379,45 @@ void PVGUI_Module::showView( bool toShow )
  
 /*!
   \brief Create actions for ParaView GUI operations
-  duplicating menus and toolbars in pqMainWindow ParaView class
+  duplicating menus and toolbars in MainWindow class of
+  the standard ParaView GUI client application.
+
+  In particular, ParaView is responsible for updating "Sources" and "Filters" menus. 
+  For this, specific menu managers created by pqMainWindowCore class are used, and PVGUI_Module
+  is responsible for creation of corresponding QMenu objects only.
 */
 void PVGUI_Module::pvCreateActions()
 {
   // TODO...
   SUIT_Desktop* desk = application()->desktop();
 
-  // TEST
+  // Manage plug-ins
   int actionManagePlugins = 999;
   createAction( actionManagePlugins, tr( "TOP_MANAGE_PLUGINS" ), QIcon(), tr( "MEN_MANAGE_PLUGINS" ),
                 tr( "STB_MANAGE_PLUGINS" ), 0, desk, false, &Implementation->Core, SLOT( onManagePlugins() ) );
-  int aPVMnu = createMenu( tr( "MEN_TEST_PARAVIEW" ), -1, -1, 50 );
+  int aPVMnu = createMenu( tr( "MEN_TOOLS" ), -1, -1, 50 );
   createMenu( actionManagePlugins, aPVMnu, 10 );
+
+  // Install ParaView managers for "Sources" and "Filters" menus
+  QMenu* res = 0;
+  aPVMnu = createMenu( tr( "Sources" ), -1, -1, 60 );
+  res = getMenu( aPVMnu );
+  if ( res ){
+    Implementation->Core.setSourceMenu( res );
+    connect(&this->Implementation->Core,
+            SIGNAL(enableSourceCreate(bool)),
+            res,
+            SLOT(setEnabled(bool)));
+  }
+  aPVMnu = createMenu( tr( "Filters" ), -1, -1, 70 );
+  res = getMenu( aPVMnu );
+  if ( res ){
+    Implementation->Core.setFilterMenu( res );
+    connect(&this->Implementation->Core,
+            SIGNAL(enableFilterCreate(bool)),
+            res,
+            SLOT(setEnabled(bool)));
+  }
 }
 
 
@@ -412,6 +439,17 @@ pqViewManager* PVGUI_Module::getMultiViewManager() const
   return aMVM;
 }
 
+QMenu* PVGUI_Module::getMenu( const int id )
+{
+  QMenu* res = 0;
+  LightApp_Application* anApp = getApp();
+  SUIT_Desktop* desk = anApp->desktop();
+  if ( desk ){
+    QtxActionMenuMgr* menuMgr = desk->menuMgr();
+    res = menuMgr->findMenu( id );
+  }
+  return res;
+}
 
 /*!
   \brief Activate module.

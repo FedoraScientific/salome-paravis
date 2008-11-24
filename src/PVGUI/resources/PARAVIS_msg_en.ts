@@ -159,30 +159,14 @@
     </message>
 </context>
 <context>
-    <name>LIGHTGUI</name>
+    <name>PVGUI_Module</name>
     <message>
-        <source>LIGHTGUI_ADD_LINE</source>
-        <translation>Add new line before the selected one</translation>
+        <source>MEN_TOOLS</source>
+        <translation>Tools</translation>
     </message>
     <message>
-        <source>LIGHTGUI_MEN_DUMP</source>
-        <translation>Dump</translation>
-    </message>
-    <message>
-        <source>LIGHTGUI_MEN_LOAD</source>
-        <translation>Load</translation>
-    </message>
-    <message>
-        <source>LIGHTGUI_MEN_TXT_FILES</source>
-        <translation>Text Files ( *.txt )</translation>
-    </message>
-    <message>
-        <source>LIGHTGUI_EDIT_LINE</source>
-        <translation>Edit selected line</translation>
-    </message>
-    <message>
-        <source>LIGHTGUI_MEN_ALL_FILES</source>
-        <translation>All Files ( * )</translation>
+        <source>MEN_MANAGE_PLUGINS</source>
+        <translation>Manage plug-ins...</translation>
     </message>
 </context>
 </TS>

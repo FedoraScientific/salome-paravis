@@ -90,6 +90,8 @@ void PVGUI_ViewWindow::setMultiViewManager( pqViewManager* viewMgr )
 {
   myPVMgr = viewMgr;
   myPVMgr->setParent( this );
+  // This is mandatory, see setParent() documentation 
+  myPVMgr->show();
   setCentralWidget( myPVMgr );
   myPVMgr->installEventFilter( this );
 }
