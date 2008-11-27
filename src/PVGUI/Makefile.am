@@ -31,7 +31,10 @@ lib_LTLIBRARIES = libPARAVIS.la
 # Library sources
 dist_libPARAVIS_la_SOURCES =	\
 	PVGUI_Module.h		\
+	PVGUI_Module_impl.h     \
 	PVGUI_Module.cxx        \
+	PVGUI_Module_actions.cxx \
+	PVGUI_Module_widgets.cxx \
 	PVGUI_ProcessModuleHelper.h \
 	PVGUI_ProcessModuleHelper.cxx \
 	PVGUI_ViewManager.h \

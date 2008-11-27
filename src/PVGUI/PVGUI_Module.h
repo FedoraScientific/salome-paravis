@@ -43,16 +43,115 @@ class PVGUI_Module : public LightApp_Module
   Q_OBJECT
    
   //! Menu actions
-  /*enum { 
-    lgLoadFile = 931,   //!< load text file
-    lgSaveFile,         //!< save text file
-    lgDisplayLine,      //!< display selected line
-    lgEraseLine,        //!< erase selected line
-    lgEditLine,         //!< edit selected line
-    lgAddLine,          //!< insert new line
-    lgDelLine,          //!< delete selected line
-    lgClear             //!< clear all contents
-    };*/
+  enum { // Menu "File"
+         OpenFileId,
+
+	 LoadStateId,
+	 SaveStateId,
+
+	 SaveDataId,
+	 SaveScreenshotId,
+	 ExportId,
+
+	 SaveAnimationId,
+	 SaveGeometryId,
+
+	 ConnectId,
+	 DisconnectId,
+
+	 // Menu "Edit"
+	 UndoId,
+	 RedoId,
+
+	 CameraUndoId,
+	 CameraRedoId,
+
+	 ChangeInputId,
+	 DeleteId,
+	 DeleteAllId,
+
+	 InteractId,
+	 SelectCellsOnId,
+	 SelectPointsOnId,
+	 SelectCellsThroughId,
+	 SelectPointsThroughId,
+	 SelectBlockId,
+
+	 SettingsId,
+	 ViewSettingsId,
+
+	 // Menu "View"
+	 ResetCameraId,
+	 PositiveXId,
+	 NegativeXId,
+	 PositiveYId,
+	 NegativeYId,
+	 PositiveZId,
+	 NegativeZId,
+
+	 ShowCenterId,
+	 ResetCenterId,
+	 PickCenterId,
+	 ShowColorLegendId,
+	 EditColorMapId,
+	 ResetRangeId,
+
+	 AnimationInspectorId,
+	 AnimationViewId,
+	 ComparativeViewInspectorId,
+	 SelectionInspectorId,
+	 LookmarkBrowserId,
+	 LookmarkInspectorId,
+	 ObjectInspectorId,
+	 PipelineBrowserId,
+	 StatisticsViewId,
+
+	 // Menu "Sources"
+	 // TODO...
+
+	 // Menu "Filters"
+	 // TODO...
+
+	 // Menu "Animation"
+	 FirstFrameId,
+	 PreviousFrameId,
+	 PlayId,
+	 NextFrameId,
+	 LastFrameId,
+	 LoopId,
+
+	 // Menu "Tools" 
+	 CreateCustomFilterId,
+	 ManageCustomFiltersId,
+	 CreateLookmarkId,
+	 ManageLinksId,
+	 AddCameraLinkId,
+	 ManagePluginsExtensionsId,
+	 DumpWidgetNamesId,
+	 RecordTestId,
+	 RecordTestScreenshotId,
+	 PlayTestId,
+	 MaxWindowSizeId,
+	 TimerLogId,
+	 OutputWindowId,
+	 PythonShellId,
+
+	 // Menu "Help" 
+	 AboutParaViewId,
+	 ParaViewHelpId,
+	 EnableTooltipsId
+
+         /*
+         lgLoadFile = 931,   //!< load text file
+	 lgSaveFile,         //!< save text file
+	 lgDisplayLine,      //!< display selected line
+	 lgEraseLine,        //!< erase selected line
+	 lgEditLine,         //!< edit selected line
+	 lgAddLine,          //!< insert new line
+	 lgDelLine,          //!< delete selected line
+	 lgClear             //!< clear all contents
+	 */
+  };
 
 public:
   PVGUI_Module();
@@ -76,10 +175,21 @@ private:
  
   //! Create actions for ParaView GUI operations
   //! duplicating menus and toolbars in pqMainWindow ParaView class
-  void                   pvCreateActions();  
+  void                   pvCreateActions();
+
+  //! Create menus for ParaView GUI operations
+  //! duplicating menus in pqMainWindow ParaView class
+  void                   pvCreateMenus();
+
+  //! Create toolbars for ParaView GUI operations
+  //! duplicating toolbars in pqMainWindow ParaView class
+  void                   pvCreateToolBars();
 
   //! Create dock widgets for ParaView widgets
   void                   setupDockWidgets();
+
+  //! Create dock widgets context menus
+  void                   setupDockWidgetsContextMenu();
 
   //! Shows or hides ParaView view window
   void                   showView( bool );    
@@ -87,13 +197,36 @@ private:
   //! Returns QMenu object for a given menu id
   QMenu*                 getMenu( const int );
 
+private slots:
+  void onUndoLabel( const QString& );
+  void onRedoLabel( const QString& );
+  
+  void onCameraUndoLabel( const QString& );
+  void onCameraRedoLabel( const QString& );
+
+  void onDeleteAll();
+
+  void onSelectionModeChanged(int mode);
+
+  void onShowCenterAxisChanged(bool);
+
+  void setTimeRanges(double, double);
+
+  void onPlaying(bool);
+  
+  void onAddCameraLink();
+  
+  void onHelpAbout();
+
 public slots:
   virtual bool           activateModule( SUIT_Study* );
   virtual bool           deactivateModule( SUIT_Study* );
 
 private:
   class pqImplementation;
-  pqImplementation*                 Implementation;
+  pqImplementation*      Implementation;
+
+  int                    mySelectionControlsTb;
 };
 
 #endif // PVGUI_Module_H

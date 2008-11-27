@@ -24,37 +24,41 @@
 //
 
 #include "PVGUI_Module.h"
+#include "PVGUI_Module_impl.h"
 #include "PVGUI_ProcessModuleHelper.h"
 #include "PVGUI_ViewModel.h"
 #include "PVGUI_ViewManager.h"
 #include "PVGUI_ViewWindow.h"
 
-#include <SUIT_MessageBox.h>
 #include <SUIT_Desktop.h>
+#include <SUIT_MessageBox.h>
+#include <SUIT_ResourceMgr.h>
 #include <SUIT_Session.h>
 #include <LightApp_Application.h>
 #include <LightApp_SelectionMgr.h>
-#include <QtxActionMenuMgr.h>
+#include <QtxActionToolMgr.h>
 
+#include <QAction>
 #include <QApplication>
-#include <QDockWidget>
-#include <QInputDialog>
-#include <QStringList>
-#include <QMenu>
 #include <QIcon>
+#include <QInputDialog>
 #include <QString>
+#include <QStringList>
+#include <QToolBar>
 
-#include <pqOptions.h>
 #include <pqApplicationCore.h>
 #include <pqActiveServer.h>
-#include <pqComparativeVisPanel.h>
-#include <pqMainWindowCore.h>
+#include <pqActiveView.h>
+#include <pqClientAboutDialog.h>
 #include <pqObjectBuilder.h>
-#include <pqPipelineBrowser.h>
-#include <pqPipelineMenu.h>
+#include <pqOptions.h>
+#include <pqRenderView.h>
+#include <pqRubberBandHelper.h>
 #include <pqServer.h>
 #include <pqServerManagerModel.h>
 #include <pqServerResource.h>
+#include <pqUndoStack.h>
+#include <pqVCRController.h>
 #include <pqViewManager.h>
 #include <vtkPVMain.h>
 #include <vtkProcessModule.h>
@@ -124,49 +128,6 @@ void ParaViewInitializeInterpreter(vtkProcessModule* pm)
   vtkPVFiltersCS_Initialize(pm->GetInterpreter());
   vtkXdmfCS_Initialize(pm->GetInterpreter());
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// PVGUI_Module::pqImplementation
-
-class PVGUI_Module::pqImplementation
-{
-public:
-  pqImplementation(QWidget* parent) :
-    //AssistantClient(0),
-    Core(parent)//,
-    //RecentFilesMenu(0),
-    //ViewMenu(0),
-    //ToolbarsMenu(0)
-  {
-  }
-
-  ~pqImplementation()
-  {
-    //delete this->ViewMenu;
-    //delete this->ToolbarsMenu;
-    //if(this->AssistantClient)
-    //  {
-    //  this->AssistantClient->closeAssistant();
-    //  delete this->AssistantClient;
-    //  }
-  }
-
-  //QPointer<QAssistantClient> AssistantClient;
-  //Ui::MainWindow UI;
-  pqMainWindowCore Core;
-  //pqRecentFilesMenu* RecentFilesMenu;
-  //pqViewMenu* ViewMenu;
-  //pqViewMenu* ToolbarsMenu;
-  //QLineEdit* CurrentTimeWidget;
-  //QSpinBox* CurrentTimeIndexWidget;
-  QPointer<pqServer> ActiveServer;
-  QString DocumentationDir;
-
-  static vtkPVMain* myPVMain;
-  static pqOptions* myPVOptions;
-  static PVGUI_ProcessModuleHelper* myPVHelper;
-};
-
 
 vtkPVMain*                 PVGUI_Module::pqImplementation::myPVMain = 0;
 pqOptions*                 PVGUI_Module::pqImplementation::myPVOptions = 0;
@@ -376,163 +337,163 @@ void PVGUI_Module::showView( bool toShow )
     PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( wnd );
     pvWnd->setMultiViewManager( &Implementation->Core.multiViewManager() );
 
-    pvCreateActions();
     setupDockWidgets();
+    
+    pvCreateActions();
+    pvCreateMenus();
+    pvCreateToolBars();
+    
+    setupDockWidgetsContextMenu();
 
     // Now that we're ready, initialize everything ...
     Implementation->Core.initializeStates();
   }
 }
- 
+
 /*!
-  \brief Create actions for ParaView GUI operations
-  duplicating menus and toolbars in MainWindow class of
-  the standard ParaView GUI client application.
-
-  In particular, ParaView is responsible for updating "Sources" and "Filters" menus. 
-  For this, specific menu managers created by pqMainWindowCore class are used, and PVGUI_Module
-  is responsible for creation of corresponding QMenu objects only.
+  \brief Manage the label of Undo operation.
 */
-void PVGUI_Module::pvCreateActions()
+void PVGUI_Module::onUndoLabel(const QString& label)
 {
-  // TODO...
-  SUIT_Desktop* desk = application()->desktop();
+  action(UndoId)->setText(
+    label.isEmpty() ? tr("Can't Undo") : QString(tr("&Undo %1")).arg(label));
+  action(UndoId)->setStatusTip(
+    label.isEmpty() ? tr("Can't Undo") : QString(tr("Undo %1")).arg(label));
+}
 
-  // Manage plug-ins
-  int actionManagePlugins = 999;
-  createAction( actionManagePlugins, tr( "TOP_MANAGE_PLUGINS" ), QIcon(), tr( "MEN_MANAGE_PLUGINS" ),
-                tr( "STB_MANAGE_PLUGINS" ), 0, desk, false, &Implementation->Core, SLOT( onManagePlugins() ) );
-  int aPVMnu = createMenu( tr( "MEN_TOOLS" ), -1, -1, 50 );
-  createMenu( actionManagePlugins, aPVMnu, 10 );
+/*!
+  \brief Manage the label of Redo operation.
+*/
+void PVGUI_Module::onRedoLabel(const QString& label)
+{
+  action(RedoId)->setText(
+    label.isEmpty() ? tr("Can't Redo") : QString(tr("&Redo %1")).arg(label));
+  action(RedoId)->setStatusTip(
+    label.isEmpty() ? tr("Can't Redo") : QString(tr("Redo %1")).arg(label));
+}
 
-  // Install ParaView managers for "Sources" and "Filters" menus
-  QMenu* res = 0;
-  aPVMnu = createMenu( tr( "Sources" ), -1, -1, 60 );
-  res = getMenu( aPVMnu );
-  if ( res ){
-    Implementation->Core.setSourceMenu( res );
-    connect(&this->Implementation->Core,
-            SIGNAL(enableSourceCreate(bool)),
-            res,
-            SLOT(setEnabled(bool)));
-  }
-  aPVMnu = createMenu( tr( "Filters" ), -1, -1, 70 );
-  res = getMenu( aPVMnu );
-  if ( res ){
-    Implementation->Core.setFilterMenu( res );
-    connect(&this->Implementation->Core,
-            SIGNAL(enableFilterCreate(bool)),
-            res,
-            SLOT(setEnabled(bool)));
+/*!
+  \brief Manage the label of Undo Camera operation.
+*/
+void PVGUI_Module::onCameraUndoLabel(const QString& label)
+{
+  action(CameraUndoId)->setText(
+    label.isEmpty() ? tr("Can't Undo Camera") : QString(tr("U&ndo %1")).arg(label));
+  action(CameraUndoId)->setStatusTip(
+    label.isEmpty() ? tr("Can't Undo Camera") : QString(tr("Undo %1")).arg(label));
+}
+
+/*!
+  \brief Manage the label of Redo Camera operation.
+*/
+void PVGUI_Module::onCameraRedoLabel(const QString& label)
+{
+  action(CameraRedoId)->setText(
+    label.isEmpty() ? tr("Can't Redo Camera") : QString(tr("R&edo %1")).arg(label));
+  action(CameraRedoId)->setStatusTip(
+    label.isEmpty() ? tr("Can't Redo Camera") : QString(tr("Redo %1")).arg(label));
+}
+
+/*!
+  \brief Slot to delete all objects.
+*/
+void PVGUI_Module::onDeleteAll()
+{
+  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
+  Implementation->Core.getApplicationUndoStack()->beginUndoSet("Delete All");
+  builder->destroyPipelineProxies();
+  Implementation->Core.getApplicationUndoStack()->endUndoSet();
+}
+
+/*!
+  \brief Slot to check/uncheck the action for corresponding selection mode.
+*/
+void PVGUI_Module::onSelectionModeChanged(int mode)
+{
+  if( toolMgr()->toolBar( mySelectionControlsTb )->isEnabled() ) {
+    if(mode == pqRubberBandHelper::SELECT) //surface selection
+      action(SelectCellsOnId)->setChecked(true);
+    else if(mode == pqRubberBandHelper::SELECT_POINTS) //surface selection
+      action(SelectPointsOnId)->setChecked(true);
+    else if(mode == pqRubberBandHelper::FRUSTUM)
+      action(SelectCellsThroughId)->setChecked(true);
+    else if(mode == pqRubberBandHelper::FRUSTUM_POINTS)
+      action(SelectPointsThroughId)->setChecked(true);
+    else if (mode == pqRubberBandHelper::BLOCKS)
+      action(SelectBlockId)->setChecked(true);
+    else // INTERACT
+      action(InteractId)->setChecked(true);
   }
 }
 
+/*!
+  \brief Slot to manage the change of axis center.
+*/
+void PVGUI_Module::onShowCenterAxisChanged(bool enabled)
+{
+  action(ShowCenterId)->setEnabled(enabled);
+  action(ShowCenterId)->blockSignals(true);
+  pqRenderView* renView = qobject_cast<pqRenderView*>(
+    pqActiveView::instance().current());
+  action(ShowCenterId)->setChecked( renView ? renView->getCenterAxesVisibility() : false);
+  action(ShowCenterId)->blockSignals(false);
+}
 
 /*!
-  \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
-  ParaView pqMainWIndowCore class is fully responsible for these dock widgets' contents.
+  \brief Slot to set tooltips for the first anf the last frames, i.e. a time range of animation.
 */
-void PVGUI_Module::setupDockWidgets()
+void PVGUI_Module::setTimeRanges(double start, double end)
 {
-  SUIT_Desktop* desk = application()->desktop();
+  action(FirstFrameId)->setToolTip(QString("First Frame (%1)").arg(start, 0, 'g'));
+  action(LastFrameId)->setToolTip(QString("Last Frame (%1)").arg(end, 0, 'g'));
+}
 
-  // See ParaView src/Applications/Client/MainWindow.cxx
-  QDockWidget* pipelineBrowserDock = new QDockWidget( tr( "Pipeline Browser" ), desk );
-  pipelineBrowserDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, pipelineBrowserDock );
-  Implementation->Core.setupPipelineBrowser( pipelineBrowserDock );
-  pqPipelineBrowser *browser = Implementation->Core.pipelineBrowser();
-  Implementation->Core.pipelineMenu().setModels(browser->getModel(), browser->getSelectionModel());
-  // TODO...
-  /*connect(this->Implementation->UI.actionChangeInput, SIGNAL(triggered()),
-    browser, SLOT(changeInput()));
-  connect(this->Implementation->UI.actionDelete, SIGNAL(triggered()),
-    browser, SLOT(deleteSelected()));
-  pqPipelineBrowserContextMenu *browserMenu =
-    new pqPipelineBrowserContextMenu(browser);
-  browserMenu->setMenuAction(this->Implementation->UI.actionFileOpen);
-  browserMenu->setMenuAction(this->Implementation->UI.actionChangeInput);
-  browserMenu->setMenuAction(this->Implementation->UI.actionDelete);
-  browserMenu->setMenuAction(this->Implementation->UI.actionToolsCreateCustomFilter);*/
+/*!
+  \brief Slot to manage the plaing process of animation.
+*/
+void PVGUI_Module::onPlaying(bool playing)
+{
+  SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
+  if(playing) {
+    disconnect( action(PlayId),                        SIGNAL( triggered() ),
+		&Implementation->Core.VCRController(), SLOT( onPlay() ) );
+    connect( action(PlayId),                        SIGNAL( triggered() ),
+	     &Implementation->Core.VCRController(), SLOT( onPause() ) );
+    action(PlayId)->setIcon(QIcon(resMgr->loadPixmap("ParaView",tr("ICON_PAUSE"),false)));
+    action(PlayId)->setText("Pa&use");
+  }
+  else {
+    connect( action(PlayId),                        SIGNAL( triggered() ),
+	     &Implementation->Core.VCRController(), SLOT( onPlay() ) );
+    disconnect( action(PlayId),                        SIGNAL( triggered() ),
+		&Implementation->Core.VCRController(), SLOT( onPause() ) );
+    action(PlayId)->setIcon(QIcon(resMgr->loadPixmap("ParaView",tr("ICON_PLAY"),false)));
+    action(PlayId)->setText("&Play");
+  }
 
-  QDockWidget* objectInspectorDock = new QDockWidget( tr( "Object Inspector" ), desk );
-  objectInspectorDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, objectInspectorDock );
-  pqProxyTabWidget* const proxyTab = Implementation->Core.setupProxyTabWidget( objectInspectorDock );
-  // TODO...
-  /*  QObject::connect(
-    proxyTab->getObjectInspector(),
-    SIGNAL(helpRequested(QString)),
-    this,
-    SLOT(showHelpForProxy(QString)));
+  Implementation->Core.setSelectiveEnabledState(!playing);
+}
 
-  QObject::connect(
-    proxyTab->getObjectInspector(),
-    SIGNAL(preaccept()),
-    this,
-    SLOT(onPreAccept()));
+/*!
+  \brief Slot to add camera link.
+*/
+void PVGUI_Module::onAddCameraLink()
+{
+  pqView* vm = pqActiveView::instance().current();
+  pqRenderView* rm = qobject_cast<pqRenderView*>(vm);
+  if(rm) rm->linkToOtherView();
+  else SUIT_MessageBox::warning(getApp()->desktop(),
+				tr("WARNING"), tr("WRN_ADD_CAMERA_LINK"));
+}
 
-  QObject::connect(
-    proxyTab->getObjectInspector(),
-    SIGNAL(postaccept()),
-    this,
-    SLOT(onPostAccept()));*/
-
-  QDockWidget* statisticsViewDock  = new QDockWidget( tr( "Statistics View" ), desk );
-  statisticsViewDock->setAllowedAreas( Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
-  desk->addDockWidget( Qt::BottomDockWidgetArea, statisticsViewDock );
-  Implementation->Core.setupStatisticsView( statisticsViewDock );
-
-  QDockWidget* animationPanelDock  = new QDockWidget( tr( "Animation Inspector" ), desk );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, animationPanelDock );
-  pqAnimationPanel* animation_panel = Implementation->Core.setupAnimationPanel( animationPanelDock );
-  // TODO...
-  /*  animation_panel->setCurrentTimeToolbar(
-      this->Implementation->UI.currentTimeToolbar);*/
-
-  QDockWidget* lookmarkBrowserDock = new QDockWidget( tr( "Lookmark Browser" ), desk );
-  QSizePolicy sp( QSizePolicy::Preferred, QSizePolicy::Preferred );
-  sp.setHorizontalStretch( 0 );
-  sp.setVerticalStretch( 0 );
-  lookmarkBrowserDock->setSizePolicy( sp );
-  lookmarkBrowserDock->setFloating( false );
-  desk->addDockWidget( Qt::RightDockWidgetArea, lookmarkBrowserDock );
-  Implementation->Core.setupLookmarkBrowser( lookmarkBrowserDock );
-
-  QDockWidget* lookmarkInspectorDock = new QDockWidget( tr( "Lookmark Inspector" ), desk );
-  lookmarkInspectorDock->setAllowedAreas( Qt::RightDockWidgetArea );
-  desk->addDockWidget( Qt::RightDockWidgetArea, lookmarkInspectorDock );
-  Implementation->Core.setupLookmarkInspector( lookmarkInspectorDock );
-
-  QDockWidget* comparativePanelDock  = new QDockWidget( tr( "Comparative View Inspector" ), desk );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, comparativePanelDock );
-  pqComparativeVisPanel* cv_panel    = new pqComparativeVisPanel( comparativePanelDock );
-  comparativePanelDock->setWidget(cv_panel);
-
-  QDockWidget* animationViewDock     = new QDockWidget( tr( "Animation View" ), desk );
-  desk->addDockWidget( Qt::BottomDockWidgetArea, animationViewDock );
-  Implementation->Core.setupAnimationView( animationViewDock );
-
-  QDockWidget* selectionInspectorDock = new QDockWidget( tr( "Selection Inspector" ), desk );
-  selectionInspectorDock->setAllowedAreas( Qt::AllDockWidgetAreas );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, selectionInspectorDock );
-  Implementation->Core.setupSelectionInspector( selectionInspectorDock );
-
-  // Setup the statusbar ...
-  Implementation->Core.setupProgressBar( desk->statusBar() );
-
-  // Set up the dock window corners to give the vertical docks more room.
-  desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-  desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
-  // Setup the default dock configuration ...
-  lookmarkBrowserDock->hide();
-  lookmarkInspectorDock->hide();
-  statisticsViewDock->hide();
-  animationPanelDock->hide();
-  comparativePanelDock->hide();
-  animationViewDock->hide();
-  selectionInspectorDock->hide();
+/*!
+  \brief Slot to show information about ParaView.
+*/
+void PVGUI_Module::onHelpAbout()
+{
+  pqClientAboutDialog* const dialog = new pqClientAboutDialog(getApp()->desktop());
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->show();
 }
 
 /*!
@@ -544,18 +505,6 @@ pqViewManager* PVGUI_Module::getMultiViewManager() const
   if ( Implementation )
     aMVM = &Implementation->Core.multiViewManager();
   return aMVM;
-}
-
-QMenu* PVGUI_Module::getMenu( const int id )
-{
-  QMenu* res = 0;
-  LightApp_Application* anApp = getApp();
-  SUIT_Desktop* desk = anApp->desktop();
-  if ( desk ){
-    QtxActionMenuMgr* menuMgr = desk->menuMgr();
-    res = menuMgr->findMenu( id );
-  }
-  return res;
 }
 
 /*!
