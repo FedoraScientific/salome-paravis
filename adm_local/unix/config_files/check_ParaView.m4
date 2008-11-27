@@ -108,15 +108,29 @@ fi
 
 if test "x$with_paraview" != "x" ; then
   PVHOME="$with_paraview"
-else
+fi
+
+if test -z $PVSRCHOME ; then
   if test -z $PVHOME ; then
-    AC_MSG_WARN(undefined PVHOME variable which specify where ParaView is located)
-  else
-    LOCAL_INCLUDES="-I$PVHOME/src/VTK/Common -I$PVHOME/src/VTK/Filtering -I$PVHOME/src/VTK/GenericFiltering -I$PVHOME/src/VTK/Graphics -I$PVHOME/src/VTK/Hybrid -I$PVHOME/src/VTK/Imaging -I$PVHOME/src/VTK/Infovis -I$PVHOME/src/VTK/IO -I$PVHOME/src/VTK/Parallel -I$PVHOME/src/VTK/Rendering -I$PVHOME/src/VTK/Utilities -I$PVHOME/src/VTK/Views -I$PVHOME/src/VTK/VolumeRendering -I$PVHOME/src/VTK/Widgets -I$PVHOME/src/Common/KWCommon -I$PVHOME/src/Qt/Core -I$PVHOME/src/Qt/Chart -I$PVHOME/src/Qt/Widgets -I$PVHOME/src/Qt/Python -I$PVHOME/src/Qt/Components -I$PVHOME/src/Servers/Common -I$PVHOME/src/Servers/ServerManager -I$PVHOME/src/Servers/Filters -I$PVHOME/src/Utilities/VTKClientServer -I$PVHOME/bin/VTK -I$PVHOME/bin/VTK/Common -I$PVHOME/bin/VTK/Filtering -I$PVHOME/bin/VTK/GenericFiltering -I$PVHOME/bin/VTK/Graphics -I$PVHOME/bin/VTK/Hybrid -I$PVHOME/bin/VTK/Imaging -I$PVHOME/bin/VTK/Infovis -I$PVHOME/bin/VTK/IO -I$PVHOME/bin/VTK/Parallel -I$PVHOME/bin/VTK/Rendering -I$PVHOME/bin/VTK/Utilities -I$PVHOME/bin/VTK/Views -I$PVHOME/bin/VTK/VolumeRendering -I$PVHOME/bin/VTK/Widgets -I$PVHOME/bin/Qt/Core -I$PVHOME/bin/Qt/Chart -I$PVHOME/bin/Qt/Widgets -I$PVHOME/bin/Qt/Python -I$PVHOME/bin/Qt/Components -I$PVHOME/bin/Servers/Common -I$PVHOME/bin/Servers/ServerManager -I$PVHOME/bin/Servers/Filters -I$PVHOME/bin/Utilities/VTKClientServer $LOCAL_INCLUDES"
-    LOCAL_LIBS="-L$PVHOME/bin/bin $LOCAL_LIBS"
-    TRY_LINK_LIBS="-L$PVHOME/bin/bin $TRY_LINK_LIBS"    
+    AC_MSG_WARN(undefined PVHOME and PVSRCHOME variables which specify where ParaView is located)
+  else 
+    PVSRCHOME="$PVHOME/src"
   fi
 fi
+
+if test -z $PVINSTALLHOME ; then
+  if test -z $PVHOME ; then
+    AC_MSG_WARN(undefined PVHOME and PVINSTALLHOME variables which specify where ParaView is located)
+  else
+    PVINSTALLHOME="$PVHOME/bin"
+  fi
+fi
+    
+LOCAL_INCLUDES="-I$PVSRCHOME/VTK/Common -I$PVSRCHOME/Qt/Core -I$PVSRCHOME/Qt/Components -I$PVSRCHOME/Servers/Filters -I$PVSRCHOME/Servers/Common -I$PVSRCHOME/Utilities/VTKClientServer -I$PVSRCHOME/VTK/Filtering -I$PVSRCHOME/VTK/GenericFiltering -I$PVSRCHOME/VTK/Graphics -I$PVSRCHOME/VTK/Hybrid -I$PVSRCHOME/VTK/Imaging -I$PVSRCHOME/VTK/Infovis -I$PVSRCHOME/VTK/IO -I$PVSRCHOME/VTK/Parallel -I$PVSRCHOME/VTK/Rendering -I$PVSRCHOME/VTK/Utilities -I$PVSRCHOME/VTK/Views -I$PVSRCHOME/VTK/VolumeRendering -I$PVSRCHOME/VTK/Widgets -I$PVINSTALLHOME/Qt/Core -I$PVINSTALLHOME/Qt/Components -I$PVINSTALLHOME/Utilities/VTKClientServer -I$PVINSTALLHOME/Servers/Common -I$PVINSTALLHOME/Servers/Filters -I$PVINSTALLHOME/Servers/ServerManager -I$PVINSTALLHOME/VTK -I$PVINSTALLHOME/VTK/Common -I$PVINSTALLHOME/VTK/Filtering -I$PVINSTALLHOME/VTK/GenericFiltering -I$PVINSTALLHOME/VTK/Graphics -I$PVINSTALLHOME/VTK/Hybrid -I$PVINSTALLHOME/VTK/Imaging -I$PVINSTALLHOME/VTK/Infovis -I$PVINSTALLHOME/VTK/IO -I$PVINSTALLHOME/VTK/Parallel -I$PVINSTALLHOME/VTK/Rendering -I$PVINSTALLHOME/VTK/Utilities -I$PVINSTALLHOME/VTK/Views -I$PVINSTALLHOME/VTK/VolumeRendering -I$PVINSTALLHOME/VTK/Widgets $LOCAL_INCLUDES"
+
+#LOCAL_LIBS="-L$PVINSTALLHOME/bin -lvtksys -lvtkzlib -lvtkpng -lvtkjpeg -lvtktiff -lvtkexpat -lvtksqlite -lvtkmetaio -lvtkverdict -lvtkNetCDF -lvtkDICOMParser -lvtkfreetype -lvtkftgl -lvtkexoIIc -licet -licet_mpi -licet_strategies $LOCAL_LIBS"
+
+TRY_LINK_LIBS="-L$PVINSTALLHOME/bin -lvtksys $TRY_LINK_LIBS"
 
 dnl vtk headers
 CPPFLAGS_old="$CPPFLAGS"
