@@ -173,7 +173,8 @@ then
   AC_MSG_WARN(unable to link with ParaView component library)
 else
   AC_MSG_RESULT(yes)
-  PARAVIEW_LIBS="$LOCAL_LIBS"
+  #PARAVIEW_LIBS="$LOCAL_LIBS"
+  PARAVIEW_LIBS="$TRY_LINK_LIBS"
 fi
 
 AC_MSG_RESULT(for ParaView: $paraview_ok)
