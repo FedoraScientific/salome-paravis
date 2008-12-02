@@ -165,6 +165,10 @@
         <translation>Open File</translation>
     </message>
     <message>
+        <source>MEN_OPEN</source>
+        <translation>&amp;Open</translation>
+    </message>
+    <message>
         <source>MEN_OPEN_FILE</source>
         <translation>&amp;Open File...</translation>
     </message>

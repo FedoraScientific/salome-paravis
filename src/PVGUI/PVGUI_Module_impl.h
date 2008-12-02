@@ -28,6 +28,9 @@
 
 #include "PVGUI_Module.h"
 
+#include <QAssistantClient>
+#include <QPointer>
+
 #include <pqMainWindowCore.h>
 
 //////////////////////////////////////////////////////////////////////////////
@@ -37,7 +40,7 @@ class PVGUI_Module::pqImplementation
 {
  public:
   pqImplementation(QWidget* parent) :
-    //AssistantClient(0),
+    AssistantClient(0),
     Core(parent)//,
     //RecentFilesMenu(0),
     //ViewMenu(0),
@@ -49,14 +52,13 @@ class PVGUI_Module::pqImplementation
   {
     //delete this->ViewMenu;
     //delete this->ToolbarsMenu;
-    //if(this->AssistantClient)
-    //  {
-    //  this->AssistantClient->closeAssistant();
-    //  delete this->AssistantClient;
-    //  }
+    if(this->AssistantClient) {
+      this->AssistantClient->closeAssistant();
+      delete this->AssistantClient;
+    }
   }
   
-  //QPointer<QAssistantClient> AssistantClient;
+  QPointer<QAssistantClient> AssistantClient;
   //Ui::MainWindow UI;
   pqMainWindowCore Core;
   //pqRecentFilesMenu* RecentFilesMenu;

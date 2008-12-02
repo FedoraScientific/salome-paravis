@@ -1,4 +1,4 @@
-// LIGHT : sample (no-corba-engine) SALOME module
+// PARAVIS : ParaView wrapper SALOME module
 //
 // Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -40,10 +40,16 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QCursor>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QIcon>
 #include <QInputDialog>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 #include <QToolBar>
 
 #include <pqApplicationCore.h>
@@ -353,7 +359,7 @@ void PVGUI_Module::showView( bool toShow )
 /*!
   \brief Manage the label of Undo operation.
 */
-void PVGUI_Module::onUndoLabel(const QString& label)
+void PVGUI_Module::onUndoLabel( const QString& label )
 {
   action(UndoId)->setText(
     label.isEmpty() ? tr("Can't Undo") : QString(tr("&Undo %1")).arg(label));
@@ -364,7 +370,7 @@ void PVGUI_Module::onUndoLabel(const QString& label)
 /*!
   \brief Manage the label of Redo operation.
 */
-void PVGUI_Module::onRedoLabel(const QString& label)
+void PVGUI_Module::onRedoLabel( const QString& label )
 {
   action(RedoId)->setText(
     label.isEmpty() ? tr("Can't Redo") : QString(tr("&Redo %1")).arg(label));
@@ -375,7 +381,7 @@ void PVGUI_Module::onRedoLabel(const QString& label)
 /*!
   \brief Manage the label of Undo Camera operation.
 */
-void PVGUI_Module::onCameraUndoLabel(const QString& label)
+void PVGUI_Module::onCameraUndoLabel( const QString& label )
 {
   action(CameraUndoId)->setText(
     label.isEmpty() ? tr("Can't Undo Camera") : QString(tr("U&ndo %1")).arg(label));
@@ -386,7 +392,7 @@ void PVGUI_Module::onCameraUndoLabel(const QString& label)
 /*!
   \brief Manage the label of Redo Camera operation.
 */
-void PVGUI_Module::onCameraRedoLabel(const QString& label)
+void PVGUI_Module::onCameraRedoLabel( const QString& label )
 {
   action(CameraRedoId)->setText(
     label.isEmpty() ? tr("Can't Redo Camera") : QString(tr("R&edo %1")).arg(label));
@@ -408,7 +414,7 @@ void PVGUI_Module::onDeleteAll()
 /*!
   \brief Slot to check/uncheck the action for corresponding selection mode.
 */
-void PVGUI_Module::onSelectionModeChanged(int mode)
+void PVGUI_Module::onSelectionModeChanged( int mode )
 {
   if( toolMgr()->toolBar( mySelectionControlsTb )->isEnabled() ) {
     if(mode == pqRubberBandHelper::SELECT) //surface selection
@@ -429,7 +435,7 @@ void PVGUI_Module::onSelectionModeChanged(int mode)
 /*!
   \brief Slot to manage the change of axis center.
 */
-void PVGUI_Module::onShowCenterAxisChanged(bool enabled)
+void PVGUI_Module::onShowCenterAxisChanged( bool enabled )
 {
   action(ShowCenterId)->setEnabled(enabled);
   action(ShowCenterId)->blockSignals(true);
@@ -442,7 +448,7 @@ void PVGUI_Module::onShowCenterAxisChanged(bool enabled)
 /*!
   \brief Slot to set tooltips for the first anf the last frames, i.e. a time range of animation.
 */
-void PVGUI_Module::setTimeRanges(double start, double end)
+void PVGUI_Module::setTimeRanges( double start, double end )
 {
   action(FirstFrameId)->setToolTip(QString("First Frame (%1)").arg(start, 0, 'g'));
   action(LastFrameId)->setToolTip(QString("Last Frame (%1)").arg(end, 0, 'g'));
@@ -451,7 +457,7 @@ void PVGUI_Module::setTimeRanges(double start, double end)
 /*!
   \brief Slot to manage the plaing process of animation.
 */
-void PVGUI_Module::onPlaying(bool playing)
+void PVGUI_Module::onPlaying( bool playing )
 {
   SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
   if(playing) {
@@ -494,6 +500,166 @@ void PVGUI_Module::onHelpAbout()
   pqClientAboutDialog* const dialog = new pqClientAboutDialog(getApp()->desktop());
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->show();
+}
+
+/*!
+  \brief Slot to show help for proxy.
+*/
+void PVGUI_Module::showHelpForProxy( const QString& proxy )
+{
+  // make sure assistant is ready
+  this->makeAssistant();
+
+  if(this->Implementation->AssistantClient) {
+    this->Implementation->AssistantClient->openAssistant();
+    QString page("%1/Documentation/%2.html");
+    page = page.arg(this->Implementation->DocumentationDir);
+    page = page.arg(proxy);
+    this->Implementation->AssistantClient->showPage(page);
+  }
+}
+
+QString Locate( const QString& appName )
+{
+  QString app_dir = QCoreApplication::applicationDirPath();
+  const char* inst_dirs[] = {
+    "/./",
+    "/../bin/",
+    "/../../bin/",
+    0
+  };
+  for (const char** dir = inst_dirs; *dir; ++dir) {
+    QString path = app_dir;
+    path += *dir;
+    path += appName;
+    //cout << "Checking : " << path.toAscii().data() << " ... ";
+    //cout.flush();
+    QFileInfo finfo (path);
+    if (finfo.exists()) {
+      //cout << " Success!" << endl;
+      return path;
+    }
+    //cout << " Failed" << endl;
+  }
+  return app_dir + QDir::separator() + appName;
+}
+
+/*!
+  \brief Initialized an assistant client.
+*/
+void PVGUI_Module::makeAssistant()
+{
+  if(this->Implementation->AssistantClient)
+    return;
+  
+  QString assistantExe;
+  QString profileFile;
+  
+  const char* assistantName = "assistant";
+#ifdef WNT
+  const char* extString = ".exe";
+  const char* binDir = "\\";
+  const char* binDir1 = "\\..\\";
+#else
+  const char* extString = "";
+  const char* binDir = "/";
+  const char* binDir1 = "/";
+#endif
+
+  QString assistantProgName;
+  assistantProgName = assistantProgName + assistantName + extString;
+
+  QString helper = QCoreApplication::applicationDirPath() + binDir + QString("pqClientDocFinder.txt");
+  if(!QFile::exists(helper))
+    helper = QCoreApplication::applicationDirPath() + binDir1 + QString("pqClientDocFinder.txt");
+  if(QFile::exists(helper)) {
+    QFile file(helper);
+    if(file.open(QIODevice::ReadOnly)) {
+      assistantExe = file.readLine().trimmed() + assistantProgName;
+      profileFile = file.readLine().trimmed();
+    }
+  }
+
+  if(assistantExe.isEmpty()) {
+    assistantExe = ::Locate(assistantProgName);
+    /*
+    QString assistant = QCoreApplication::applicationDirPath();
+    assistant += QDir::separator();
+    assistant += assistantName;
+    assistantExe = assistant;
+    */
+  }
+
+  this->Implementation->AssistantClient = new QAssistantClient(assistantExe, this);
+  QObject::connect(this->Implementation->AssistantClient, SIGNAL(error(const QString&)),
+                   this,                                  SLOT(assistantError(const QString&)));
+
+  QStringList args;
+  args.append(QString("-profile"));
+
+  if(profileFile.isEmpty()) {
+    // see if help is bundled up with the application
+    QString profile = ::Locate("pqClient.adp");
+    /*QCoreApplication::applicationDirPath() + QDir::separator()
+      + QString("pqClient.adp");*/
+    
+    if(QFile::exists(profile))
+      profileFile = profile;
+  }
+
+  if(profileFile.isEmpty() && getenv("PARAVIEW_HELP")) {
+    // not bundled, ask for help
+    args.append(getenv("PARAVIEW_HELP"));
+  }
+  else if(profileFile.isEmpty()) {
+    // no help, error out
+    SUIT_MessageBox::critical(getApp()->desktop(),"Help error", "Couldn't find"
+			      " pqClient.adp.\nTry setting the PARAVIEW_HELP environment variable which"
+			      " points to that file");
+    delete this->Implementation->AssistantClient;
+    return;
+  }
+
+  QFileInfo fi(profileFile);
+  this->Implementation->DocumentationDir = fi.absolutePath();
+
+  args.append(profileFile);
+
+  this->Implementation->AssistantClient->setArguments(args);
+}
+
+/*!
+  \brief Slot to call the message handler with the critical message.
+*/
+void PVGUI_Module::assistantError( const QString& error )
+{
+  qCritical(error.toAscii().data());
+}
+
+/*!
+  \brief Slot to show the waiting state.
+*/
+void PVGUI_Module::onPreAccept()
+{
+  getApp()->desktop()->statusBar()->showMessage(tr("Updating..."));
+  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+}
+
+/*!
+  \brief Slot to show the ready state.
+*/
+void PVGUI_Module::onPostAccept()
+{
+  getApp()->desktop()->statusBar()->showMessage(tr("Ready"), 2000);
+  QTimer::singleShot(0, this, SLOT(endWaitCursor()));
+}
+
+/*!
+  \brief Slot to switch off wait cursor.
+*/
+void PVGUI_Module::endWaitCursor()
+{
+  QApplication::restoreOverrideCursor();
 }
 
 /*!

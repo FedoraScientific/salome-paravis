@@ -1,4 +1,4 @@
-// LIGHT : sample (no-corba-engine) SALOME module
+// PARAVIS : ParaView wrapper SALOME module
 //
 // Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -29,13 +29,17 @@
 #include <LightApp_Application.h>
 #include <SUIT_Desktop.h>
 
+#include <QAction>
 #include <QDockWidget>
 
 #include <pqAnimationPanel.h>
 #include <pqComparativeVisPanel.h>
 #include <pqMainWindowCore.h>
+#include <pqObjectInspectorWidget.h>
 #include <pqPipelineBrowser.h>
+#include <pqPipelineBrowserContextMenu.h>
 #include <pqPipelineMenu.h>
+#include <pqProxyTabWidget.h>
 
 /*!
   \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
@@ -57,25 +61,13 @@ void PVGUI_Module::setupDockWidgets()
   objectInspectorDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, objectInspectorDock );
   pqProxyTabWidget* const proxyTab = Implementation->Core.setupProxyTabWidget( objectInspectorDock );
-  // TODO...
-  /*  QObject::connect(
-    proxyTab->getObjectInspector(),
-    SIGNAL(helpRequested(QString)),
-    this,
-    SLOT(showHelpForProxy(QString)));
-
-  QObject::connect(
-    proxyTab->getObjectInspector(),
-    SIGNAL(preaccept()),
-    this,
-    SLOT(onPreAccept()));
-
-  QObject::connect(
-    proxyTab->getObjectInspector(),
-    SIGNAL(postaccept()),
-    this,
-    SLOT(onPostAccept()));*/
-
+  connect( proxyTab->getObjectInspector(), SIGNAL( helpRequested(QString) ),
+	   this,                           SLOT( showHelpForProxy(QString) ) );
+  connect( proxyTab->getObjectInspector(), SIGNAL( preaccept() ),
+	   this,                           SLOT( onPreAccept() ) );
+  connect( proxyTab->getObjectInspector(), SIGNAL( postaccept() ),
+	   this,                           SLOT( onPostAccept() ) );
+  
   QDockWidget* statisticsViewDock  = new QDockWidget( tr( "Statistics View" ), desk );
   statisticsViewDock->setAllowedAreas( Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::BottomDockWidgetArea, statisticsViewDock );
@@ -136,16 +128,21 @@ void PVGUI_Module::setupDockWidgets()
 */
 void PVGUI_Module::setupDockWidgetsContextMenu()
 {
+  // Pipeline menu
+  Implementation->Core.pipelineMenu().setMenuAction( pqPipelineMenu::ChangeInputAction,
+						     action(ChangeInputId) );
+  Implementation->Core.pipelineMenu().setMenuAction( pqPipelineMenu::DeleteAction,
+						     action(DeleteId) );
+
+  // Pipeline Browser menu
   pqPipelineBrowser *browser = Implementation->Core.pipelineBrowser();
-  // TODO...
-  /*connect(this->Implementation->UI.actionChangeInput, SIGNAL(triggered()),
-    browser, SLOT(changeInput()));
-  connect(this->Implementation->UI.actionDelete, SIGNAL(triggered()),
-    browser, SLOT(deleteSelected()));
-  pqPipelineBrowserContextMenu *browserMenu =
-    new pqPipelineBrowserContextMenu(browser);
-  browserMenu->setMenuAction(this->Implementation->UI.actionFileOpen);
-  browserMenu->setMenuAction(this->Implementation->UI.actionChangeInput);
-  browserMenu->setMenuAction(this->Implementation->UI.actionDelete);
-  browserMenu->setMenuAction(this->Implementation->UI.actionToolsCreateCustomFilter);*/
+  pqPipelineBrowserContextMenu *browserMenu = new pqPipelineBrowserContextMenu(browser);
+
+  browserMenu->setMenuAction(action(OpenFileId));
+  if ( action(OpenFileId)->text().compare(tr("MEN_OPEN")) == 0 )
+    action(OpenFileId)->setText(tr("MEN_OPEN_FILE"));
+
+  browserMenu->setMenuAction(action(ChangeInputId));
+  browserMenu->setMenuAction(action(DeleteId));
+  browserMenu->setMenuAction(action(CreateCustomFilterId));
 }

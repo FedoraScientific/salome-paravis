@@ -206,17 +206,25 @@ private slots:
 
   void onDeleteAll();
 
-  void onSelectionModeChanged(int mode);
+  void onSelectionModeChanged( int mode );
 
-  void onShowCenterAxisChanged(bool);
+  void onShowCenterAxisChanged( bool );
 
-  void setTimeRanges(double, double);
+  void setTimeRanges( double, double );
 
-  void onPlaying(bool);
+  void onPlaying( bool );
   
   void onAddCameraLink();
   
   void onHelpAbout();
+
+  void showHelpForProxy( const QString& proxy );
+  void makeAssistant();
+  void assistantError( const QString& err );
+  
+  void onPreAccept();
+  void onPostAccept();
+  void endWaitCursor();
 
 public slots:
   virtual bool           activateModule( SUIT_Study* );

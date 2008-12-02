@@ -56,6 +56,7 @@ nodist_libPARAVIS_la_SOURCES = $(MOC_FILES)
 # additionnal compilation flags
 libPARAVIS_la_CPPFLAGS = \
 	$(QT_INCLUDES) \
+	$(QT_ASSISTANT_INCLUDES) \
 	$(PARAVIEW_INCLUDES) \
 	$(CAS_CPPFLAGS) \
 	$(PYTHON_INCLUDES) \
@@ -63,6 +64,7 @@ libPARAVIS_la_CPPFLAGS = \
 
 # additionnal linkage flags
 libPARAVIS_la_LDFLAGS = \
+	$(QT_ASSISTANT_LIBS) \
 	$(PARAVIEW_LIBS) \
 	$(GUI_LDFLAGS) \
 	-lLightApp 

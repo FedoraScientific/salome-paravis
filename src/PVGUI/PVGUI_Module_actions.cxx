@@ -1,4 +1,4 @@
-// LIGHT : sample (no-corba-engine) SALOME module
+// PARAVIS : ParaView wrapper SALOME module
 //
 // Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -67,7 +67,7 @@ void PVGUI_Module::pvCreateActions()
   // Open File
   aPixmap = resMgr->loadPixmap( "ParaView", tr("ICON_OPEN_FILE"), false );
   createAction( OpenFileId, tr("TOP_OPEN_FILE"), QIcon(aPixmap),
-                tr("MEN_OPEN_FILE"), tr("STB_OPEN_FILE"), 
+                tr("MEN_OPEN"), tr("STB_OPEN_FILE"), 
 		0, desk, false, &Implementation->Core, SLOT( onFileOpen() ) );
 
   // Load State
@@ -533,6 +533,7 @@ void PVGUI_Module::pvCreateActions()
 			      tr("MEN_ENABLE_TOOLTIPS"), 0, desk );
   aQtxAction->setStatusTip( tr( "PRP_APP_ENABLE_TOOLTIPS" ) );
   aQtxAction->setCheckable(true);
+  aQtxAction->setChecked(true);
   registerAction( EnableTooltipsId, aQtxAction );
 }
 
@@ -744,6 +745,7 @@ void PVGUI_Module::pvCreateToolBars()
   // --- Toolbar "Active Variable Controls"
 
   aToolId = createTool( tr("TOOL_ACTIVE_VARIABLE_CONTROLS") );
+  QToolBar* aTB = toolMgr()->toolBar( aToolId );
   
   createTool( ShowColorLegendId, aToolId );
 
@@ -772,11 +774,20 @@ void PVGUI_Module::pvCreateToolBars()
   colorScale->setRescaleAction( aQtxAction ); /// !!!
   createTool( ResetRangeId, aToolId );
 
+  Implementation->Core.setupVariableToolbar(aTB);
+  QList<QAction*> anActns = aTB->actions();
+  for (int i = 0; i < anActns.size(); ++i)
+    if ( anActns.at(i) != action(ShowColorLegendId) ) {
+      createTool( anActns.at(i), aToolId );
+      connect( &Implementation->Core, SIGNAL( enableVariableToolbar(bool) ),
+	       anActns.at(i),         SLOT( setEnabled(bool) ) );
+    }
+  
   // --- Toolbar "Representation"
 
-  QToolBar* aTB = toolMgr()->toolBar( createTool( tr("TOOL_REPRESENTATION") ) );
+  aTB = toolMgr()->toolBar( createTool( tr("TOOL_REPRESENTATION") ) );
   Implementation->Core.setupRepresentationToolbar(aTB);
-  QList<QAction*> anActns = aTB->actions();
+  anActns = aTB->actions();
   for (int i = 0; i < anActns.size(); ++i)
     connect( &Implementation->Core, SIGNAL( enableVariableToolbar(bool) ),
 	     anActns.at(i),         SLOT( setEnabled(bool) ) );
@@ -811,7 +822,10 @@ void PVGUI_Module::pvCreateToolBars()
  
   // --- Toolbar "Lookmarks"
 
-  Implementation->Core.setupLookmarkToolbar(toolMgr()->toolBar(createTool( tr("TOOL_LOOKMARKS") )));
+  aTB = toolMgr()->toolBar(createTool( tr("TOOL_LOOKMARKS") ));
+  aTB->setContextMenuPolicy(Qt::CustomContextMenu);
+  aTB->setOrientation(Qt::Vertical);
+  Implementation->Core.setupLookmarkToolbar(aTB);
 }
 
 /*!
