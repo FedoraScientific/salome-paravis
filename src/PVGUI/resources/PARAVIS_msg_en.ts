@@ -184,6 +184,10 @@
         <translation>Open File</translation>
     </message>
     <message>
+        <source>MEN_RECENT_FILES</source>
+        <translation>Recent Files</translation>
+    </message>
+    <message>
         <source>TOP_LOAD_STATE</source>
         <translation>Load State</translation>
     </message>

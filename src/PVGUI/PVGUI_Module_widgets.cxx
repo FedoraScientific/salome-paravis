@@ -51,6 +51,7 @@ void PVGUI_Module::setupDockWidgets()
 
   // See ParaView src/Applications/Client/MainWindow.cxx
   QDockWidget* pipelineBrowserDock = new QDockWidget( tr( "Pipeline Browser" ), desk );
+  pipelineBrowserDock->setObjectName("pipelineBrowserDock");
   pipelineBrowserDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, pipelineBrowserDock );
   Implementation->Core.setupPipelineBrowser( pipelineBrowserDock );
@@ -58,6 +59,7 @@ void PVGUI_Module::setupDockWidgets()
   Implementation->Core.pipelineMenu().setModels(browser->getModel(), browser->getSelectionModel());
 
   QDockWidget* objectInspectorDock = new QDockWidget( tr( "Object Inspector" ), desk );
+  objectInspectorDock->setObjectName("objectInspectorDock");
   objectInspectorDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, objectInspectorDock );
   pqProxyTabWidget* const proxyTab = Implementation->Core.setupProxyTabWidget( objectInspectorDock );
@@ -69,16 +71,19 @@ void PVGUI_Module::setupDockWidgets()
 	   this,                           SLOT( onPostAccept() ) );
   
   QDockWidget* statisticsViewDock  = new QDockWidget( tr( "Statistics View" ), desk );
+  statisticsViewDock->setObjectName("statisticsViewDock");
   statisticsViewDock->setAllowedAreas( Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::BottomDockWidgetArea, statisticsViewDock );
   Implementation->Core.setupStatisticsView( statisticsViewDock );
 
   QDockWidget* animationPanelDock  = new QDockWidget( tr( "Animation Inspector" ), desk );
+  animationPanelDock->setObjectName("animationPanelDock");
   desk->addDockWidget( Qt::LeftDockWidgetArea, animationPanelDock );
   pqAnimationPanel* animation_panel = Implementation->Core.setupAnimationPanel( animationPanelDock );
   animation_panel->setCurrentTimeToolbar(toolMgr()->toolBar(createTool( tr("TOOL_CURRENT_TIME_CONTROLS") )));
 
   QDockWidget* lookmarkBrowserDock = new QDockWidget( tr( "Lookmark Browser" ), desk );
+  lookmarkBrowserDock->setObjectName("lookmarkBrowserDock");
   QSizePolicy sp( QSizePolicy::Preferred, QSizePolicy::Preferred );
   sp.setHorizontalStretch( 0 );
   sp.setVerticalStretch( 0 );
@@ -88,20 +93,24 @@ void PVGUI_Module::setupDockWidgets()
   Implementation->Core.setupLookmarkBrowser( lookmarkBrowserDock );
 
   QDockWidget* lookmarkInspectorDock = new QDockWidget( tr( "Lookmark Inspector" ), desk );
+  lookmarkInspectorDock->setObjectName("lookmarkInspectorDock");
   lookmarkInspectorDock->setAllowedAreas( Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::RightDockWidgetArea, lookmarkInspectorDock );
   Implementation->Core.setupLookmarkInspector( lookmarkInspectorDock );
 
   QDockWidget* comparativePanelDock  = new QDockWidget( tr( "Comparative View Inspector" ), desk );
+  comparativePanelDock->setObjectName("comparativePanelDock");
   desk->addDockWidget( Qt::LeftDockWidgetArea, comparativePanelDock );
   pqComparativeVisPanel* cv_panel    = new pqComparativeVisPanel( comparativePanelDock );
   comparativePanelDock->setWidget(cv_panel);
 
   QDockWidget* animationViewDock     = new QDockWidget( tr( "Animation View" ), desk );
+  animationViewDock->setObjectName("animationViewDock");
   desk->addDockWidget( Qt::BottomDockWidgetArea, animationViewDock );
   Implementation->Core.setupAnimationView( animationViewDock );
 
   QDockWidget* selectionInspectorDock = new QDockWidget( tr( "Selection Inspector" ), desk );
+  selectionInspectorDock->setObjectName("selectionInspectorDock");
   selectionInspectorDock->setAllowedAreas( Qt::AllDockWidgetAreas );
   desk->addDockWidget( Qt::LeftDockWidgetArea, selectionInspectorDock );
   Implementation->Core.setupSelectionInspector( selectionInspectorDock );

@@ -557,31 +557,29 @@ void PVGUI_Module::makeAssistant()
   
   const char* assistantName = "assistant";
 #ifdef WNT
-  const char* extString = ".exe";
   const char* binDir = "\\";
   const char* binDir1 = "\\..\\";
 #else
-  const char* extString = "";
-  const char* binDir = "/";
-  const char* binDir1 = "/";
+  const char* binDir = "/bin/";
+  const char* binDir1 = "/bin/bin/";
 #endif
 
-  QString assistantProgName;
-  assistantProgName = assistantProgName + assistantName + extString;
-
-  QString helper = QCoreApplication::applicationDirPath() + binDir + QString("pqClientDocFinder.txt");
+  QString helper = QString(getenv("PVHOME")) + binDir + QString("pqClientDocFinder.txt");
   if(!QFile::exists(helper))
-    helper = QCoreApplication::applicationDirPath() + binDir1 + QString("pqClientDocFinder.txt");
+    helper = QString(getenv("PVHOME")) + binDir1 + QString("pqClientDocFinder.txt");
   if(QFile::exists(helper)) {
     QFile file(helper);
     if(file.open(QIODevice::ReadOnly)) {
-      assistantExe = file.readLine().trimmed() + assistantProgName;
+      assistantExe = file.readLine().trimmed();
       profileFile = file.readLine().trimmed();
+      // CMake escapes spaces, we need to unescape those.
+      assistantExe.replace("\\ ", " ");
+      profileFile.replace("\\ ", " ");
     }
   }
 
   if(assistantExe.isEmpty()) {
-    assistantExe = ::Locate(assistantProgName);
+    assistantExe = ::Locate(assistantName);//assistantExe = ::Locate(assistantProgName);
     /*
     QString assistant = QCoreApplication::applicationDirPath();
     assistant += QDir::separator();

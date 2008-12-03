@@ -551,6 +551,14 @@ void PVGUI_Module::pvCreateMenus()
   int aPVMnu = createMenu( tr( "MEN_DESK_FILE" ), -1, -1 );
 
   createMenu( OpenFileId, aPVMnu, 5 );
+
+  // Recent Files
+  Implementation->RecentFilesMenu =
+    new pqRecentFilesMenu( *menuMgr()->findMenu( createMenu( tr( "MEN_RECENT_FILES" ), aPVMnu, -1, 5 ) ),
+			   getApp()->desktop() );
+  connect( Implementation->RecentFilesMenu, SIGNAL( serverConnectFailed() ),
+	   &Implementation->Core,           SLOT( makeDefaultConnectionIfNoneExists() ) );
+
   createMenu( separator(), aPVMnu, -1, 5 );
 
   createMenu( LoadStateId, aPVMnu, 15 );

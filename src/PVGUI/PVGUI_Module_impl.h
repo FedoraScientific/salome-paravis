@@ -32,6 +32,7 @@
 #include <QPointer>
 
 #include <pqMainWindowCore.h>
+#include <pqRecentFilesMenu.h>
 
 //////////////////////////////////////////////////////////////////////////////
 // PVGUI_Module::pqImplementation
@@ -41,8 +42,8 @@ class PVGUI_Module::pqImplementation
  public:
   pqImplementation(QWidget* parent) :
     AssistantClient(0),
-    Core(parent)//,
-    //RecentFilesMenu(0),
+    Core(parent),
+    RecentFilesMenu(0)//,
     //ViewMenu(0),
     //ToolbarsMenu(0)
   {
@@ -61,7 +62,7 @@ class PVGUI_Module::pqImplementation
   QPointer<QAssistantClient> AssistantClient;
   //Ui::MainWindow UI;
   pqMainWindowCore Core;
-  //pqRecentFilesMenu* RecentFilesMenu;
+  pqRecentFilesMenu* RecentFilesMenu;
   //pqViewMenu* ViewMenu;
   //pqViewMenu* ToolbarsMenu;
   //QLineEdit* CurrentTimeWidget;
