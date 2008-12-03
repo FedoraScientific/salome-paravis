@@ -159,6 +159,13 @@
     </message>
 </context>
 <context>
+    <name>PVGUI_ViewManager</name>
+    <message>
+	<source>PARAVIEW_VIEW_TITLE</source>
+	<translation>ParaView scene:%M - viewer:%V</translation>
+    </message>
+</context>
+<context>
     <name>PVGUI_Module</name>
     <message>
         <source>TOP_OPEN_FILE</source>
