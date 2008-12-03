@@ -169,70 +169,17 @@ void PVGUI_Module::initialize( CAM_Application* app )
 {
   LightApp_Module::initialize( app );
 
+  // Uncomment to debug ParaView initialization
+  // "aa" used instead of "i" as GDB doesn't like "i" variables :)
   /*
-  int i = 1;
-  while( i ){
-    i = i;
+  int aa = 1;
+  while( aa ){
+    aa = aa;
   }
   */
-
+  
   pvInit();
 
-  /*
-  createAction( lgLoadFile, tr( "TOP_LOAD_FILE" ), QIcon(), tr( "MEN_LOAD_FILE" ),
-                tr( "STB_LOAD_FILE" ), 0, desk, false, this, SLOT( onLoadFile() ) );
-  createAction( lgDisplayLine, tr( "TOP_DISPLAY_LINE" ), QIcon(), tr( "MEN_DISPLAY_LINE" ),
-                tr( "STB_DISPLAY_LINE" ), 0, desk, false, this, SLOT( onDisplayLine() ) );
-  createAction( lgEraseLine, tr( "TOP_ERASE_LINE" ), QIcon(), tr( "MEN_ERASE_LINE" ),
-                tr( "STB_ERASE_LINE" ), 0, desk, false, this, SLOT( onEraseLine() ) );
-  createAction( lgSaveFile, tr( "TOP_SAVE_FILE" ), QIcon(), tr( "MEN_SAVE_FILE" ),
-                tr( "STB_SAVE_FILE" ), 0, desk, false, this, SLOT( onSaveFile() ) );
-  createAction( lgEditLine, tr( "TOP_EDIT_LINE" ), QIcon(), tr( "MEN_EDIT_LINE" ),
-                tr( "STB_EDIT_LINE" ), 0, desk, false, this, SLOT( onEditLine() ) );
-  createAction( lgAddLine,  tr( "TOP_ADD_LINE" ),  QIcon(), tr( "MEN_ADD_LINE" ),
-                tr( "STB_ADD_LINE" ),  0, desk, false, this, SLOT( onAddLine() ) );
-  createAction( lgDelLine,  tr( "TOP_DEL_LINE" ),  QIcon(), tr( "MEN_DEL_LINE" ),
-                tr( "STB_DEL_LINE" ),  0, desk, false, this, SLOT( onDelLine() ) );
-  createAction( lgClear,    tr( "TOP_CLEAR_ALL" ), QIcon(), tr( "MEN_CLEAR_ALL" ),
-                tr( "STB_CLEAR_ALL" ), 0, desk, false, this, SLOT( onClear() ) );
-
-  int aFileMnu = createMenu( tr( "MEN_FILE" ), -1, -1 );
-  createMenu( separator(), aFileMnu, -1, 10 );
-  createMenu( lgLoadFile,  aFileMnu, 10 );
-  createMenu( lgSaveFile,  aFileMnu, 10 );
-
-  int aLightMnu = createMenu( tr( "MEN_LIGHT" ), -1, -1, 50 );
-  createMenu( lgAddLine,      aLightMnu, 10 );
-  createMenu( lgEditLine,     aLightMnu, 10 );
-  createMenu( lgDelLine,      aLightMnu, 10 );
-  createMenu( separator(),    aLightMnu, -1, 10 );
-  createMenu( lgClear,        aLightMnu, 10 );
-
-  QString rule = "(client='ObjectBrowser' or client='OCCViewer') and selcount=1 and type='TextLine' and !empty";
-
-  popupMgr()->insert ( action( lgDisplayLine ), -1, 0 );
-  popupMgr()->setRule( action( lgDisplayLine ), rule + " and !visible"  );
-
-  popupMgr()->insert ( action( lgEraseLine ), -1, 0 );
-  popupMgr()->setRule( action( lgEraseLine ), rule + " and activeView='OCCViewer' and visible"  );
-
-  rule = "client='ObjectBrowser' and selcount=1 and type='TextLine'";
-
-  popupMgr()->insert ( action( lgEditLine ), -1, 0 );
-  popupMgr()->setRule( action( lgEditLine ), rule  );
-
-  popupMgr()->insert ( action( lgAddLine ),  -1, 0 );
-  popupMgr()->setRule( action( lgAddLine ),  rule );
-
-  popupMgr()->insert ( separator(),          -1, 0 );
-
-  popupMgr()->insert ( action( lgDelLine ),  -1, 0 );
-  popupMgr()->setRule( action( lgDelLine ),  rule );
-
-  rule = "client='ObjectBrowser'";
-
-  popupMgr()->insert ( action( lgClear ),    -1, 0 );
-  popupMgr()->setRule( action( lgClear ),    rule );*/
 }
 
 /*!
@@ -242,8 +189,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
 void PVGUI_Module::windows( QMap<int, int>& m ) const
 {
   m.insert( LightApp_Application::WT_ObjectBrowser, Qt::LeftDockWidgetArea );
-  // TODO: creation of Python console leads to SIGSEGV on Python initialization...
-  //m.insert( LightApp_Application::WT_PyConsole, Qt::BottomDockWidgetArea );
+  m.insert( LightApp_Application::WT_PyConsole, Qt::BottomDockWidgetArea );
   // ParaView diagnostic output redirected here
   m.insert( LightApp_Application::WT_LogWindow, Qt::BottomDockWidgetArea );
 }

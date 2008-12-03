@@ -90,7 +90,6 @@ fi
 
 LOCAL_INCLUDES="$OGL_INCLUDES"
 LOCAL_LIBS="-lvtksys -lvtkzlib -lvtkpng -lvtkjpeg -lvtktiff -lvtkexpat -lvtksqlite -lvtkmetaio -lvtkverdict -lvtkNetCDF -lvtkDICOMParser -lvtkfreetype -lvtkftgl -lvtkexoIIc -lvtkhdf5 -lvtklibxml2 -lvtkCommon -lvtkGraphics -lvtkImaging -lvtkFiltering -lvtkIO -lvtkRendering -lvtkHybrid -lvtkParallel -lvtkWidgets -lvtkClientServer -lvtkCommonCS -lvtkFilteringCS -lvtkIOCS -lvtkImagingCS -lvtkGraphicsCS -lvtkGenericFiltering -lvtkGenericFilteringCS -lvtkRenderingCS -lvtkHybridCS -lvtkParallelCS -lvtkPVCommandOptions -lKWCommon -lvtkInfovis -lvtkInfovisCS -lvtkPVServerCommon -lvtkPVServerCommonCS -lvtkCommonPythonD -lvtkFilteringPythonD -lvtkIOPythonD -lXdmf -lvtkXdmf -lvtkXdmfCS -lvtkWidgetsCS -lvtkVolumeRendering -lvtkVolumeRenderingCS -lvtkPVFilters -lvtkPVFiltersCS -lvtkViews -lvtkPVServerManagerPythonD -lvtkPVServerCommonPythonD -lvtkPVPythonInterpretor -lvtkPVServerManager -lQVTK -lpqWidgets -lQtTesting -lQtChart -lpqCore -lQtPython -lpqComponents $LXLIB -lX11 -lXt"
-TRY_LINK_LIBS="$LOCAL_LIBS"
 
 dnl VTK install dir
 if test -z $with_paraview ; then
@@ -128,9 +127,7 @@ fi
     
 LOCAL_INCLUDES="-I$PVSRCHOME/VTK/Common -I$PVSRCHOME/Qt/Core -I$PVSRCHOME/Qt/Components -I$PVSRCHOME/Servers/Filters -I$PVSRCHOME/Servers/Common -I$PVSRCHOME/Servers/Filters -I$PVSRCHOME/Servers/ServerManager -I$PVSRCHOME/Utilities/VTKClientServer -I$PVSRCHOME/VTK/Filtering -I$PVSRCHOME/VTK/GenericFiltering -I$PVSRCHOME/VTK/Graphics -I$PVSRCHOME/VTK/Hybrid -I$PVSRCHOME/VTK/Imaging -I$PVSRCHOME/VTK/Infovis -I$PVSRCHOME/VTK/IO -I$PVSRCHOME/VTK/Parallel -I$PVSRCHOME/VTK/Rendering -I$PVSRCHOME/VTK/Utilities -I$PVSRCHOME/VTK/Views -I$PVSRCHOME/VTK/VolumeRendering -I$PVSRCHOME/VTK/Widgets -I$PVINSTALLHOME/Qt/Core -I$PVINSTALLHOME/Qt/Components -I$PVINSTALLHOME/Utilities/VTKClientServer -I$PVINSTALLHOME/Servers/Common -I$PVINSTALLHOME/Servers/Filters -I$PVINSTALLHOME/Servers/ServerManager -I$PVINSTALLHOME/VTK -I$PVINSTALLHOME/VTK/Common -I$PVINSTALLHOME/VTK/Filtering -I$PVINSTALLHOME/VTK/GenericFiltering -I$PVINSTALLHOME/VTK/Graphics -I$PVINSTALLHOME/VTK/Hybrid -I$PVINSTALLHOME/VTK/Imaging -I$PVINSTALLHOME/VTK/Infovis -I$PVINSTALLHOME/VTK/IO -I$PVINSTALLHOME/VTK/Parallel -I$PVINSTALLHOME/VTK/Rendering -I$PVINSTALLHOME/VTK/Utilities -I$PVINSTALLHOME/VTK/Views -I$PVINSTALLHOME/VTK/VolumeRendering -I$PVINSTALLHOME/VTK/Widgets $LOCAL_INCLUDES"
 
-#LOCAL_LIBS="-L$PVINSTALLHOME/bin -lvtksys -lvtkzlib -lvtkpng -lvtkjpeg -lvtktiff -lvtkexpat -lvtksqlite -lvtkmetaio -lvtkverdict -lvtkNetCDF -lvtkDICOMParser -lvtkfreetype -lvtkftgl -lvtkexoIIc -licet -licet_mpi -licet_strategies $LOCAL_LIBS"
-
-TRY_LINK_LIBS="-L$PVINSTALLHOME/bin -lvtksys $TRY_LINK_LIBS"
+LOCAL_LIBS="-L$PVINSTALLHOME/bin $LOCAL_LIBS"
 
 dnl vtk headers
 CPPFLAGS_old="$CPPFLAGS"
@@ -149,7 +146,7 @@ then
    AC_MSG_CHECKING(linking ParaView component library)
 
    LIBS_old="$LIBS"
-   LIBS="$LIBS $QT_LIBS $TRY_LINK_LIBS"
+   LIBS="$LIBS $QT_LIBS $LOCAL_LIBS"
    CPPFLAGS_old="$CPPFLAGS"
    CPPFLAGS="$CPPFLAGS $QT_INCLUDES $PARAVIEW_INCLUDES"
 
@@ -173,8 +170,7 @@ then
   AC_MSG_WARN(unable to link with ParaView component library)
 else
   AC_MSG_RESULT(yes)
-  #PARAVIEW_LIBS="$LOCAL_LIBS"
-  PARAVIEW_LIBS="$TRY_LINK_LIBS"
+  PARAVIEW_LIBS="$LOCAL_LIBS"
 fi
 
 AC_MSG_RESULT(for ParaView: $paraview_ok)
