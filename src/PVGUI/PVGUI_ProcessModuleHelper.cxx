@@ -5,16 +5,32 @@
 
 
 #include "PVGUI_ProcessModuleHelper.h"
+#include "PVGUI_OutputWindowAdapter.h"
 
-//#include <pqApplicationCore.h>
 #include <vtkObjectFactory.h>
-//#include <vtkPVConfig.h>
+#include <vtkOutputWindow.h>
+#include <vtkSmartPointer.h>
 
 vtkStandardNewMacro(PVGUI_ProcessModuleHelper);
 vtkCxxRevisionMacro(PVGUI_ProcessModuleHelper, "$Revision$");
 
+class PVGUI_ProcessModuleHelper::pqImplementation
+{
+public:
+  pqImplementation() :
+    OutputWindowAdapter(vtkSmartPointer<PVGUI_OutputWindowAdapter>::New())
+  {}
+
+  ~pqImplementation()
+  {}
+
+  //! Displays VTK debug output in SALOME log window
+  vtkSmartPointer<PVGUI_OutputWindowAdapter> OutputWindowAdapter;
+};
+
 //-----------------------------------------------------------------------------
 PVGUI_ProcessModuleHelper::PVGUI_ProcessModuleHelper()
+  : Implementation(new pqImplementation())
 {
 }
 
@@ -62,18 +78,8 @@ void PVGUI_ProcessModuleHelper::hideWindow()
 int PVGUI_ProcessModuleHelper::InitializeApplication(int argc, char** argv)
 {
   if ( pqProcessModuleGUIHelper::InitializeApplication( argc, argv ) ){
-    // TODO: Redirect VTK debug output to SALOME GUI message console ...
-    /*this->Implementation->OutputWindow = new pqOutputWindow(0);
-    this->Implementation->OutputWindow->setAttribute(Qt::WA_QuitOnClose, false);
-    this->Implementation->OutputWindow->connect(this->Implementation->OutputWindowAdapter,
-                                                SIGNAL(displayText(const QString&)), SLOT(onDisplayText(const QString&)));
-    this->Implementation->OutputWindow->connect(this->Implementation->OutputWindowAdapter,
-                                                SIGNAL(displayErrorText(const QString&)), SLOT(onDisplayErrorText(const QString&)));
-    this->Implementation->OutputWindow->connect(this->Implementation->OutputWindowAdapter,
-                                                SIGNAL(displayWarningText(const QString&)), SLOT(onDisplayWarningText(const QString&)));
-    this->Implementation->OutputWindow->connect(this->Implementation->OutputWindowAdapter,
-                                                SIGNAL(displayGenericWarningText(const QString&)), SLOT(onDisplayGenericWarningText(const QString&)));
-    vtkOutputWindow::SetInstance(Implementation->OutputWindowAdapter);*/
+    // Redirect VTK debug output to SALOME GUI message console 
+    vtkOutputWindow::SetInstance(Implementation->OutputWindowAdapter);
   }
 
   return 1;

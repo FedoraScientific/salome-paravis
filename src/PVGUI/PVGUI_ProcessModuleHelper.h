@@ -44,7 +44,6 @@ public:
   vtkTypeRevisionMacro(PVGUI_ProcessModuleHelper, pqProcessModuleGUIHelper);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-
   //! Compares the contents of the window with the given reference image, returns true iff they "match" within some tolerance
   virtual  bool compareView(const QString& ReferenceImage, double Threshold, ostream& Output, const QString& TempDirectory);
 
@@ -78,9 +77,15 @@ protected:
   //! Called by vtkProcessModule,  but we cannot exit here.
   virtual void ExitApplication();
 
+  //! Returns the number of errors registered in the OutputWindow
+  //virtual int ErrorCount();
+
 private:
   PVGUI_ProcessModuleHelper(const PVGUI_ProcessModuleHelper&); // Not implemented.
   void operator=(const PVGUI_ProcessModuleHelper&); // Not implemented.
+
+  class pqImplementation;
+  pqImplementation* const Implementation;
 };
 
 #endif

@@ -42,7 +42,9 @@ dist_libPARAVIS_la_SOURCES =	\
 	PVGUI_ViewModel.h \
 	PVGUI_ViewModel.cxx \
 	PVGUI_ViewWindow.h \
-	PVGUI_ViewWindow.cxx
+	PVGUI_ViewWindow.cxx \
+	PVGUI_OutputWindowAdapter.h \
+	PVGUI_OutputWindowAdapter.cxx
 
 # MOC pre-processing
 MOC_FILES = \
