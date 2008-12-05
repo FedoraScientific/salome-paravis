@@ -168,6 +168,42 @@
 <context>
     <name>PVGUI_Module</name>
     <message>
+        <source>TTL_PIPELINE_BROWSER</source>
+        <translation>Pipeline Browser</translation>
+    </message>
+    <message>
+        <source>TTL_OBJECT_INSPECTOR</source>
+        <translation>Object Inspector</translation>
+    </message>
+    <message>
+        <source>TTL_STATISTICS_VIEW</source>
+        <translation>Statistics View</translation>
+    </message>
+    <message>
+        <source>TTL_ANIMATION_INSPECTOR</source>
+        <translation>Animation Inspector</translation>
+    </message>
+    <message>
+        <source>TTL_LOOKMARK_BROWSER</source>
+        <translation>Lookmark Browser</translation>
+    </message>
+    <message>
+        <source>TTL_LOOKMARK_INSPECTOR</source>
+        <translation>Lookmark Inspector</translation>
+    </message>
+    <message>
+        <source>TTL_COMPARATIVE_VIEW_INSPECTOR</source>
+        <translation>Comparative View Inspector</translation>
+    </message>
+    <message>
+        <source>TTL_ANIMATION_VIEW</source>
+        <translation>Animation View</translation>
+    </message>
+    <message>
+        <source>TTL_SELECTION_INSPECTOR</source>
+        <translation>Selection Inspector</translation>
+    </message>
+    <message>
         <source>TOP_OPEN_FILE</source>
         <translation>Open File</translation>
     </message>
@@ -177,7 +213,7 @@
     </message>
     <message>
         <source>MEN_OPEN_FILE</source>
-        <translation>&amp;Open File...</translation>
+        <translation>&amp;Open ParaView File...</translation>
     </message>
     <message>
         <source>STB_OPEN_FILE</source>
@@ -185,7 +221,7 @@
     </message>
     <message>
         <source>MEN_RECENT_FILES</source>
-        <translation>Recent Files</translation>
+        <translation>Recent ParaView Files</translation>
     </message>
     <message>
         <source>TOP_LOAD_STATE</source>
@@ -304,6 +340,18 @@
         <translation>&amp;Undo</translation>
     </message>
     <message>
+        <source>MEN_CANTUNDO</source>
+        <translation>Can't Undo</translation>
+    </message>
+    <message>
+        <source>MEN_UNDO_ACTION</source>
+        <translation>&amp;Undo %1</translation>
+    </message>
+    <message>
+        <source>MEN_UNDO_ACTION_TIP</source>
+        <translation>Undo %1</translation>
+    </message>
+    <message>
         <source>STB_UNDO</source>
         <translation>Undoes the last operation</translation>
     </message>
@@ -318,6 +366,18 @@
     <message>
         <source>MEN_REDO</source>
         <translation>&amp;Redo</translation>
+    </message>
+    <message>
+        <source>MEN_CANTREDO</source>
+        <translation>Can't Redo</translation>
+    </message>
+    <message>
+        <source>MEN_REDO_ACTION</source>
+        <translation>&amp;Redo %1</translation>
+    </message>
+    <message>
+        <source>MEN_REDO_ACTION_TIP</source>
+        <translation>Redo %1</translation>
     </message>
     <message>
         <source>STB_REDO</source>
@@ -336,6 +396,18 @@
         <translation>Camera Undo</translation>
     </message>
     <message>
+        <source>MEN_CANT_CAMERA_UNDO</source>
+        <translation>Can't Undo Camera</translation>
+    </message>
+    <message>
+        <source>MEN_CAMERA_UNDO_ACTION</source>
+        <translation>U&amp;ndo %1</translation>
+    </message>
+    <message>
+        <source>MEN_CAMERA_UNDO_ACTION_TIP</source>
+        <translation>Undo %1</translation>
+    </message>
+    <message>
         <source>STB_CAMERA_UNDO</source>
         <translation>Undoes the last camera operation</translation>
     </message>
@@ -350,6 +422,18 @@
     <message>
         <source>MEN_CAMERA_REDO</source>
         <translation>Camera Redo</translation>
+    </message>
+    <message>
+        <source>MEN_CANT_CAMERA_REDO</source>
+        <translation>Can't Redo Camera</translation>
+    </message>
+    <message>
+        <source>MEN_CAMERA_REDO_ACTION</source>
+        <translation>R&amp;edo %1</translation>
+    </message>
+    <message>
+        <source>MEN_CAMERA_REDO_ACTION_TIP</source>
+        <translation>Redo %1</translation>
     </message>
     <message>
         <source>STB_CAMERA_REDO</source>
@@ -950,6 +1034,14 @@
     <message>
         <source>STB_ENABLE_TOOLTIPS</source>
         <translation>Enable Tooltips</translation>
+    </message>
+    <message>
+        <source>STB_PREACCEPT</source>
+        <translation>Updating...</translation>
+    </message>
+    <message>
+        <source>STB_POSTACCEPT</source>
+        <translation>Ready</translation>
     </message>
     <message>
         <source>TOOL_ACTIVE_VARIABLE_CONTROLS</source>

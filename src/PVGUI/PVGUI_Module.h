@@ -29,6 +29,7 @@
 #include <LightApp_Module.h>
 
 class QMenu;
+class QDockWidget;
 class LightApp_Selection;
 class LightApp_SelectionMgr;
 class PVGUI_ProcessModuleHelper;
@@ -164,6 +165,8 @@ public:
 
   pqViewManager*         getMultiViewManager() const;
 
+  virtual bool           eventFilter( QObject*, QEvent* );
+
 protected:
   //virtual CAM_DataModel* createDataModel();
 
@@ -190,6 +193,12 @@ private:
 
   //! Create dock widgets context menus
   void                   setupDockWidgetsContextMenu();
+
+  //! Save states of dockable ParaView widgets
+  void                   saveDockWidgetsState();
+
+  //! Restore states of dockable ParaView widgets
+  void                   restoreDockWidgetsState();
 
   //! Shows or hides ParaView view window
   void                   showView( bool );    
@@ -235,6 +244,10 @@ private:
   pqImplementation*      Implementation;
 
   int                    mySelectionControlsTb;
+  int                    mySourcesMenuId;
+  int                    myFiltersMenuId;
+
+  QList<QDockWidget*>    myDockWidgets;
 };
 
 #endif // PVGUI_Module_H

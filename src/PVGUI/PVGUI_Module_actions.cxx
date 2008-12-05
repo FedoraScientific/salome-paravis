@@ -553,11 +553,15 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( OpenFileId, aPVMnu, 5 );
 
   // Recent Files
-  Implementation->RecentFilesMenu =
-    new pqRecentFilesMenu( *menuMgr()->findMenu( createMenu( tr( "MEN_RECENT_FILES" ), aPVMnu, -1, 5 ) ),
-			   getApp()->desktop() );
+  int aMenuId = createMenu( tr( "MEN_RECENT_FILES" ), aPVMnu, -1, 5 );
+  QMenu* aMenu = menuMgr()->findMenu( aMenuId );
+  Implementation->RecentFilesMenu = new pqRecentFilesMenu( *aMenu, getApp()->desktop() );
   connect( Implementation->RecentFilesMenu, SIGNAL( serverConnectFailed() ),
 	   &Implementation->Core,           SLOT( makeDefaultConnectionIfNoneExists() ) );
+  QList<QAction*> anActns = aMenu->actions();
+  for (int i = 0; i < anActns.size(); ++i)
+    createMenu( anActns.at(i), aMenuId );
+
 
   createMenu( separator(), aPVMnu, -1, 5 );
 
@@ -629,8 +633,8 @@ void PVGUI_Module::pvCreateMenus()
 
   // Install ParaView managers for "Sources" menu
   QMenu* aRes = 0;
-  aPVMnu = createMenu( tr( "MEN_DESK_SOURCES" ), -1, -1, 60 );
-  if ( (aRes = getMenu( aPVMnu )) ) {
+  mySourcesMenuId = createMenu( tr( "MEN_DESK_SOURCES" ), -1, -1, 60 );
+  if ( (aRes = getMenu( mySourcesMenuId )) ) {
     Implementation->Core.setSourceMenu( aRes );
     connect( &Implementation->Core, SIGNAL( enableSourceCreate(bool) ),
 	     aRes,                  SLOT( setEnabled(bool) ) );
@@ -639,8 +643,8 @@ void PVGUI_Module::pvCreateMenus()
   // --- Menu "Filters"
 
   // Install ParaView managers for "Filters" menu
-  aPVMnu = createMenu( tr( "MEN_DESK_FILTERS" ), -1, -1, 70 );
-  if ( (aRes = getMenu( aPVMnu )) ) {
+  myFiltersMenuId = createMenu( tr( "MEN_DESK_FILTERS" ), -1, -1, 70 );
+  if ( (aRes = getMenu( myFiltersMenuId )) ) {
     Implementation->Core.setFilterMenu( aRes );
     connect( &Implementation->Core, SIGNAL( enableFilterCreate(bool) ),
 	     aRes,                  SLOT( setEnabled(bool) ) );
@@ -793,12 +797,16 @@ void PVGUI_Module::pvCreateToolBars()
   
   // --- Toolbar "Representation"
 
-  aTB = toolMgr()->toolBar( createTool( tr("TOOL_REPRESENTATION") ) );
+  aToolId = createTool( tr("TOOL_REPRESENTATION") );
+  aTB = toolMgr()->toolBar( aToolId );
+
   Implementation->Core.setupRepresentationToolbar(aTB);
   anActns = aTB->actions();
-  for (int i = 0; i < anActns.size(); ++i)
+  for (int i = 0; i < anActns.size(); ++i) {
+    createTool( anActns.at(i), aToolId );
     connect( &Implementation->Core, SIGNAL( enableVariableToolbar(bool) ),
 	     anActns.at(i),         SLOT( setEnabled(bool) ) );
+  }
 
   // --- Toolbar "Camera Controls"
 
@@ -822,17 +830,23 @@ void PVGUI_Module::pvCreateToolBars()
 
   // --- Toolbar "Common Filters"
 
-  aTB = toolMgr()->toolBar( createTool( tr("TOOL_COMMON_FILTERS") ) );
+  aToolId = createTool( tr("TOOL_COMMON_FILTERS") );
+  aTB = toolMgr()->toolBar( aToolId );
+
   Implementation->Core.setupCommonFiltersToolbar(aTB);
-  //QList<QAction*> anActns = aTB->actions();
-  //for (int i = 0; i < anActns.size(); ++i)
-  //  createTool(anActns.at(i),aToolId); /// !!!
+  anActns = aTB->actions();
+  for (int i = 0; i < anActns.size(); ++i)
+    createTool( anActns.at(i), aToolId );
  
   // --- Toolbar "Lookmarks"
 
-  aTB = toolMgr()->toolBar(createTool( tr("TOOL_LOOKMARKS") ));
+  aToolId = createTool( tr("TOOL_LOOKMARKS") );
+  aTB = toolMgr()->toolBar(aToolId);
+
   aTB->setContextMenuPolicy(Qt::CustomContextMenu);
   aTB->setOrientation(Qt::Vertical);
+  aTB->setAllowedAreas(Qt::RightToolBarArea);
+  toolMgr()->mainWindow()->addToolBar(Qt::RightToolBarArea,aTB);
   Implementation->Core.setupLookmarkToolbar(aTB);
 }
 

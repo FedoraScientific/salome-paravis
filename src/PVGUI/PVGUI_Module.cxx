@@ -36,6 +36,7 @@
 #include <SUIT_Session.h>
 #include <LightApp_Application.h>
 #include <LightApp_SelectionMgr.h>
+#include <QtxActionMenuMgr.h>
 #include <QtxActionToolMgr.h>
 
 #include <QAction>
@@ -150,7 +151,10 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
 */
 PVGUI_Module::PVGUI_Module()
   : LightApp_Module( "PARAVIS" ),
-    Implementation( 0 )
+    Implementation( 0 ),
+    mySelectionControlsTb( -1 ),
+    mySourcesMenuId( -1 ),
+    myFiltersMenuId( -1 )
 {
 }
 
@@ -300,6 +304,8 @@ void PVGUI_Module::showView( bool toShow )
     // Now that we're ready, initialize everything ...
     Implementation->Core.initializeStates();
   }
+  else 
+    restoreDockWidgetsState();
 }
 
 /*!
@@ -308,9 +314,9 @@ void PVGUI_Module::showView( bool toShow )
 void PVGUI_Module::onUndoLabel( const QString& label )
 {
   action(UndoId)->setText(
-    label.isEmpty() ? tr("Can't Undo") : QString(tr("&Undo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANTUNDO") : QString(tr("MEN_UNDO_ACTION")).arg(label));
   action(UndoId)->setStatusTip(
-    label.isEmpty() ? tr("Can't Undo") : QString(tr("Undo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANTUNDO") : QString(tr("MEN_UNDO_ACTION_TIP")).arg(label));
 }
 
 /*!
@@ -319,9 +325,9 @@ void PVGUI_Module::onUndoLabel( const QString& label )
 void PVGUI_Module::onRedoLabel( const QString& label )
 {
   action(RedoId)->setText(
-    label.isEmpty() ? tr("Can't Redo") : QString(tr("&Redo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANTREDO") : QString(tr("MEN_REDO_ACTION")).arg(label));
   action(RedoId)->setStatusTip(
-    label.isEmpty() ? tr("Can't Redo") : QString(tr("Redo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANTREDO") : QString(tr("MEN_REDO_ACTION_TIP")).arg(label));
 }
 
 /*!
@@ -330,9 +336,9 @@ void PVGUI_Module::onRedoLabel( const QString& label )
 void PVGUI_Module::onCameraUndoLabel( const QString& label )
 {
   action(CameraUndoId)->setText(
-    label.isEmpty() ? tr("Can't Undo Camera") : QString(tr("U&ndo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANT_CAMERA_UNDO") : QString(tr("MEN_CAMERA_UNDO_ACTION")).arg(label));
   action(CameraUndoId)->setStatusTip(
-    label.isEmpty() ? tr("Can't Undo Camera") : QString(tr("Undo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANT_CAMERA_UNDO") : QString(tr("MEN_CAMERA_UNDO_ACTION_TIP")).arg(label));
 }
 
 /*!
@@ -341,9 +347,9 @@ void PVGUI_Module::onCameraUndoLabel( const QString& label )
 void PVGUI_Module::onCameraRedoLabel( const QString& label )
 {
   action(CameraRedoId)->setText(
-    label.isEmpty() ? tr("Can't Redo Camera") : QString(tr("R&edo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANT_CAMERA_REDO") : QString(tr("MEN_CAMERA_REDO_ACTION")).arg(label));
   action(CameraRedoId)->setStatusTip(
-    label.isEmpty() ? tr("Can't Redo Camera") : QString(tr("Redo %1")).arg(label));
+    label.isEmpty() ? tr("MEN_CANT_CAMERA_REDO") : QString(tr("MEN_CAMERA_REDO_ACTION_TIP")).arg(label));
 }
 
 /*!
@@ -585,7 +591,7 @@ void PVGUI_Module::assistantError( const QString& error )
 */
 void PVGUI_Module::onPreAccept()
 {
-  getApp()->desktop()->statusBar()->showMessage(tr("Updating..."));
+  getApp()->desktop()->statusBar()->showMessage(tr("STB_PREACCEPT"));
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 }
 
@@ -594,7 +600,7 @@ void PVGUI_Module::onPreAccept()
 */
 void PVGUI_Module::onPostAccept()
 {
-  getApp()->desktop()->statusBar()->showMessage(tr("Ready"), 2000);
+  getApp()->desktop()->statusBar()->showMessage(tr("STB_POSTACCEPT"), 2000);
   QTimer::singleShot(0, this, SLOT(endWaitCursor()));
 }
 
@@ -618,6 +624,45 @@ pqViewManager* PVGUI_Module::getMultiViewManager() const
 }
 
 /*!
+  \brief Processes QEvent::ActionAdded and QEvent::ActionRemoved from Lookmarks toolbar
+  in order to register/unregister this action in/from QtxActionToolMgr.
+*/
+bool PVGUI_Module::eventFilter( QObject* theObject, QEvent* theEvent )
+{
+  QToolBar* aTB = toolMgr()->toolBar(tr("TOOL_LOOKMARKS"));
+  if ( theObject == aTB ) {
+    
+    if ( theEvent->type() == QEvent::ActionAdded ) {
+      QList<QAction*> anActns = aTB->actions();
+      for (int i = 0; i < anActns.size(); ++i)
+	if ( toolMgr()->actionId(anActns.at(i)) == -1 ) {
+	  toolMgr()->setUpdatesEnabled(false);
+	  createTool( anActns.at(i), tr("TOOL_LOOKMARKS") );
+	  toolMgr()->setUpdatesEnabled(true);
+	}
+    }
+
+    if ( theEvent->type() == QEvent::ActionRemoved ) {
+      QList<QAction*> anActns = aTB->actions();
+      QIntList aIDL = toolMgr()->idList();
+      for (int i = 0; i < aIDL.size(); ++i) {
+	if ( toolMgr()->action(aIDL.at(i))->parent() == aTB
+	     &&
+	     !anActns.contains( toolMgr()->action(aIDL.at(i)) ) ) {
+	  toolMgr()->setUpdatesEnabled(false);
+	  toolMgr()->unRegisterAction( aIDL.at(i) );
+	  toolMgr()->remove( aIDL.at(i), tr("TOOL_LOOKMARKS") );
+	  toolMgr()->setUpdatesEnabled(true);
+	}
+      }
+    }
+    
+  }
+
+  return QObject::eventFilter( theObject, theEvent );
+}
+
+/*!
   \brief Activate module.
   \param study current study
   \return \c true if activaion is done successfully or 0 to prevent
@@ -628,9 +673,14 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   bool isDone = LightApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
+  if ( mySourcesMenuId != -1 ) menuMgr()->show(mySourcesMenuId);
+  if ( myFiltersMenuId != -1 ) menuMgr()->show(myFiltersMenuId);
   setMenuShown( true );
+  setToolShown( true );
 
   showView( true );
+
+  toolMgr()->toolBar(tr("TOOL_LOOKMARKS"))->installEventFilter(this);
 
   // Make default server connection
   if ( Implementation )
@@ -648,8 +698,15 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 */
 bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 {
+  toolMgr()->toolBar(tr("TOOL_LOOKMARKS"))->removeEventFilter(this);
+
   // hide menus
+  menuMgr()->hide(mySourcesMenuId);
+  menuMgr()->hide(myFiltersMenuId);
   setMenuShown( false );
+  setToolShown( false );
+
+  saveDockWidgetsState();
 
   return LightApp_Module::deactivateModule( study );
 }
