@@ -27,4 +27,5 @@ include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
 dist_salomeres_DATA = \
 	LightApp.xml \
-	SalomeApp.xml
+	SalomeApp.xml \
+	pqAppIcon22.png
