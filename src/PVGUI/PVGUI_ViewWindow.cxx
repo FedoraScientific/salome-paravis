@@ -48,22 +48,19 @@ PVGUI_ViewWindow::PVGUI_ViewWindow( SUIT_Desktop* theDesktop, PVGUI_Viewer* theM
 
 /*!
   \brief Destructor.
+  As pqViewManager persists through the whole session,
+  the destructor first removes it from the children of this PVGUI_ViewWindow
+  to prevent its unexpected deletion.
 */
 PVGUI_ViewWindow::~PVGUI_ViewWindow()
 {
+  if ( myPVMgr ) {
+    myPVMgr->setParent( 0 );
+    myPVMgr->hide();
+    myPVMgr = 0;
+    setCentralWidget( 0 );
+  }
 }
-
-/*!
-  \brief Custom event filter.
-  \param watched event receiver object
-  \param e event
-  \return \c true if further event processing should be stopped
-*/
-bool PVGUI_ViewWindow::eventFilter( QObject* watched, QEvent* e )
-{
-  return SUIT_ViewWindow::eventFilter( watched, e );
-}
-
 
 /*!
   \brief Get the visual parameters of the view window.
@@ -90,10 +87,9 @@ void PVGUI_ViewWindow::setMultiViewManager( pqViewManager* viewMgr )
 {
   myPVMgr = viewMgr;
   myPVMgr->setParent( this );
-  // This is mandatory, see setParent() documentation 
+  // This is mandatory, see setParent() method in Qt 4 documentation 
   myPVMgr->show();
   setCentralWidget( myPVMgr );
-  myPVMgr->installEventFilter( this );
 }
 
 /*!

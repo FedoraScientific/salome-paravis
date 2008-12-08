@@ -38,9 +38,6 @@ public:
   PVGUI_ViewWindow( SUIT_Desktop*, PVGUI_Viewer* );
   virtual ~PVGUI_ViewWindow();
 
-
-  virtual bool      eventFilter( QObject*, QEvent* );
-
   virtual QString   getVisualParameters();
   virtual void      setVisualParameters( const QString& );
   

@@ -182,8 +182,27 @@ void PVGUI_Module::initialize( CAM_Application* app )
   }
   */
   
+  // Initialize ParaView client
   pvInit();
 
+  // Create GUI elements (menus, toolbars, dock widgets)
+  if ( !Implementation ){
+    LightApp_Application* anApp = getApp();
+
+    // Simulate ParaView client main window
+    Implementation = new pqImplementation( anApp->desktop() );
+
+    setupDockWidgets();
+    
+    pvCreateActions();
+    pvCreateMenus();
+    pvCreateToolBars();
+    
+    setupDockWidgetsContextMenu();
+
+    // Now that we're ready, initialize everything ...
+    Implementation->Core.initializeStates();
+  }
 }
 
 /*!
@@ -224,6 +243,7 @@ bool PVGUI_Module::pvInit()
 {
   if ( !pqImplementation::myPVMain ){
     // Obtain command-line arguments
+    // Workaround to avoid pqOptions messages: pass only the executable path to vtkPVMain
     int argc = 0;
     QStringList args = QApplication::arguments();
     char** argv = new char*[args.size()];
@@ -276,36 +296,22 @@ void PVGUI_Module::pvShutdown()
 */
 void PVGUI_Module::showView( bool toShow )
 {
-  // TODO: check if ParaView view already exists
-  if ( !Implementation ){
-    LightApp_Application* anApp = getApp();
-    SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
-    PVGUI_ViewManager* viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
+  LightApp_Application* anApp = getApp();
+  PVGUI_ViewManager* viewMgr = dynamic_cast<PVGUI_ViewManager*>( anApp->getViewManager( PVGUI_Viewer::Type(), false ) );
+  if ( !viewMgr ) {
+    viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
     anApp->addViewManager( viewMgr );
     connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
              anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
-    //connect( viewMgr, SIGNAL( viewCreated( SUIT_ViewWindow* ) ), vm, SLOT( onViewCreated( SUIT_ViewWindow* ) ) );
-    //connect( viewMgr, SIGNAL( deleteView( SUIT_ViewWindow* ) ), this, SLOT( onViewDeleted( SUIT_ViewWindow* ) ) );
-    SUIT_ViewWindow* wnd = viewMgr->createViewWindow();  
-
-    // Simulate ParaView client main window
-    Implementation = new pqImplementation( anApp->desktop() );
-    PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( wnd );
-    pvWnd->setMultiViewManager( &Implementation->Core.multiViewManager() );
-
-    setupDockWidgets();
-    
-    pvCreateActions();
-    pvCreateMenus();
-    pvCreateToolBars();
-    
-    setupDockWidgetsContextMenu();
-
-    // Now that we're ready, initialize everything ...
-    Implementation->Core.initializeStates();
   }
-  else 
-    restoreDockWidgetsState();
+
+  PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( viewMgr->getActiveView() );
+  if ( !pvWnd ) {
+    pvWnd = dynamic_cast<PVGUI_ViewWindow*>( viewMgr->createViewWindow() );
+    pvWnd->setMultiViewManager( &Implementation->Core.multiViewManager() );
+  }
+
+  pvWnd->setShown( toShow );
 }
 
 /*!
@@ -673,18 +679,20 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   bool isDone = LightApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
+  showView( true );
+
   if ( mySourcesMenuId != -1 ) menuMgr()->show(mySourcesMenuId);
   if ( myFiltersMenuId != -1 ) menuMgr()->show(myFiltersMenuId);
   setMenuShown( true );
   setToolShown( true );
-
-  showView( true );
 
   toolMgr()->toolBar(tr("TOOL_LOOKMARKS"))->installEventFilter(this);
 
   // Make default server connection
   if ( Implementation )
     Implementation->Core.makeDefaultConnectionIfNoneExists();
+
+  restoreDockWidgetsState();
 
   return isDone;
 }
@@ -699,6 +707,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 {
   toolMgr()->toolBar(tr("TOOL_LOOKMARKS"))->removeEventFilter(this);
+
+  showView( false );
 
   // hide menus
   menuMgr()->hide(mySourcesMenuId);

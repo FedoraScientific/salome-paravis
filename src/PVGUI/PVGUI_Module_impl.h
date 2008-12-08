@@ -43,16 +43,12 @@ class PVGUI_Module::pqImplementation
   pqImplementation(QWidget* parent) :
     AssistantClient(0),
     Core(parent),
-    RecentFilesMenu(0)//,
-    //ViewMenu(0),
-    //ToolbarsMenu(0)
+    RecentFilesMenu(0)
   {
   }
   
   ~pqImplementation()
   {
-    //delete this->ViewMenu;
-    //delete this->ToolbarsMenu;
     if(this->AssistantClient) {
       this->AssistantClient->closeAssistant();
       delete this->AssistantClient;
@@ -60,13 +56,8 @@ class PVGUI_Module::pqImplementation
   }
   
   QPointer<QAssistantClient> AssistantClient;
-  //Ui::MainWindow UI;
   pqMainWindowCore Core;
   pqRecentFilesMenu* RecentFilesMenu;
-  //pqViewMenu* ViewMenu;
-  //pqViewMenu* ToolbarsMenu;
-  //QLineEdit* CurrentTimeWidget;
-  //QSpinBox* CurrentTimeIndexWidget;
   QPointer<pqServer> ActiveServer;
   QString DocumentationDir;
   
