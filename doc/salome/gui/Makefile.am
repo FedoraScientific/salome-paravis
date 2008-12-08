@@ -1,4 +1,9 @@
-#  Copyright (C) 2005  CEA/DEN, EDF R&D, OPEN CASCADE, PRINCIPIA R&D
+# PARAVIS : ParaView wrapper SALOME module
+#
+#  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+#
+#  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+#  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -14,34 +19,31 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-# -* Makefile *-
+# -* Makefile *- 
 #
-# Author :
-# Modified by : Alexander BORODIN (OCN) - autotools usage
+# Author : Margarita KARPUNINA (OCN)
+# Date : 05/12/2008
+# $Header$
 #
 
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
-ACLOCAL_AMFLAGS = -I adm_local/unix/config_files \
-                  -I ${KERNEL_ROOT_DIR}/salome_adm/unix/config_files \
-                  -I ${GUI_ROOT_DIR}/adm_local/unix/config_files
+EXTRA_DIST += images static
 
-SUBDIRS = adm_local resources src doc bin 
+dev_docs: doxyfile
+	echo "Running doxygen in directory: "`pwd`; \
+	$(DOXYGEN) $<;
 
-DISTCLEANFILES = a.out aclocal.m4 configure
+clean-local:
+	-rm -fr PARAVIS doxygen.bak
 
-salomeinclude_DATA = PARAVIS_version.h
+install-data-local:
+	if test -d PARAVIS; then \
+	  $(INSTALL) -d $(DESTDIR)$(docdir)/gui ; \
+	  cp -rp PARAVIS $(DESTDIR)$(docdir)/gui ; \
+	fi;
 
-EXTRA_DIST += \
-	build_configure \
-	clean_configure
-
-dist-hook:
-	rm -rf `find $(distdir) -name CVS`
-
-dev_docs:
-	(cd doc && $(MAKE) $(AM_MAKEFLAGS) dev_docs)
-
-docs: dev_docs
+uninstall-local:
+	rm -rf $(DESTDIR)$(docdir)/gui/PARAVIS

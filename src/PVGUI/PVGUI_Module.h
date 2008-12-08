@@ -23,6 +23,13 @@
 // Author : Sergey ANIKIN
 //
 
+/*!
+  \mainpage
+
+  Insert the content of introduction page here.
+
+*/
+
 #ifndef PVGUI_Module_H
 #define PVGUI_Module_H
 
@@ -177,7 +184,6 @@ private:
   static void            pvShutdown();   
  
   //! Create actions for ParaView GUI operations
-  //! duplicating menus and toolbars in pqMainWindow ParaView class
   void                   pvCreateActions();
 
   //! Create menus for ParaView GUI operations

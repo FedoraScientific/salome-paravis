@@ -308,6 +308,10 @@ AC_OUTPUT([ \
   ./adm_local/unix/config_files/Makefile \
   ./bin/VERSION \
   ./bin/Makefile \
+  ./doc/Makefile \
+  ./doc/salome/Makefile \
+  ./doc/salome/gui/Makefile \
+  ./doc/salome/gui/doxyfile \
   ./src/Makefile \
   ./src/PVGUI/Makefile \
   ./resources/Makefile \
