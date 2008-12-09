@@ -35,6 +35,8 @@
 
 #include <LightApp_Module.h>
 
+#include <ostream.h>
+
 class QMenu;
 class QDockWidget;
 class LightApp_Selection;
@@ -173,6 +175,10 @@ public:
   pqViewManager*         getMultiViewManager() const;
 
   virtual bool           eventFilter( QObject*, QEvent* );
+
+  //! Compares the contents of the window with the given reference image, returns true if they "match" within some tolerance
+  bool                   compareView( const QString& ReferenceImage, double Threshold,
+				      ostream& Output, const QString& TempDirectory );
 
 protected:
   //virtual CAM_DataModel* createDataModel();

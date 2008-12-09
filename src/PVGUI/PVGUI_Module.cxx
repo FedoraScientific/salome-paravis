@@ -722,6 +722,18 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 }
 
 /*!
+  \brief Compares the contents of the window with the given reference image,
+  returns true if they "match" within some tolerance.
+*/
+bool PVGUI_Module::compareView( const QString& ReferenceImage, double Threshold,
+				ostream& Output, const QString& TempDirectory )
+{
+  if ( Implementation )
+    return Implementation->Core.compareView( ReferenceImage, Threshold, Output, TempDirectory );
+  return false;
+}
+
+/*!
   \fn CAM_Module* createModule();
   \brief Export module instance (factory function).
   \return new created instance of the module

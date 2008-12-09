@@ -4,8 +4,13 @@
 //		<san@portrex.nnov.opencascade.com>
 
 
+#include "PVGUI_Module.h"
 #include "PVGUI_ProcessModuleHelper.h"
 #include "PVGUI_OutputWindowAdapter.h"
+
+#include <CAM_Application.h>
+#include <CAM_Module.h>
+#include <SUIT_Session.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkOutputWindow.h>
@@ -49,11 +54,9 @@ void PVGUI_ProcessModuleHelper::PrintSelf(ostream& os, vtkIndent indent)
 bool PVGUI_ProcessModuleHelper::compareView(const QString& ReferenceImage,
   double Threshold, ostream& Output, const QString& TempDirectory)
 {
-  // TODO: to be implemented...
-  //if(MainWindow* const main_window = qobject_cast<MainWindow*>(this->GetMainWindow()))
-  //{
-  //  return main_window->compareView(ReferenceImage, Threshold, Output, TempDirectory);
-  //}
+  if ( CAM_Application* anApp = dynamic_cast<CAM_Application*>( SUIT_Session::session()->activeApplication() ) )
+    if ( PVGUI_Module* aPVM = dynamic_cast<PVGUI_Module*>( anApp->module("ParaVis") ) )
+      return aPVM->compareView( ReferenceImage, Threshold, Output, TempDirectory );
   
   return false;
 }
