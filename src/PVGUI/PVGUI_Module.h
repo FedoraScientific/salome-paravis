@@ -23,34 +23,6 @@
 // Author : Sergey ANIKIN
 //
 
-/*!
-  \mainpage
-
-  Insert the content of introduction page here.
-
-  A link to the file documentation PVGUI_Module_actions.cxx
-
-  A link to the file documentation PVGUI_Module_impl.h
-
-  A link to the class documentation PVGUI_Module
-
-  The class name as a text (not a link to its documentation) %PVGUI_Module
-
-  A link to the constructor of the class PVGUI_ViewWindow#PVGUI_ViewWindow or PVGUI_Module::PVGUI_Module()
-
-  A link to the destructor of the class PVGUI_ViewWindow#~PVGUI_ViewWindow
-
-  A link to the member function PVGUI_ViewWindow::getVisualParameters or PVGUI_ViewWindow#getVisualParameters
-
-  Arguments of a function should be specified only for the overloaded functions PVGUI_Module::initialize(CAM_Application*)
-
-  A link to some enumeration values PVGUI_Module::OpenFileId and PVGUI_Module::CreateLookmarkId
-
-  A link to a protected member variable of the class PVGUI_ViewWindow#myModel
-
-  A link to a variable \link PVGUI_ViewWindow#myModel using another text\endlink as a link
-
-*/
 
 #ifndef PVGUI_Module_H
 #define PVGUI_Module_H

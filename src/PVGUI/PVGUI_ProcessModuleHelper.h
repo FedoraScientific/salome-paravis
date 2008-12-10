@@ -30,7 +30,7 @@
 
 /*! 
   \class PVGUI_ProcessModuleHelper
-  The key element of ParaView integration into SALOME GUI.
+  One of the key elements of ParaView integration into SALOME GUI.
   Sub-classes pqProcessModuleGUIHelper with the following main features:
   \li No main window is created by this class
   \li Qt event loop is run outside this class
@@ -44,41 +44,23 @@ public:
   vtkTypeRevisionMacro(PVGUI_ProcessModuleHelper, pqProcessModuleGUIHelper);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //! Compares the contents of the window with the given reference image, returns true iff they "match" within some tolerance
   virtual  bool compareView(const QString& ReferenceImage, double Threshold, ostream& Output, const QString& TempDirectory);
 
-  //! Redefined to supress showing a default output window, as the messages are redirected
-  //! to SALOME GUI message console
   virtual void showOutputWindow();
-
-  //! Stub for main window
   virtual void showWindow();
-  //! Stub for main window
   virtual void hideWindow();
 
 protected:
-  //! Calls the base implementation and then creates a custom output window adaptor
   virtual int InitializeApplication(int argc, char** argv);
 
-  //! Redefined to prevent QApplication::exec() call
   virtual int appExec();
-
-  //! Redefined to do nothing at the end of RunGUIStart().
-  //! FinalizeApplication() should be called when the SALOME module
-  //! is destroyed.
   virtual int postAppExec();
 
   PVGUI_ProcessModuleHelper();
   ~PVGUI_ProcessModuleHelper();
 
-  //! Stub for main window, returns a null pointer
   virtual QWidget* CreateMainWindow();
-
-  //! Called by vtkProcessModule,  but we cannot exit here.
   virtual void ExitApplication();
-
-  //! Returns the number of errors registered in the OutputWindow
-  //virtual int ErrorCount();
 
 private:
   PVGUI_ProcessModuleHelper(const PVGUI_ProcessModuleHelper&); // Not implemented.

@@ -141,6 +141,136 @@ pqOptions*                 PVGUI_Module::pqImplementation::myPVOptions = 0;
 PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
 
 /*!
+  \mainpage
+
+  <h2>Building and installing PARAVIS</h2>
+  As any other SALOME module, PARAVIS requires PARAVIS_ROOT_DIR environment variable to be set to PARAVIS
+  installation directory.
+  Other variables needed for correct detection of ParaView location:
+  \li PVSRCHOME - points at the root of ParaView source directory tree
+  \li PVINSTALLHOME - points at the top of ParaView build tree (currently, due to some drawbacks in its buld procedure
+  ParaView should not be installed, its build directory is used instead).
+
+  It also requires common SALOME environment including GUI_ROOT_DIR and other prerequsites.
+
+  As soon as the environment is set, excute the following commands in a shell:
+  \code
+  mkdir PARAVIS_BUILD
+  cd PARAVIS_BUILD
+  ../PARAVIS_SRC/build_configure
+  ../PARAVIS_SRC/configure --prefix=${PARAVIS_ROOT_DIR}
+  make 
+  make docs
+  make install
+  \endcode
+
+  PARAVIS module can be launched using the following commands:
+  \li Light SALOME configuration
+  \code
+  runLightSalome.sh --modules="PARAVIS"
+  \endcode
+  or
+  \li Full SALOME configuration
+  \code
+  runSalome --modules="PARAVIS"
+  \endcode
+
+  <h2>ParaView GUI integration</h2>
+  <h3>ParaView GUI integration overview</h3>
+
+  The main idea is to reuse ParaView GUI internal logic as much as possible, providing a layer 
+  between it and SALOME GUI that hides the following SALOME GUI implementation details from ParaView:
+
+  \li SALOME GUI executable and Qt event loop
+  \li SALOME GUI desktop
+  \li Dock windows areas
+  \li SALOME menu and toolbar managers
+
+  Major part of the integration is implemented in PVGUI_Module class.
+
+  <h3>ParaView client initalization</h3>
+
+  ParaView client initalization is performed when an instance of PVGUI_Module class has been created 
+  and \link PVGUI_Module::initialize() PVGUI_Module::initialize()\endlink method is called by SALOME GUI.
+  The actual client start-up is done in \link PVGUI_Module::pvInit() PVGUI_Module::pvInit()\endlink method. 
+  It simulates actions perfomed by pqMain::Run( QApplication&, pqProcessModuleGUIHelper* ) method.
+  
+  Custom PVGUI_ProcessModuleHelper class derived from %pqProcessModuleGUIHelper base is the main actor in ParaView 
+  client initialization. It initializes the client that uses the main window (SALOME desktop) supplied from the outside, 
+  it does not start Qt event loop as this is done in SALOME GUI executable (SUITApp or SALOME_Session_Server), and after all 
+  it redirects ParaView diagnostic output to SALOME LogWindow with help of PVGUI_OutputWindowAdapter class.
+  This is achieved by reimplementing \link PVGUI_ProcessModuleHelper::InitializeApplication() InitializeApplication()\endlink,
+  \link PVGUI_ProcessModuleHelper::appExec() appExec()\endlink, \link PVGUI_ProcessModuleHelper::postAppExec() postAppExec()\endlink
+  virtual methods as well as those responsible for main window management.
+
+  <h3>ParaView GUI connection to SALOME desktop</h3>
+
+  ParaView Qt components include pqMainWindowCore class that handles most ParaView GUI client actions,
+  updates menu states and connects many GUI components.
+  After the client initalization \link PVGUI_Module::initialize() PVGUI_Module::initialize()\endlink method creates
+  an instance of internal PVGUI_Module::pqImplementation class (declared PVGUI_Module_impl.h) that wraps some ParaView GUI components: 
+  pqMainWindowCore, pqServer, etc. Instance of SALOME desktop widget is passed to pqMainWindowCore instead of ParaView main window.
+
+  Basically it simulates constructor of ParaView client's %MainWindow class (src/Applications/Client/MainWindow.cxx). It creates the same
+  menu and toolbar commands using SALOME menu and toolbar managers, connecting the actions to %pqMainWindowCore slots or to the module's 
+  slots in some cases. It also sets up dock widgets for ParaView widgets, such as object inspector, pipeline browser, etc.
+
+  As both SALOME destop and ParaView main winodw classes inherit QMainWindow and %pqMainWindowCore deals with QMainWindow API to control
+  menus, tollbars and dock widgets, its integration into SALOME GUI is straightforward and smooth.
+
+  <h3>Multi-view manager</h3>
+
+  SALOME GUI requires that each kind of view be implemnted with help of (at least) three classes. For ParaView multi-view manager 
+  these are:
+
+  \li PVGUI_ViewManager - view manager class
+  \li PVGUI_Viewer      - view model class
+  \li PVGUI_ViewWindow  - view window class that acts as a parent for %pqViewManager
+
+  Single instances of PVGUI_ViewManager and PVGUI_ViewWindow classes are created by \link PVGUI_Module::showView() 
+  PVGUI_Module::showView()\endlink method upon the first PARAVIS module activation. The same method hides the multi-view manager 
+  when the module is deactivated (the user switches to another module or a study is closed). 
+  A special trick is used to make PVGUI_ViewWindow the parent of %pqViewManager widget. It is created initally by %pqMainWindowCore
+  with the desktop as a parent, so when it is shown PVGUI_ViewWindow instance is passed to its setParent() method. In  
+  \link PVGUI_ViewWindow::~PVGUI_ViewWindow() PVGUI_ViewWindow::~PVGUI_ViewWindow()\endlink the parent is nullified to avoid deletion
+  of %pqViewManager widget that would break %pqMainWindowCore class.
+
+  <h3>ParaView plugins</h3>
+  ParaView server and client plugins are managed by %pqMainWindowCore slots that has full access to PARAVIS menus and toolbars. 
+  As a result they appears automatically in PARAVIS menus and toolbars if loaded successfully.
+
+  <h2>Limitations of 2008 year prototype</h2>
+  \li SALOME persistence (possibility to save the module data into a tsudy file) is not implemented for PARAVIS module.
+  \li As a light module, PARAVIS does not have a CORBA engine that follows SALOME rules, however PARAVIS can use load a CORBA engine 
+  on its own if needed.
+*/
+
+/*
+  A link to the file documentation PVGUI_Module_actions.cxx
+
+  A link to the file documentation PVGUI_Module_impl.h
+
+  A link to the class documentation PVGUI_Module
+
+  The class name as a text (not a link to its documentation) %PVGUI_Module
+
+  A link to the constructor of the class PVGUI_ViewWindow#PVGUI_ViewWindow or PVGUI_Module::PVGUI_Module()
+
+  A link to the destructor of the class PVGUI_ViewWindow#~PVGUI_ViewWindow
+
+  A link to the member function PVGUI_ViewWindow::getVisualParameters or PVGUI_ViewWindow#getVisualParameters
+
+  Arguments of a function should be specified only for the overloaded functions PVGUI_Module::initialize(CAM_Application*)
+
+  A link to some enumeration values PVGUI_Module::OpenFileId and PVGUI_Module::CreateLookmarkId
+
+  A link to a protected member variable of the class PVGUI_ViewWindow#myModel
+
+  A link to a variable \link PVGUI_ViewWindow#myModel using another text\endlink as a link
+
+*/
+
+/*!
   \class PVGUI_Module
   \brief Implementation of light (no-CORBA-engine) 
          SALOME module wrapping ParaView GUI.
@@ -167,7 +297,7 @@ PVGUI_Module::~PVGUI_Module()
 
 /*!
   \brief Initialize module. Creates menus, prepares context menu, etc.
-  \param app application instance
+  \param app SALOME GUI application instance
 */
 void PVGUI_Module::initialize( CAM_Application* app )
 {
@@ -218,24 +348,6 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 }
 
 /*!
-  \brief Create custom popup menu selection object.
-  \return new selected object
-*/
-/*LightApp_Selection* PVGUI_Module::createSelection() const
-{
-  return new PVGUI_Selection();
-}*/
-
-/*!
-  \brief Create data model.
-  \return module specific data model
-*/
-/*CAM_DataModel* PVGUI_Module::createDataModel()
-{
-  return new PVGUI_DataModel( this );
-}*/
-
-/*!
   \brief Static method, performs initialization of ParaView session.
   \return \c true if ParaView has been initialized successfully, otherwise false
 */
@@ -243,7 +355,6 @@ bool PVGUI_Module::pvInit()
 {
   if ( !pqImplementation::myPVMain ){
     // Obtain command-line arguments
-    // Workaround to avoid pqOptions messages: pass only the executable path to vtkPVMain
     int argc = 0;
     QStringList args = QApplication::arguments();
     char** argv = new char*[args.size()];
@@ -284,7 +395,7 @@ bool PVGUI_Module::pvInit()
 }
  
 /*!
-  \brief Static method, cleans up ParaView session at application exit.
+  \brief Static method, cleans up ParaView session at application exit. Not yet implemented.
 */
 void PVGUI_Module::pvShutdown()
 {

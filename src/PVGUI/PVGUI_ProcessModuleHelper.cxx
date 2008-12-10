@@ -51,6 +51,9 @@ void PVGUI_ProcessModuleHelper::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
+/*!
+  \brief Used by ParaView testing capabilities, not usable in SALOME.
+ */
 bool PVGUI_ProcessModuleHelper::compareView(const QString& ReferenceImage,
   double Threshold, ostream& Output, const QString& TempDirectory)
 {
@@ -62,22 +65,35 @@ bool PVGUI_ProcessModuleHelper::compareView(const QString& ReferenceImage,
 }
 
 //-----------------------------------------------------------------------------
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior. Does nothing.
+*/
 void PVGUI_ProcessModuleHelper::showOutputWindow()
 {
   // Do nothing here
 }
 
 //-----------------------------------------------------------------------------
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior. Does nothing.
+*/
 void PVGUI_ProcessModuleHelper::showWindow()
 {
 }
 
 //-----------------------------------------------------------------------------
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior. Does nothing.
+*/
 void PVGUI_ProcessModuleHelper::hideWindow()
 {
 }
 
 //-----------------------------------------------------------------------------
+/*! 
+  \brief Calls the base implementation and redirects ParaView output to PVGUI_OutputWindowAdapter instance.
+  \sa PVGUI_OutputWindowAdapter
+*/
 int PVGUI_ProcessModuleHelper::InitializeApplication(int argc, char** argv)
 {
   if ( pqProcessModuleGUIHelper::InitializeApplication( argc, argv ) ){
@@ -89,17 +105,26 @@ int PVGUI_ProcessModuleHelper::InitializeApplication(int argc, char** argv)
 }
 
 //-----------------------------------------------------------------------------
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior and not to run Qt event loop. Does nothing.
+*/
 int PVGUI_ProcessModuleHelper::appExec()
 {
   return 0;
 }
 
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior and not to exit after the client initalization. Does nothing.
+*/
 //-----------------------------------------------------------------------------
 int PVGUI_ProcessModuleHelper::postAppExec()
 {
   return 0;
 }
 
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior. Does nothing.
+*/
 //-----------------------------------------------------------------------------
 QWidget* PVGUI_ProcessModuleHelper::CreateMainWindow()
 {
@@ -107,6 +132,9 @@ QWidget* PVGUI_ProcessModuleHelper::CreateMainWindow()
 }
 
 //-----------------------------------------------------------------------------
+/*! 
+  \brief Reimplemented to suppress default ParaView client behavior. Does nothing.
+*/
 void PVGUI_ProcessModuleHelper::ExitApplication()
 {
   // Cannot exit here, so do nothing
