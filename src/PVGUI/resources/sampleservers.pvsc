@@ -1,0 +1,75 @@
+<Servers>
+  <Server name="builtin" resource="builtin:">
+    <ManualStartup/>
+  </Server>
+  <Server name="testex1" resource="cs://testex:11111">
+    <CommandStartup>
+      <Command exec="/dn25/salome/mkr/DebianEtch.64/ParaView/ParaView-3.4.0/bin/bin/pvserver" timeout="0" delay="5" Arguments="5">
+        <Arguments>
+          <Argument value="--use-offscreen-rendering"/>
+        </Arguments>
+      </Command>
+    </CommandStartup>
+  </Server>
+  <Server name="testex2" resource="cs://192.90.0.150:11111">
+    <CommandStartup>
+      <Command exec="/dn25/salome/mkr/DebianEtch.64/ParaView/ParaView-3.4.0/bin/bin/pvserver" timeout="0" delay="5" Arguments="5">
+        <Arguments>
+          <Argument value="--use-offscreen-rendering"/>
+        </Arguments>
+      </Command>
+    </CommandStartup>
+  </Server>
+  <Server name="ultimex_manual" resource="cs://ultimex" owner="site">
+    <ManualStartup />
+  </Server>
+  <Server name="ultimex_ssh" resource="cs://localhost:11111" owner="user">
+    <CommandStartup>
+      <Options>
+        <Option name="SSH_USER" label="SSH Username" save="true">
+          <!-- choose the username. Since 'save' is true, this value will 
+               be maintained across sessions -->
+          <String default="mkr" />
+        </Option>
+        <Option name="SSH_EXE" label="SSH Executable" save="true">
+          <!-- select the SSH executable. Since 'save' is true, this value will
+               also be maintinaed across sessions -->
+          <File default="ssh" />
+        </Option>
+      </Options>
+      <Command exec="$SSH_EXE$" delay="5">
+        <Arguments>
+          <Argument value="-L11111:ultimex:11111" /> <!-- port forwarding -->
+          <Argument value="ultimex" />
+          <Argument value="-l" />
+          <Argument value="$SSH_USER$" />
+          <Argument value="/dn25/salome/mkr/DebianEtch.64/ParaView/ParaView-3.4.0/bin/bin/pvserver" />
+        </Arguments>
+      </Command>
+    </CommandStartup>
+  </Server>
+  <Server name="ultimex_rsh" resource="cs://localhost:11111" owner="user">
+    <CommandStartup>
+      <Options>
+        <Option name="RSH_USER" label="RSH Username" save="true">
+          <!-- choose the username. Since 'save' is true, this value will 
+               be maintained across sessions -->
+          <String default="mkr" />
+        </Option>
+        <Option name="RSH_EXE" label="RSH Executable" save="true">
+          <!-- select the SSH executable. Since 'save' is true, this value will
+               also be maintinaed across sessions -->
+          <File default="rsh" />
+        </Option>
+      </Options>
+      <Command exec="$RSH_EXE$" delay="5">
+        <Arguments>
+          <Argument value="-l" />
+          <Argument value="$RSH_USER$" />
+          <Argument value="ultimex" />
+          <Argument value="/dn25/salome/mkr/DebianEtch.64/ParaView/ParaView-3.4.0/bin/bin/pvserver" />
+        </Arguments>
+      </Command>
+    </CommandStartup>
+  </Server>
+</Servers>
