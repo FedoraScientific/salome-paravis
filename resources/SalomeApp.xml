@@ -8,6 +8,6 @@
     <!-- Module resources -->
     <parameter name="PARAVIS" value="${PARAVIS_ROOT_DIR}/share/salome/resources/paravis"/>
      <!-- ParaView pixmaps -->
-    <parameter name="ParaView" value="${PVHOME}/src/Qt/Components/Resources/Icons"/>
+    <parameter name="ParaView" value="${PVSRCHOME}/src/Qt/Components/Resources/Icons"/>
   </section>
 </document>
