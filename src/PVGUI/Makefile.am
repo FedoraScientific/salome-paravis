@@ -56,7 +56,9 @@ MOC_FILES = \
 nodist_libPARAVIS_la_SOURCES = $(MOC_FILES)
 
 # additionnal compilation flags
+# Note that ParaView uses HDF5
 libPARAVIS_la_CPPFLAGS = \
+	$(HDF5_INCLUDES) \
 	$(QT_INCLUDES) \
 	$(QT_ASSISTANT_INCLUDES) \
 	$(PARAVIEW_INCLUDES) \
@@ -65,7 +67,9 @@ libPARAVIS_la_CPPFLAGS = \
 	$(GUI_CXXFLAGS)
 
 # additionnal linkage flags
+# Note that ParaView uses HDF5
 libPARAVIS_la_LDFLAGS = \
+	$(HDF5_LIBS) \
 	$(QT_ASSISTANT_LIBS) \
 	$(PARAVIEW_LIBS) \
 	$(GUI_LDFLAGS) \
