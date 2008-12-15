@@ -219,19 +219,19 @@ CHECK_QT
 
 echo
 echo ---------------------------------------------
-echo testing ParaView
-echo ---------------------------------------------
-echo
-
-CHECK_PARAVIEW
-
-echo
-echo ---------------------------------------------
 echo testing HDF5
 echo ---------------------------------------------
 echo
 
 CHECK_HDF5
+
+echo
+echo ---------------------------------------------
+echo testing ParaView
+echo ---------------------------------------------
+echo
+
+CHECK_PARAVIEW
 
 echo
 echo ---------------------------------------------
@@ -272,7 +272,7 @@ echo ---------------------------------------------
 echo
 
 echo Configure
-variables="cc_ok lex_yacc_ok python_ok threads_ok OpenGL_ok qt_ok paraview_ok hdf5_ok occ_ok doxygen_ok graphviz_ok Kernel_ok SalomeGUI_ok"
+variables="cc_ok lex_yacc_ok python_ok threads_ok OpenGL_ok qt_ok hdf5_ok paraview_ok occ_ok doxygen_ok graphviz_ok Kernel_ok SalomeGUI_ok"
 
 for var in $variables
 do
