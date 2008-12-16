@@ -94,6 +94,18 @@ esac
 
 echo
 echo ---------------------------------------------
+echo Testing CMake
+echo ---------------------------------------------
+echo
+
+AC_CHECK_PROG(HAS_CMAKE,cmake,"yes")
+AM_CONDITIONAL(BUILD_PLUGINS, test "$HAS_CMAKE" = "yes")
+if test "$HAS_CMAKE" != "yes"; then
+  AC_MSG_WARN(CMake not found so ParaView plugins will not be built)
+fi
+
+echo
+echo ---------------------------------------------
 echo testing C/C++
 echo ---------------------------------------------
 echo
@@ -280,6 +292,23 @@ do
    eval echo \$$var
 done
 
+# Generating makefiles for ParaView plugins using CMake
+# cmake executable must be available in PATH
+if test "$HAS_CMAKE" = "yes"; then
+
+  echo
+  echo ---------------------------------------------
+  echo Invoking CMake to generate Makefiles for ParaView plugins
+  echo ---------------------------------------------
+  echo
+
+  curdir=`pwd`
+  cd ./src/Plugins
+  cmake -D ParaView_DIR=${PVINSTALLHOME} -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=${PARAVIS_ROOT_DIR}/lib/salome ${ROOT_SRCDIR}/src/Plugins
+  cd $curdir
+fi
+  
+
 dnl We don t need to say when we re entering directories if we re using
 dnl GNU make becuase make does it for us.
 if test "X$GMAKE" = "Xyes"; then
@@ -318,3 +347,4 @@ AC_OUTPUT([ \
   ./PARAVIS_version.h \
   Makefile \
 ])
+

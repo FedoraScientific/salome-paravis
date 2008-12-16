@@ -25,4 +25,9 @@
 
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
-SUBDIRS = PVGUI
+if BUILD_PLUGINS
+  SUBDIRS = PVGUI Plugins
+else
+  SUBDIRS = PVGUI
+endif
+
