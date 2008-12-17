@@ -144,17 +144,6 @@ class PVGUI_Module : public LightApp_Module
 	 AboutParaViewId,
 	 ParaViewHelpId,
 	 EnableTooltipsId
-
-         /*
-         lgLoadFile = 931,   //!< load text file
-	 lgSaveFile,         //!< save text file
-	 lgDisplayLine,      //!< display selected line
-	 lgEraseLine,        //!< erase selected line
-	 lgEditLine,         //!< edit selected line
-	 lgAddLine,          //!< insert new line
-	 lgDelLine,          //!< delete selected line
-	 lgClear             //!< clear all contents
-	 */
   };
 
 public:
@@ -163,8 +152,6 @@ public:
 
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
-
-  //virtual LightApp_Selection* createSelection() const;
 
   pqViewManager*         getMultiViewManager() const;
 
@@ -186,12 +173,10 @@ private:
   //! Create actions for ParaView GUI operations
   void                   pvCreateActions();
 
-  //! Create menus for ParaView GUI operations
-  //! duplicating menus in pqMainWindow ParaView class
+  //! Create menus for ParaView GUI operations duplicating menus in pqMainWindow ParaView class
   void                   pvCreateMenus();
 
-  //! Create toolbars for ParaView GUI operations
-  //! duplicating toolbars in pqMainWindow ParaView class
+  //! Create toolbars for ParaView GUI operations duplicating toolbars in pqMainWindow ParaView class
   void                   pvCreateToolBars();
 
   //! Create dock widgets for ParaView widgets

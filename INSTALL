@@ -4,7 +4,7 @@ Building and installing PARAVIS module
 PARAVIS is a light SALOME module that wraps ParaView GUI and makes it available in
 SALOME GUI.
 
-As any other SALOME module, PARAVIS requires PARAVIS_ROOT_DIR environment variable to be set to PARAVIS
+Like any other SALOME module, PARAVIS requires PARAVIS_ROOT_DIR environment variable to be set to PARAVIS
 installation directory.
 
 Specific prerequisites:
@@ -18,7 +18,7 @@ Environment variables needed for correct detection of ParaView location:
 ParaView should not be installed, its build directory is used instead).
 
 It also requires common SALOME environment including GUI_ROOT_DIR and
-other standard SALOME prerequsites.
+other standard SALOME prerequisites.
 
 As soon as the environment is set, execute the following commands in a shell:
 

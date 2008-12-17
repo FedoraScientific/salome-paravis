@@ -215,7 +215,10 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
   menu and toolbar commands using SALOME menu and toolbar managers, connecting the actions to %pqMainWindowCore slots or to the module's 
   slots in some cases. It also sets up dock widgets for ParaView widgets, such as object inspector, pipeline browser, etc.
 
-  As both SALOME destop and ParaView main winodw classes inherit QMainWindow and %pqMainWindowCore deals with QMainWindow API to control
+  ParaView GUI resources (icons) are reused directly from the ParaView resource directory, they are loaded into SALOME GUI 
+  resource manager, the path to these icons is specified in PARAVIS configuration XML files (LightApp.xml and SlomeApp.xml).
+
+  As both SALOME destop and ParaView main window classes inherit QMainWindow and %pqMainWindowCore deals with QMainWindow API to control
   menus, tollbars and dock widgets, its integration into SALOME GUI is straightforward and smooth.
 
   <h3>Multi-view manager</h3>
@@ -243,31 +246,6 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
   \li SALOME persistence (possibility to save the module data into a tsudy file) is not implemented for PARAVIS module.
   \li As a light module, PARAVIS does not have a CORBA engine that follows SALOME rules, however PARAVIS can use load a CORBA engine 
   on its own if needed.
-*/
-
-/*
-  A link to the file documentation PVGUI_Module_actions.cxx
-
-  A link to the file documentation PVGUI_Module_impl.h
-
-  A link to the class documentation PVGUI_Module
-
-  The class name as a text (not a link to its documentation) %PVGUI_Module
-
-  A link to the constructor of the class PVGUI_ViewWindow#PVGUI_ViewWindow or PVGUI_Module::PVGUI_Module()
-
-  A link to the destructor of the class PVGUI_ViewWindow#~PVGUI_ViewWindow
-
-  A link to the member function PVGUI_ViewWindow::getVisualParameters or PVGUI_ViewWindow#getVisualParameters
-
-  Arguments of a function should be specified only for the overloaded functions PVGUI_Module::initialize(CAM_Application*)
-
-  A link to some enumeration values PVGUI_Module::OpenFileId and PVGUI_Module::CreateLookmarkId
-
-  A link to a protected member variable of the class PVGUI_ViewWindow#myModel
-
-  A link to a variable \link PVGUI_ViewWindow#myModel using another text\endlink as a link
-
 */
 
 /*!
