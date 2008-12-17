@@ -303,7 +303,10 @@ if test "$HAS_CMAKE" = "yes"; then
   echo
 
   curdir=`pwd`
-  cd ./src/Plugins
+  if ! test -d ${ROOT_BUILDDIR}/src/Plugins; then
+    mkdir -p ${ROOT_BUILDDIR}/src/Plugins
+  fi
+  cd ${ROOT_BUILDDIR}/src/Plugins
   cmake -D ParaView_DIR=${PVINSTALLHOME} -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=${PARAVIS_ROOT_DIR}/lib/salome ${ROOT_SRCDIR}/src/Plugins
   cd $curdir
 fi
