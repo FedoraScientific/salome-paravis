@@ -50,6 +50,8 @@ public:
   virtual void showWindow();
   virtual void hideWindow();
 
+  void finalize();
+
 protected:
   virtual int InitializeApplication(int argc, char** argv);
 

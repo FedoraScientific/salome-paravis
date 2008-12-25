@@ -218,6 +218,8 @@ private slots:
   
   void onHelpAbout();
 
+  void onParaViewHelp();
+
   void showHelpForProxy( const QString& proxy );
   void makeAssistant();
   void assistantError( const QString& err );
@@ -229,6 +231,7 @@ private slots:
 public slots:
   virtual bool           activateModule( SUIT_Study* );
   virtual bool           deactivateModule( SUIT_Study* );
+  virtual void           onApplicationClosed( SUIT_Application* );
 
 private:
   class pqImplementation;

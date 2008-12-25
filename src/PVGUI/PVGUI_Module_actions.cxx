@@ -525,8 +525,11 @@ void PVGUI_Module::pvCreateActions()
 		tr( "MEN_ABOUT" ), tr( "STB_ABOUT" ),
 		0, desk, false, this, SLOT( onHelpAbout() ) );
 
-  // ParaView Help
-  // TODO...
+  // Native ParaView user documentation
+  aPixmap = resMgr->loadPixmap( "ParaView", tr("ICON_PARAVIEW_HELP"), false );
+  createAction( ParaViewHelpId, tr( "TOP_PARAVIEW_HELP" ), QIcon(aPixmap),
+		tr( "MEN_PARAVIEW_HELP" ), tr( "STB_PARAVIEW_HELP" ),
+		0, desk, false, this, SLOT( onParaViewHelp() ) );
 
   // Enable Tooltips
   aQtxAction = new QtxAction( tr("TOP_ENABLE_TOOLTIPS"), QIcon(), 
@@ -690,11 +693,9 @@ void PVGUI_Module::pvCreateMenus()
   int aHelpMnu = createMenu( tr( "MEN_DESK_HELP" ), -1, -1 );
 
   createMenu( AboutParaViewId, aHelpMnu );
-  // ParaView Help
-  // It's needed to install module docs into <module>_ROOT_DIR/share/doc/salome/gui/<module>
-  // createMenu( ParaViewHelpId, aHelpMnu );
-  createMenu( EnableTooltipsId, aHelpMnu );
+  createMenu( ParaViewHelpId, aHelpMnu );
   createMenu( separator(), aHelpMnu );
+  createMenu( EnableTooltipsId, aHelpMnu );
 
 }
 
@@ -719,8 +720,8 @@ void PVGUI_Module::pvCreateToolBars()
   createTool( separator(), aToolId );
   createTool( ConnectId, aToolId );
   createTool( DisconnectId, aToolId );
-  //createTool( separator(), aToolId );
-  //createTool( ParaViewHelpId, aToolId );
+  createTool( separator(), aToolId );
+  createTool( ParaViewHelpId, aToolId );
 
   // --- Toolbar "Selection Controls"
 

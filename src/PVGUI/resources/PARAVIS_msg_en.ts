@@ -1013,15 +1013,15 @@
     </message>
     <message>
         <source>TOP_PARAVIEW_HELP</source>
-        <translation>ParaView Help</translation>
+        <translation>ParaView User Documentation</translation>
     </message>
     <message>
         <source>MEN_PARAVIEW_HELP</source>
-        <translation>ParaView Help</translation>
+        <translation>ParaView User Documentation</translation>
     </message>
     <message>
         <source>STB_PARAVIEW_HELP</source>
-        <translation>ParaView Help</translation>
+        <translation>ParaView User Documentation reference</translation>
     </message>
     <message>
         <source>TOP_ENABLE_TOOLTIPS</source>

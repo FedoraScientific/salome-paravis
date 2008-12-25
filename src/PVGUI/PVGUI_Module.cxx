@@ -373,11 +373,12 @@ bool PVGUI_Module::pvInit()
 }
  
 /*!
-  \brief Static method, cleans up ParaView session at application exit. Not yet implemented.
+  \brief Static method, cleans up ParaView session at application exit.
 */
 void PVGUI_Module::pvShutdown()
 {
-  // TODO...
+  if ( pqImplementation::myPVHelper )
+    pqImplementation::myPVHelper->finalize();
 }  
 
 /*!
@@ -547,6 +548,14 @@ void PVGUI_Module::onHelpAbout()
   pqClientAboutDialog* const dialog = new pqClientAboutDialog(getApp()->desktop());
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->show();
+}
+
+/*!
+  \brief Slot to show native ParaView user documentation.
+*/
+void PVGUI_Module::onParaViewHelp()
+{
+  showHelpForProxy("index");
 }
 
 /*!
@@ -808,6 +817,21 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
   saveDockWidgetsState();
 
   return LightApp_Module::deactivateModule( study );
+}
+
+/*!
+  \brief Called when application is closed.
+
+  Process finalize application functionality from ParaView in order to save server settings
+  and nullify application pointer if the application is being closed.
+
+  \param theApp application
+*/
+void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
+{
+  pvShutdown();
+  
+  CAM_Module::onApplicationClosed(theApp);
 }
 
 /*!

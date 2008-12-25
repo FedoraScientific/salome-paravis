@@ -91,6 +91,15 @@ void PVGUI_ProcessModuleHelper::hideWindow()
 
 //-----------------------------------------------------------------------------
 /*! 
+  \brief Finalize application in order to save server settings.
+*/
+void PVGUI_ProcessModuleHelper::finalize()
+{
+  this->FinalizeApplication();
+}
+
+//-----------------------------------------------------------------------------
+/*! 
   \brief Calls the base implementation and redirects ParaView output to PVGUI_OutputWindowAdapter instance.
   \sa PVGUI_OutputWindowAdapter
 */

@@ -149,6 +149,10 @@
         <source>ICON_LOOP</source>
         <translation>pqVcrLoop24.png</translation>
     </message>
+    <message>
+        <source>ICON_PARAVIEW_HELP</source>
+        <translation>pqHelp24.png</translation>
+    </message>
     
 </context>
 </TS>
