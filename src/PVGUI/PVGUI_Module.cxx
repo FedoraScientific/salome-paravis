@@ -616,13 +616,13 @@ void PVGUI_Module::makeAssistant()
   const char* binDir = "\\";
   const char* binDir1 = "\\..\\";
 #else
-  const char* binDir = "/bin/";
-  const char* binDir1 = "/bin/bin/";
+  const char* binDir = "/";
+  const char* binDir1 = "/bin/";
 #endif
 
-  QString helper = QString(getenv("PVHOME")) + binDir + QString("pqClientDocFinder.txt");
+  QString helper = QString(getenv("PVINSTALLHOME")) + binDir + QString("pqClientDocFinder.txt");
   if(!QFile::exists(helper))
-    helper = QString(getenv("PVHOME")) + binDir1 + QString("pqClientDocFinder.txt");
+    helper = QString(getenv("PVINSTALLHOME")) + binDir1 + QString("pqClientDocFinder.txt");
   if(QFile::exists(helper)) {
     QFile file(helper);
     if(file.open(QIODevice::ReadOnly)) {
