@@ -19,7 +19,7 @@ AC_INIT([PARAVIS - SALOME GUI for ParaView], [0.1.0], [webmaster.salome@opencasc
 AC_CONFIG_AUX_DIR(salome_adm/unix/config_files)
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([-Wno-portability])
 
 XVERSION=`echo $VERSION | awk -F. '{printf("0x%02x%02x%02x",$1,$2,$3)}'`
 AC_SUBST(XVERSION)
@@ -197,13 +197,13 @@ dnl echo
 
 dnl CHECK_JAVA
 
-#echo
-#echo ---------------------------------------------
-#echo testing swig
-#echo ---------------------------------------------
-#echo
-#
-#CHECK_SWIG
+echo
+echo ---------------------------------------------
+echo testing swig
+echo ---------------------------------------------
+echo
+
+CHECK_SWIG
 
 echo
 echo ---------------------------------------------
@@ -212,6 +212,35 @@ echo ---------------------------------------------
 echo
 
 ENABLE_PTHREADS
+
+echo
+echo ---------------------------------------------
+echo testing omniORB
+echo ---------------------------------------------
+echo
+
+CHECK_OMNIORB
+
+dnl echo
+dnl echo ---------------------------------------------
+dnl echo testing mico
+dnl echo ---------------------------------------------
+dnl echo
+
+dnl CHECK_MICO
+
+echo
+echo ---------------------------------------------
+echo default ORB : omniORB
+echo ---------------------------------------------
+echo
+
+DEFAULT_ORB=omniORB
+CHECK_CORBA
+
+AC_SUBST_FILE(CORBA)
+corba=make_$ORB
+CORBA=adm_local/unix/$corba
 
 echo
 echo ---------------------------------------------
@@ -279,12 +308,30 @@ CHECK_SALOME_GUI
 
 echo
 echo ---------------------------------------------
+echo testing VISU
+echo ---------------------------------------------
+echo
+
+CHECK_VISU
+
+echo
+echo ---------------------------------------------
+echo testing MED
+echo ---------------------------------------------
+echo
+
+CHECK_MED
+
+AM_CONDITIONAL(MED_ENABLE_MULTIPR, [test "$ENABLE_MULTIPR" = yes])
+
+echo
+echo ---------------------------------------------
 echo Summary
 echo ---------------------------------------------
 echo
 
 echo Configure
-variables="cc_ok lex_yacc_ok python_ok threads_ok OpenGL_ok qt_ok hdf5_ok paraview_ok occ_ok doxygen_ok graphviz_ok Kernel_ok SalomeGUI_ok"
+variables="cc_ok lex_yacc_ok python_ok swig_ok threads_ok OpenGL_ok qt_ok hdf5_ok paraview_ok omniORB_ok occ_ok doxygen_ok graphviz_ok Kernel_ok SalomeGUI_ok Visu_ok Med_ok"
 
 for var in $variables
 do
@@ -307,7 +354,7 @@ if test "$HAS_CMAKE" = "yes"; then
     mkdir -p ${ROOT_BUILDDIR}/src/Plugins
   fi
   cd ${ROOT_BUILDDIR}/src/Plugins
-  cmake -D ParaView_DIR=${PVINSTALLHOME} -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=${PARAVIS_ROOT_DIR}/lib/salome ${ROOT_SRCDIR}/src/Plugins
+  cmake -D ParaView_DIR=${PVHOME}/lib/paraview-${PVVERSION} -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=${prefix}/lib/paraview ${ROOT_SRCDIR}/src/Plugins
   cd $curdir
 fi
   
@@ -344,9 +391,13 @@ AC_OUTPUT([ \
   ./doc/salome/Makefile \
   ./doc/salome/gui/Makefile \
   ./doc/salome/gui/doxyfile \
+  ./idl/Makefile \
   ./src/Makefile \
   ./src/PVGUI/Makefile \
+  ./src/PV_SWIG/Makefile \
+  ./src/ENGINE/Makefile \
   ./resources/Makefile \
+  ./resources/PARAVISCatalog.xml \
   ./PARAVIS_version.h \
   Makefile \
 ])

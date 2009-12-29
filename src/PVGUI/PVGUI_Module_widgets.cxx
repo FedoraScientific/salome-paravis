@@ -33,7 +33,9 @@
 #include <QDockWidget>
 #include <QToolBar>
 
-#include <pqAnimationPanel.h>
+//VSV #include <pqAnimationPanel.h>
+#include <pqAnimationViewWidget.h> //VSV
+
 #include <pqApplicationCore.h>
 #include <pqComparativeVisPanel.h>
 #include <pqMainWindowCore.h>
@@ -85,11 +87,12 @@ void PVGUI_Module::setupDockWidgets()
   QDockWidget* animationPanelDock  = new QDockWidget( tr( "TTL_ANIMATION_INSPECTOR" ), desk );
   animationPanelDock->setObjectName("animationPanelDock");
   desk->addDockWidget( Qt::LeftDockWidgetArea, animationPanelDock );
-  pqAnimationPanel* animation_panel = Implementation->Core.setupAnimationPanel( animationPanelDock );
+  //pqAnimationPanel* animation_panel = Implementation->Core.setupAnimationPanel( animationPanelDock );
+  pqAnimationViewWidget* animation_panel = Implementation->Core.setupAnimationView( animationPanelDock );
   
   int aToolId = createTool( tr("TOOL_CURRENT_TIME_CONTROLS") );
   QToolBar* aTB = toolMgr()->toolBar( aToolId );
-  animation_panel->setCurrentTimeToolbar( aTB );
+  //animation_panel->setCurrentTimeToolbar( aTB );
   QList<QAction*> anActns = aTB->actions();
   for (int i = 0; i < anActns.size(); ++i)
     createTool( anActns.at(i), aToolId );
@@ -166,13 +169,13 @@ void PVGUI_Module::setupDockWidgetsContextMenu()
   pqPipelineBrowser *browser = Implementation->Core.pipelineBrowser();
   pqPipelineBrowserContextMenu *browserMenu = new pqPipelineBrowserContextMenu(browser);
 
-  browserMenu->setMenuAction(action(OpenFileId));
+  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::OPEN, action(OpenFileId));
   if ( action(OpenFileId)->text().compare(tr("MEN_OPEN")) == 0 )
     action(OpenFileId)->setText(tr("MEN_OPEN_FILE"));
 
-  browserMenu->setMenuAction(action(ChangeInputId));
-  browserMenu->setMenuAction(action(DeleteId));
-  browserMenu->setMenuAction(action(CreateCustomFilterId));
+  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::CHANGE_INPUT, action(ChangeInputId));
+  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::DELETE, action(DeleteId));
+  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::CREATE_CUSTOM_FILTER, action(CreateCustomFilterId));
 }
 
 /*!

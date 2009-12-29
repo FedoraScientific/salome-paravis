@@ -1,4 +1,6 @@
-#  Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+#  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+#
+#  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 #  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 #
 #  This library is free software; you can redistribute it and/or
@@ -15,20 +17,25 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-# -* Makefile *- 
+#  File   : Makefile.in
+#  Author : Vitaly Smetannikov
+#  Module : PARAVIS
+#  $Header: 
 #
-# Author : Patrick GOLDBRONN (CEA)
-# Date : 28/06/2001
-#  Modified by : Alexander BORODIN (OCN) - autotools usage
-
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
-dist_salomeres_DATA = \
-	LightApp.xml \
-	SalomeApp.xml \
-	pqAppIcon22.png \
-	pqAppIcon16.png
+lib_LTLIBRARIES= libPARAVISEngine.la
 
-nodist_salomeres_SCRIPTS = PARAVISCatalog.xml
+salomeinclude_HEADERS= PARAVIS_Engine_i.hh
+
+dist_libPARAVISEngine_la_SOURCES= PARAVIS_Engine_i.cc
+
+libPARAVISEngine_la_CPPFLAGS= \
+	$(KERNEL_CXXFLAGS) $(CORBA_CXXFLAGS) $(CORBA_INCLUDES) \
+	-I$(top_builddir)/salome_adm/unix -I$(top_builddir)/idl 
+
+libPARAVISEngine_la_LDFLAGS= \
+	$(KERNEL_LDFLAGS) -lSalomeIDLKernel -lSalomeNS -lSalomeContainer $(CORBA_LIBS) \
+	$(top_builddir)/idl/libSalomeIDLPARAVIS.la

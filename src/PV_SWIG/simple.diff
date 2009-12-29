@@ -1,0 +1,51 @@
+21,39c21,24
+< #==============================================================================
+< #
+< #  Program:   ParaView
+< #  Module:    $RCSfile$
+< #
+< #  Copyright (c) Kitware, Inc.
+< #  All rights reserved.
+< #  See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
+< #
+< #     This software is distributed WITHOUT ANY WARRANTY; without even
+< #     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+< #     PURPOSE.  See the above copyright notice for more information.
+< #
+< #==============================================================================
+< 
+< import paraview
+< paraview.compatibility.major = 3
+< paraview.compatibility.minor = 5
+< import servermanager
+---
+> 
+> import paravisSM
+> 
+> servermanager = paravisSM
+259c244,245
+<         if proxy == GetActiveSource():
+---
+>         #VSV:==
+>         if proxy.IsSame(GetActiveSource()):
+267c253,254
+<             if rep.Input == proxy:
+---
+>             #VSV:==
+>             if rep.Input.IsSame(proxy):
+271c258,259
+<         if proxy == GetActiveView():
+---
+>         ##VSV:==
+>         if proxy.IsSame(GetActiveView()):
+679a668,674
+> def PrintTrace():
+>     print paravisSM.myParavis.GetTrace()
+> 
+> def SaveTrace(fileName):
+>     paravisSM.myParavis.SaveTrace(fileName)
+> 
+> 
+681a677,678
+> ## Initialisation for SALOME GUI
+> active_objects.view = servermanager.GetRenderView()

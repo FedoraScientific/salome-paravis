@@ -28,7 +28,8 @@
 
 #include "PVGUI_Module.h"
 
-#include <QAssistantClient>
+//#include <QAssistantClient>
+#include <pqHelpWindow.h>
 #include <QPointer>
 
 #include <pqMainWindowCore.h>
@@ -41,7 +42,8 @@ class PVGUI_Module::pqImplementation
 {
  public:
   pqImplementation(QWidget* parent) :
-    AssistantClient(0),
+    //AssistantClient(0),
+    myHelpWindow(0),
     Core(parent),
     RecentFilesMenu(0)
   {
@@ -49,17 +51,16 @@ class PVGUI_Module::pqImplementation
   
   ~pqImplementation()
   {
-    if(this->AssistantClient) {
-      this->AssistantClient->closeAssistant();
-      delete this->AssistantClient;
-    }
+    if (myHelpWindow)
+      delete myHelpWindow;
   }
   
-  QPointer<QAssistantClient> AssistantClient;
+  //QPointer<QAssistantClient> AssistantClient;
   pqMainWindowCore Core;
   pqRecentFilesMenu* RecentFilesMenu;
-  QPointer<pqServer> ActiveServer;
+  //QPointer<pqServer> ActiveServer;
   QString DocumentationDir;
+  QPointer<pqHelpWindow> myHelpWindow;
   
   static vtkPVMain* myPVMain;
   static pqOptions* myPVOptions;

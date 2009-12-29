@@ -20,4 +20,8 @@
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
 dist_admlocalm4_DATA = \
-	check_ParaView.m4
+	check_ParaView.m4 \
+	check_VISU.m4 \
+	check_Med.m4 \
+	check_Med2.m4 \
+	med_check_sizeof_medint.m4

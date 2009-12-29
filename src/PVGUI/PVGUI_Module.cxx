@@ -24,18 +24,40 @@
 //
 
 #include "PVGUI_Module.h"
+
+#include "SALOMEconfig.h"
+#include CORBA_CLIENT_HEADER(VISU_Gen)
+#include CORBA_SERVER_HEADER(SALOMEDS)
+
+
+#include "PARAVIS_Gen_i.hh"
+
 #include "PVGUI_Module_impl.h"
 #include "PVGUI_ProcessModuleHelper.h"
 #include "PVGUI_ViewModel.h"
 #include "PVGUI_ViewManager.h"
 #include "PVGUI_ViewWindow.h"
+#include "PVGUI_Tools.h"
+#include "PVGUI_Trace.h"
 
 #include <SUIT_Desktop.h>
 #include <SUIT_MessageBox.h>
 #include <SUIT_ResourceMgr.h>
 #include <SUIT_Session.h>
-#include <LightApp_Application.h>
+#include <SUIT_OverrideCursor.h>
+
+// SALOME Includes
+#include "SALOME_LifeCycleCORBA.hxx"
+#include "SALOME_ListIteratorOfListIO.hxx"
+#include "SALOMEDS_SObject.hxx"
+
+//#include <LightApp_Application.h>
 #include <LightApp_SelectionMgr.h>
+#include <SalomeApp_Application.h>
+#include <SalomeApp_Study.h>
+#include <SALOME_ListIO.hxx>
+#include <SALOMEDS_Tool.hxx>
+
 #include <QtxActionMenuMgr.h>
 #include <QtxActionToolMgr.h>
 
@@ -54,7 +76,6 @@
 #include <QToolBar>
 
 #include <pqApplicationCore.h>
-#include <pqActiveServer.h>
 #include <pqActiveView.h>
 #include <pqClientAboutDialog.h>
 #include <pqObjectBuilder.h>
@@ -62,11 +83,12 @@
 #include <pqRenderView.h>
 #include <pqRubberBandHelper.h>
 #include <pqServer.h>
-#include <pqServerManagerModel.h>
-#include <pqServerResource.h>
+//#include <pqServerManagerModel.h>
+//#include <pqServerResource.h>
 #include <pqUndoStack.h>
 #include <pqVCRController.h>
 #include <pqViewManager.h>
+#include <pqPipelineSource.h>
 #include <vtkPVMain.h>
 #include <vtkProcessModule.h>
 
@@ -90,10 +112,11 @@
 #include <vtkHybridInstantiator.h>
 #include <vtkParallelInstantiator.h>
 
-#include <vtkPVServerCommonInstantiator.h>
-#include <vtkPVFiltersInstantiator.h>
-#include <vtkPVServerManagerInstantiator.h>
-#include <vtkClientServerInterpreter.h>
+//#include <vtkPVServerCommonInstantiator.h>
+//#include <vtkPVFiltersInstantiator.h>
+//#include <vtkPVServerManagerInstantiator.h>
+//#include <vtkClientServerInterpreter.h>
+
 
 
 //----------------------------------------------------------------------------
@@ -115,30 +138,34 @@ extern "C" void vtkPVServerCommonCS_Initialize(vtkClientServerInterpreter*);
 extern "C" void vtkPVFiltersCS_Initialize(vtkClientServerInterpreter*);
 extern "C" void vtkXdmfCS_Initialize(vtkClientServerInterpreter *);
 
+
 //----------------------------------------------------------------------------
 void ParaViewInitializeInterpreter(vtkProcessModule* pm)
 {
+  vtkClientServerInterpreter* interp = pm->GetInterpreter();
   // Initialize built-in wrapper modules.
-  vtkCommonCS_Initialize(pm->GetInterpreter());
-  vtkFilteringCS_Initialize(pm->GetInterpreter());
-  vtkGenericFilteringCS_Initialize(pm->GetInterpreter());
-  vtkImagingCS_Initialize(pm->GetInterpreter());
-  vtkInfovisCS_Initialize(pm->GetInterpreter());
-  vtkGraphicsCS_Initialize(pm->GetInterpreter());
-  vtkIOCS_Initialize(pm->GetInterpreter());
-  vtkRenderingCS_Initialize(pm->GetInterpreter());
-  vtkVolumeRenderingCS_Initialize(pm->GetInterpreter());
-  vtkHybridCS_Initialize(pm->GetInterpreter());
-  vtkWidgetsCS_Initialize(pm->GetInterpreter());
-  vtkParallelCS_Initialize(pm->GetInterpreter());
-  vtkPVServerCommonCS_Initialize(pm->GetInterpreter());
-  vtkPVFiltersCS_Initialize(pm->GetInterpreter());
-  vtkXdmfCS_Initialize(pm->GetInterpreter());
+  vtkCommonCS_Initialize(interp);
+  vtkFilteringCS_Initialize(interp);
+  vtkGenericFilteringCS_Initialize(interp);
+  vtkImagingCS_Initialize(interp);
+  vtkInfovisCS_Initialize(interp);
+  vtkGraphicsCS_Initialize(interp);
+  vtkIOCS_Initialize(interp);
+  vtkRenderingCS_Initialize(interp);
+  vtkVolumeRenderingCS_Initialize(interp);
+  vtkHybridCS_Initialize(interp);
+  vtkWidgetsCS_Initialize(interp);
+  vtkParallelCS_Initialize(interp);
+  vtkPVServerCommonCS_Initialize(interp);
+  vtkPVFiltersCS_Initialize(interp);
+  vtkXdmfCS_Initialize(interp);
 }
 
 vtkPVMain*                 PVGUI_Module::pqImplementation::myPVMain = 0;
 pqOptions*                 PVGUI_Module::pqImplementation::myPVOptions = 0;
 PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
+
+PVGUI_Module* ParavisModule = 0;
 
 /*!
   \mainpage
@@ -147,9 +174,8 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
   As any other SALOME module, PARAVIS requires PARAVIS_ROOT_DIR environment variable to be set to PARAVIS
   installation directory.
   Other variables needed for correct detection of ParaView location:
-  \li PVSRCHOME - points at the root of ParaView source directory tree
-  \li PVINSTALLHOME - points at the top of ParaView build tree (currently, due to some drawbacks in its buld procedure
-  ParaView should not be installed, its build directory is used instead).
+  \li PVHOME - points at the ParaView installation directory tree
+  \li PVVERSION - number of ParaView version
 
   It also requires common SALOME environment including GUI_ROOT_DIR and other prerequsites.
 
@@ -158,18 +184,13 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
   mkdir PARAVIS_BUILD
   cd PARAVIS_BUILD
   ../PARAVIS_SRC/build_configure
-  ../PARAVIS_SRC/configure --prefix=${PARAVIS_ROOT_DIR}
+  ../PARAVIS_SRC/configure --prefix=${PARAVIS_ROOT_DIR} -with-paraview
   make 
   make docs
   make install
   \endcode
 
   PARAVIS module can be launched using the following commands:
-  \li Light SALOME configuration
-  \code
-  runLightSalome.sh --modules="PARAVIS"
-  \endcode
-  or
   \li Full SALOME configuration
   \code
   runSalome --modules="PARAVIS"
@@ -258,12 +279,14 @@ PVGUI_ProcessModuleHelper* PVGUI_Module::pqImplementation::myPVHelper = 0;
   \brief Constructor. Sets the default name for the module.
 */
 PVGUI_Module::PVGUI_Module()
-  : LightApp_Module( "PARAVIS" ),
+  : SalomeApp_Module( "PARAVIS" ),
+    LightApp_Module( "PARAVIS" ),
     Implementation( 0 ),
     mySelectionControlsTb( -1 ),
     mySourcesMenuId( -1 ),
     myFiltersMenuId( -1 )
 {
+  ParavisModule = this;
 }
 
 /*!
@@ -279,7 +302,7 @@ PVGUI_Module::~PVGUI_Module()
 */
 void PVGUI_Module::initialize( CAM_Application* app )
 {
-  LightApp_Module::initialize( app );
+  SalomeApp_Module::initialize( app );
 
   // Uncomment to debug ParaView initialization
   // "aa" used instead of "i" as GDB doesn't like "i" variables :)
@@ -295,7 +318,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   // Create GUI elements (menus, toolbars, dock widgets)
   if ( !Implementation ){
-    LightApp_Application* anApp = getApp();
+    SalomeApp_Application* anApp = getApp();
 
     // Simulate ParaView client main window
     Implementation = new pqImplementation( anApp->desktop() );
@@ -310,8 +333,28 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
     // Now that we're ready, initialize everything ...
     Implementation->Core.initializeStates();
+
+    // Force creation of engine
+    PARAVIS::GetParavisGen(this);
+    updateObjBrowser();
   }
+
+  QCoreApplication::processEvents();
+
+  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
+  bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
+  if(!isStop)
+    QTimer::singleShot(500, this, SLOT(activateTrace()));
+  //  start_trace();
 }
+
+
+void PVGUI_Module::activateTrace()
+{
+  start_trace();
+}
+
+
 
 /*!
   \brief Get list of compliant dockable GUI elements
@@ -339,7 +382,7 @@ bool PVGUI_Module::pvInit()
     for ( QStringList::const_iterator it = args.begin(); argc < 1 && it != args.end(); it++, argc++ )
       argv[argc] = strdup( (*it).toLatin1().constData() );
 
-    vtkPVMain::SetInitializeMPI(0);  // pvClient never runs with MPI.
+    vtkPVMain::SetUseMPI(0);  // pvClient never runs with MPI.
     vtkPVMain::Initialize(&argc, &argv); // Perform any initializations.
 
     // TODO: Set plugin dir from preferences
@@ -365,6 +408,8 @@ bool PVGUI_Module::pvInit()
       ret = pqImplementation::myPVHelper->Run(pqImplementation::myPVOptions);
     }
 
+    if (argc == 1)
+      free(argv[0]); // because in creation argc < 1
     delete[] argv;
     return !ret;
   }
@@ -386,7 +431,7 @@ void PVGUI_Module::pvShutdown()
 */
 void PVGUI_Module::showView( bool toShow )
 {
-  LightApp_Application* anApp = getApp();
+  SalomeApp_Application* anApp = getApp();
   PVGUI_ViewManager* viewMgr = dynamic_cast<PVGUI_ViewManager*>( anApp->getViewManager( PVGUI_Viewer::Type(), false ) );
   if ( !viewMgr ) {
     viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
@@ -502,6 +547,13 @@ void PVGUI_Module::setTimeRanges( double start, double end )
   action(LastFrameId)->setToolTip(QString("Last Frame (%1)").arg(end, 0, 'g'));
 }
 
+
+void PVGUI_Module::connectToPlay()
+{
+  connect( action(PlayId), SIGNAL( triggered() ), &Implementation->Core.VCRController(), SLOT( onPlay() ) );
+}
+
+
 /*!
   \brief Slot to manage the plaing process of animation.
 */
@@ -509,18 +561,16 @@ void PVGUI_Module::onPlaying( bool playing )
 {
   SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
   if(playing) {
-    disconnect( action(PlayId),                        SIGNAL( triggered() ),
-		&Implementation->Core.VCRController(), SLOT( onPlay() ) );
-    connect( action(PlayId),                        SIGNAL( triggered() ),
-	     &Implementation->Core.VCRController(), SLOT( onPause() ) );
+    disconnect( action(PlayId), SIGNAL( triggered() ),&Implementation->Core.VCRController(), SLOT( onPlay() ) );
+    connect( action(PlayId), SIGNAL( triggered() ), &Implementation->Core.VCRController(), SLOT( onPause() ) );
     action(PlayId)->setIcon(QIcon(resMgr->loadPixmap("ParaView",tr("ICON_PAUSE"),false)));
     action(PlayId)->setText("Pa&use");
   }
   else {
-    connect( action(PlayId),                        SIGNAL( triggered() ),
-	     &Implementation->Core.VCRController(), SLOT( onPlay() ) );
-    disconnect( action(PlayId),                        SIGNAL( triggered() ),
-		&Implementation->Core.VCRController(), SLOT( onPause() ) );
+    // Immediate connecting toPlay doubles event
+    QTimer::singleShot(10, this, SLOT(connectToPlay()));
+    //connect( action(PlayId), SIGNAL( triggered() ), &Implementation->Core.VCRController(), SLOT( onPlay() ) );
+    disconnect( action(PlayId), SIGNAL( triggered() ), &Implementation->Core.VCRController(), SLOT( onPause() ) );
     action(PlayId)->setIcon(QIcon(resMgr->loadPixmap("ParaView",tr("ICON_PLAY"),false)));
     action(PlayId)->setText("&Play");
   }
@@ -566,13 +616,17 @@ void PVGUI_Module::showHelpForProxy( const QString& proxy )
   // make sure assistant is ready
   this->makeAssistant();
 
-  if(this->Implementation->AssistantClient) {
+  if(this->Implementation->myHelpWindow) {
+    this->Implementation->myHelpWindow->show();
+    this->Implementation->myHelpWindow->raise();
+  }
+  /*  if(this->Implementation->AssistantClient) {
     this->Implementation->AssistantClient->openAssistant();
     QString page("%1/Documentation/%2.html");
     page = page.arg(this->Implementation->DocumentationDir);
     page = page.arg(proxy);
     this->Implementation->AssistantClient->showPage(page);
-  }
+    }*/
 }
 
 QString Locate( const QString& appName )
@@ -605,81 +659,15 @@ QString Locate( const QString& appName )
 */
 void PVGUI_Module::makeAssistant()
 {
-  if(this->Implementation->AssistantClient)
+  if (this->Implementation->myHelpWindow)
     return;
-  
-  QString assistantExe;
-  QString profileFile;
-  
-  const char* assistantName = "assistant";
-#ifdef WNT
-  const char* binDir = "\\";
-  const char* binDir1 = "\\..\\";
-#else
-  const char* binDir = "/";
-  const char* binDir1 = "/bin/";
-#endif
 
-  QString helper = QString(getenv("PVINSTALLHOME")) + binDir + QString("pqClientDocFinder.txt");
-  if(!QFile::exists(helper))
-    helper = QString(getenv("PVINSTALLHOME")) + binDir1 + QString("pqClientDocFinder.txt");
-  if(QFile::exists(helper)) {
-    QFile file(helper);
-    if(file.open(QIODevice::ReadOnly)) {
-      assistantExe = file.readLine().trimmed();
-      profileFile = file.readLine().trimmed();
-      // CMake escapes spaces, we need to unescape those.
-      assistantExe.replace("\\ ", " ");
-      profileFile.replace("\\ ", " ");
-    }
-  }
-
-  if(assistantExe.isEmpty()) {
-    assistantExe = ::Locate(assistantName);//assistantExe = ::Locate(assistantProgName);
-    /*
-    QString assistant = QCoreApplication::applicationDirPath();
-    assistant += QDir::separator();
-    assistant += assistantName;
-    assistantExe = assistant;
-    */
-  }
-
-  this->Implementation->AssistantClient = new QAssistantClient(assistantExe, this);
-  QObject::connect(this->Implementation->AssistantClient, SIGNAL(error(const QString&)),
-                   this,                                  SLOT(assistantError(const QString&)));
-
-  QStringList args;
-  args.append(QString("-profile"));
-
-  if(profileFile.isEmpty()) {
-    // see if help is bundled up with the application
-    QString profile = ::Locate("pqClient.adp");
-    /*QCoreApplication::applicationDirPath() + QDir::separator()
-      + QString("pqClient.adp");*/
-    
-    if(QFile::exists(profile))
-      profileFile = profile;
-  }
-
-  if(profileFile.isEmpty() && getenv("PARAVIEW_HELP")) {
-    // not bundled, ask for help
-    args.append(getenv("PARAVIEW_HELP"));
-  }
-  else if(profileFile.isEmpty()) {
-    // no help, error out
-    SUIT_MessageBox::critical(getApp()->desktop(),"Help error", "Couldn't find"
-			      " pqClient.adp.\nTry setting the PARAVIEW_HELP environment variable which"
-			      " points to that file");
-    delete this->Implementation->AssistantClient;
-    return;
-  }
-
-  QFileInfo fi(profileFile);
-  this->Implementation->DocumentationDir = fi.absolutePath();
-
-  args.append(profileFile);
-
-  this->Implementation->AssistantClient->setArguments(args);
+  pqHelpWindow* helpWindow = new pqHelpWindow("ParaView Online Help", getApp()->desktop());
+  QObject::connect(helpWindow, SIGNAL(helpWarnings(const QString&)),
+                   this, SLOT(assistantError(const QString&)));
+  helpWindow->registerDocumentation(":/ParaViewResources/pqClient.qch");
+  this->Implementation->myHelpWindow = helpWindow;
+  this->Implementation->myHelpWindow->showPage("qthelp://paraview.org/paraview/Documentation/index.html");
 }
 
 /*!
@@ -774,7 +762,7 @@ bool PVGUI_Module::eventFilter( QObject* theObject, QEvent* theEvent )
 */
 bool PVGUI_Module::activateModule( SUIT_Study* study )
 {
-  bool isDone = LightApp_Module::activateModule( study );
+  bool isDone = SalomeApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
   showView( true );
@@ -816,7 +804,7 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 
   saveDockWidgetsState();
 
-  return LightApp_Module::deactivateModule( study );
+  return SalomeApp_Module::deactivateModule( study );
 }
 
 /*!
@@ -829,8 +817,11 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 */
 void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
 {
-  pvShutdown();
-  
+  int aAppsNb = SUIT_Session::session()->applications().size();
+  if (aAppsNb == 1) {
+    deleteTemporaryFiles();
+    pvShutdown();
+  }
   CAM_Module::onApplicationClosed(theApp);
 }
 
@@ -839,12 +830,161 @@ void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
   returns true if they "match" within some tolerance.
 */
 bool PVGUI_Module::compareView( const QString& ReferenceImage, double Threshold,
-				ostream& Output, const QString& TempDirectory )
+                                std::ostream& Output, const QString& TempDirectory )
 {
   if ( Implementation )
     return Implementation->Core.compareView( ReferenceImage, Threshold, Output, TempDirectory );
   return false;
 }
+
+QString PVGUI_Module::engineIOR() const
+{
+  CORBA::String_var anIOR = PARAVIS::GetParavisGen(this)->GetIOR();
+  return QString(anIOR.in());
+}
+
+void PVGUI_Module::onOpenFile()
+{
+  // This avoids an immediate exception on wrong MED file opening
+  Implementation->Core.onFileOpen();
+}
+
+/*!
+  \brief Open file of format supported by ParaView
+*/
+void PVGUI_Module::openFile(const char* theName)
+{
+  QStringList aFiles;
+  aFiles<<theName;
+  Implementation->Core.createReaderOnActiveServer(aFiles);
+}
+
+/*!
+  \brief Returns trace string
+*/
+QString PVGUI_Module::printTrace()
+{
+  return get_trace_string();
+}
+
+/*!
+  \brief Saves trace string to disk file
+*/
+void PVGUI_Module::saveTrace(const char* theName)
+{
+  save_trace(theName);
+}
+
+/*!
+  \brief Saves ParaView state to a disk file
+*/
+void PVGUI_Module::saveParaviewState(const char* theFileName)
+{
+  QStringList aFiles;
+  aFiles<<theFileName;
+  Implementation->Core.onFileSaveServerState(aFiles);
+}
+
+/*!
+  \brief Restores ParaView state from a disk file
+*/
+void PVGUI_Module::loadParaviewState(const char* theFileName)
+{
+  QStringList aFiles;
+  aFiles<<theFileName;
+  Implementation->Core.onFileLoadServerState(aFiles);
+}
+
+/*!
+  \brief Imports MED data from VISU module by data entry
+*/
+void PVGUI_Module::onImportFromVisu(QString theEntry)
+{
+  SUIT_OverrideCursor aWaitCursor;
+
+  // get active study
+  SalomeApp_Study* activeStudy = dynamic_cast<SalomeApp_Study*>(application()->activeStudy());
+  if(!activeStudy) return;
+
+  // get SALOMEDS client study 
+  _PTR(Study) aStudy = activeStudy->studyDS();
+  if(!aStudy) return;
+
+  // find VISU component in a study
+  _PTR(SComponent) aVisuComp = aStudy->FindComponent( "VISU" );
+  if(!aVisuComp) return;
+
+  // get SObject client by entry
+  _PTR(SObject) aSObj = aStudy->FindObjectID(qPrintable(theEntry));
+  if (!aSObj) return;
+
+  // get CORBA SObject
+  SALOMEDS_SObject* aSObject = _CAST(SObject, aSObj);
+  if ( !aSObject ) return;
+
+  // load VISU engine
+  SALOME_NamingService* aNamingService = SalomeApp_Application::namingService();
+  SALOME_LifeCycleCORBA aLCC(aNamingService);
+
+  Engines::Component_var aComponent = aLCC.FindOrLoad_Component("FactoryServer","VISU");
+  VISU::VISU_Gen_var aVISU = VISU::VISU_Gen::_narrow(aComponent);
+  if(CORBA::is_nil(aVISU)) return;
+
+  _PTR(StudyBuilder) aStudyBuilder = aStudy->NewBuilder();
+  aStudyBuilder->LoadWith( aVisuComp, SalomeApp_Application::orb()->object_to_string(aVISU) );
+
+  // set current study to VISU engine
+  //aVISU->SetCurrentStudy(aStudyVar);
+
+  // get VISU result object
+  CORBA::Object_var aResultObject = aSObject->GetObject();
+  if (CORBA::is_nil(aResultObject)) return;
+  VISU::Result_var aResult = VISU::Result::_narrow( aResultObject );
+  if (CORBA::is_nil(aResult)) return;
+
+  // export VISU result to the MED file
+  std::string aTmpDir = SALOMEDS_Tool::GetTmpDir();
+  std::string aFileName = aSObject->GetName();
+  std::string aFilePath = aTmpDir + aFileName;
+
+  if (aResult->ExportMED(aFilePath.c_str())) {
+    openFile(aFilePath.c_str());
+    myTemporaryFiles.append(QString(aFilePath.c_str()));
+  }
+}
+
+/*!
+  \brief Deletes temporary files created during import operation from VISU
+*/
+void PVGUI_Module::deleteTemporaryFiles()
+{
+  foreach(QString aFile, myTemporaryFiles) {
+    if (QFile::exists(aFile)) {
+      QFile::remove(aFile);
+    }
+  }
+}
+
+
+/*!
+  \brief Returns current active ParaView server
+*/
+pqServer* PVGUI_Module::getActiveServer()
+{
+  return Implementation->Core.getActiveServer();
+}
+
+
+/*!
+  \brief Creates PARAVIS preference pane 
+*/
+void PVGUI_Module::createPreferences()
+{
+  int TraceTab = addPreference( tr( "TIT_TRACE" ) );
+  addPreference( tr( "PREF_STOP_TRACE" ), TraceTab, LightApp_Preferences::Bool, "PARAVIS", "stop_trace");
+}
+
+
 
 /*!
   \fn CAM_Module* createModule();

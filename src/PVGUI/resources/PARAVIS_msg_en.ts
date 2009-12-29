@@ -1087,5 +1087,13 @@
         <source>TOOL_VCR_CONTROLS</source>
         <translation>VCR Controls</translation>
     </message>
+    <message>
+        <source>PREF_STOP_TRACE</source>
+        <translation>Deactivate Trace (for next session only)</translation>
+    </message>
+    <message>
+        <source>TIT_TRACE</source>
+        <translation>Trace</translation>
+    </message>
 </context>
 </TS>

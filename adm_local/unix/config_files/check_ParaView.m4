@@ -93,7 +93,7 @@ then
 fi
 
 LOCAL_INCLUDES="$OGL_INCLUDES"
-LOCAL_LIBS="-lvtksys -lvtkzlib -lvtkpng -lvtkjpeg -lvtktiff -lvtkexpat -lvtksqlite -lvtkmetaio -lvtkverdict -lvtkNetCDF -lvtkDICOMParser -lvtkfreetype -lvtkftgl -lvtkexoIIc -lvtklibxml2 -lvtkCommon -lvtkGraphics -lvtkImaging -lvtkFiltering -lvtkIO -lvtkRendering -lvtkHybrid -lvtkParallel -lvtkWidgets -lvtkClientServer -lvtkCommonCS -lvtkFilteringCS -lvtkIOCS -lvtkImagingCS -lvtkGraphicsCS -lvtkGenericFiltering -lvtkGenericFilteringCS -lvtkRenderingCS -lvtkHybridCS -lvtkParallelCS -lvtkPVCommandOptions -lKWCommon -lvtkInfovis -lvtkInfovisCS -lvtkPVServerCommon -lvtkPVServerCommonCS -lvtkCommonPythonD -lvtkFilteringPythonD -lvtkIOPythonD -lXdmf -lvtkXdmf -lvtkXdmfCS -lvtkWidgetsCS -lvtkVolumeRendering -lvtkVolumeRenderingCS -lvtkPVFilters -lvtkPVFiltersCS -lvtkViews -lvtkPVServerManagerPythonD -lvtkPVServerCommonPythonD -lvtkPVPythonInterpretor -lvtkPVServerManager -lQVTK -lpqWidgets -lQtTesting -lQtChart -lpqCore -lQtPython -lpqComponents $LXLIB -lX11 -lXt"
+LOCAL_LIBS="-lvtksys -lvtkzlib -lvtkpng -lvtkjpeg -lvtktiff -lvtkexpat -lvtksqlite -lvtkmetaio -lvtkverdict -lvtkNetCDF -lvtkDICOMParser -lvtkfreetype -lvtkftgl -lvtkexoIIc -lvtklibxml2 -lvtkCommon -lvtkGraphics -lvtkImaging -lvtkFiltering -lvtkIO -lvtkRendering -lvtkHybrid -lvtkParallel -lvtkWidgets -lvtkClientServer -lvtkCommonCS -lvtkFilteringCS -lvtkIOCS -lvtkImagingCS -lvtkGraphicsCS -lvtkGenericFiltering -lvtkGenericFilteringCS -lvtkRenderingCS -lvtkHybridCS -lvtkParallelCS -lvtkPVCommandOptions -lKWCommon -lvtkInfovis -lvtkInfovisCS -lvtkPVServerCommon -lvtkPVServerCommonCS -lvtkCommonPythonD -lvtkFilteringPythonD -lvtkIOPythonD -lXdmf -lvtkXdmf -lvtkXdmfCS -lvtkWidgetsCS -lvtkVolumeRendering -lvtkVolumeRenderingCS -lvtkPVFilters -lvtkPVFiltersCS -lvtkViews -lvtkPVServerManagerPythonD -lvtkPVServerCommonPythonD -lvtkPVPythonInterpretor -lvtkPVServerManager -lQVTK -lpqWidgets -lQtTesting -lvtkQtChart -lpqCore -lQtPython -lpqComponents -lvtkPVPython -lvtkalglib $LXLIB -lX11 -lXt"
 
 dnl VTK install dir
 if test -z $with_paraview ; then
@@ -113,25 +113,13 @@ if test "x$with_paraview" != "x" ; then
   PVHOME="$with_paraview"
 fi
 
-if test -z $PVSRCHOME ; then
   if test -z $PVHOME ; then
     AC_MSG_WARN(undefined PVHOME and PVSRCHOME variables which specify where ParaView is located)
-  else 
-    PVSRCHOME="$PVHOME/src"
-  fi
-fi
+  fi  
+  
+LOCAL_INCLUDES="-I$PVHOME/include/paraview-$PVVERSION $LOCAL_INCLUDES"
 
-if test -z $PVINSTALLHOME ; then
-  if test -z $PVHOME ; then
-    AC_MSG_WARN(undefined PVHOME and PVINSTALLHOME variables which specify where ParaView is located)
-  else
-    PVINSTALLHOME="$PVHOME/bin"
-  fi
-fi
-    
-LOCAL_INCLUDES="-I$PVSRCHOME/VTK/Common -I$PVSRCHOME/Qt/Core -I$PVSRCHOME/Qt/Components -I$PVSRCHOME/Servers/Filters -I$PVSRCHOME/Servers/Common -I$PVSRCHOME/Servers/Filters -I$PVSRCHOME/Servers/ServerManager -I$PVSRCHOME/Utilities/VTKClientServer -I$PVSRCHOME/VTK/Filtering -I$PVSRCHOME/VTK/GenericFiltering -I$PVSRCHOME/VTK/Graphics -I$PVSRCHOME/VTK/Hybrid -I$PVSRCHOME/VTK/Imaging -I$PVSRCHOME/VTK/Infovis -I$PVSRCHOME/VTK/IO -I$PVSRCHOME/VTK/Parallel -I$PVSRCHOME/VTK/Rendering -I$PVSRCHOME/VTK/Utilities -I$PVSRCHOME/VTK/Views -I$PVSRCHOME/VTK/VolumeRendering -I$PVSRCHOME/VTK/Widgets -I$PVINSTALLHOME/Qt/Core -I$PVINSTALLHOME/Qt/Components -I$PVINSTALLHOME/Utilities/VTKClientServer -I$PVINSTALLHOME/Servers/Common -I$PVINSTALLHOME/Servers/Filters -I$PVINSTALLHOME/Servers/ServerManager -I$PVINSTALLHOME/VTK -I$PVINSTALLHOME/VTK/Common -I$PVINSTALLHOME/VTK/Filtering -I$PVINSTALLHOME/VTK/GenericFiltering -I$PVINSTALLHOME/VTK/Graphics -I$PVINSTALLHOME/VTK/Hybrid -I$PVINSTALLHOME/VTK/Imaging -I$PVINSTALLHOME/VTK/Infovis -I$PVINSTALLHOME/VTK/IO -I$PVINSTALLHOME/VTK/Parallel -I$PVINSTALLHOME/VTK/Rendering -I$PVINSTALLHOME/VTK/Utilities -I$PVINSTALLHOME/VTK/Views -I$PVINSTALLHOME/VTK/VolumeRendering -I$PVINSTALLHOME/VTK/Widgets $LOCAL_INCLUDES"
-
-LOCAL_LIBS="-L$PVINSTALLHOME/bin $LOCAL_LIBS"
+LOCAL_LIBS="-L$PVHOME/lib/paraview-$PVVERSION $LOCAL_LIBS"
 
 dnl vtk headers
 CPPFLAGS_old="$CPPFLAGS"

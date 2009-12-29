@@ -31,7 +31,7 @@
 #include <SUIT_Desktop.h>
 #include <SUIT_ResourceMgr.h>
 #include <SUIT_Session.h>
-#include <LightApp_Application.h>
+#include <SalomeApp_Application.h>
 
 #include <QAction>
 #include <QMenu>
@@ -47,6 +47,9 @@
 #include <pqScalarBarVisibilityAdaptor.h>
 #include <pqUndoStack.h>
 #include <pqVCRController.h>
+
+#include "PVGUI_Tools.h"
+
 
 /*!
   \brief Create actions for ParaView GUI operations
@@ -68,7 +71,9 @@ void PVGUI_Module::pvCreateActions()
   aPixmap = resMgr->loadPixmap( "ParaView", tr("ICON_OPEN_FILE"), false );
   createAction( OpenFileId, tr("TOP_OPEN_FILE"), QIcon(aPixmap),
                 tr("MEN_OPEN"), tr("STB_OPEN_FILE"), 
-		0, desk, false, &Implementation->Core, SLOT( onFileOpen() ) );
+   //0, desk, false, &Implementation->Core, SLOT( onFileOpen() ) );
+  // This avoids an immediate exception on wrong MED file opening
+		0, desk, false, this, SLOT( onOpenFile() ) );
 
   // Load State
   anAction = createAction( LoadStateId, tr("TOP_LOAD_STATE"), QIcon(),
@@ -857,7 +862,7 @@ void PVGUI_Module::pvCreateToolBars()
 QMenu* PVGUI_Module::getMenu( const int id )
 {
   QMenu* res = 0;
-  LightApp_Application* anApp = getApp();
+  SalomeApp_Application* anApp = getApp();
   SUIT_Desktop* desk = anApp->desktop();
   if ( desk ){
     QtxActionMenuMgr* menuMgr = desk->menuMgr();

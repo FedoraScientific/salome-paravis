@@ -1,0 +1,120 @@
+//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+//
+//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+//
+//  File   : PARAVIS_Gen.idl
+//  Author : Vitaly Smetannikov
+//
+
+/*! \file PARAVIS_Gen.idl This file conatins a set of interfaces of the %PARAVIS module.
+ *     This module provides access to PARAVIEW functionality integrated to %SALOME application.
+ */
+
+#ifndef __PARAVIS_GEN__
+#define __PARAVIS_GEN__
+
+#include "SALOME_Exception.idl"
+#include "SALOME_GenericObj.idl"
+#include "SALOME_Component.idl"
+#include "SALOMEDS.idl"
+#include "PARAVIS_Gen_Types.idl"
+
+/*!
+  The main package of interfaces of the module %PARAVIS.
+*/
+module PARAVIS {
+
+  interface vtkObject;
+  interface vtkSMObject;
+  interface vtkProcessModule;
+  interface vtkPVPythonModule;
+
+  /*!
+   * \brief Base class for all PARAVIS container(wrapper) classes
+   */
+  interface PARAVIS_Base {
+    boolean IsSame(in PARAVIS_Base theOther);
+  };
+    
+
+  /*!
+   * \brief The main interface class for PARAVIS server. 
+   * Instantiation of this class has to be done before access to any other PARAVIS interfaces
+   */
+  interface PARAVIS_Gen : Engines::Component, SALOMEDS::Driver
+  {
+    /*!
+     * \brief Returns IOR of the current object.
+     */
+    string GetIOR();
+
+    /*!
+     * \brief Import file to PARAVIS module. 
+     * File can be of any type supported by Paraview and installed plug-ins.
+     */
+    void ImportFile(in string theFileName);
+
+
+    /*!
+     * Returns trace string if trace is activated for current session. 
+     * Otherwise it returns empty string.
+     */
+    string GetTrace();
+
+    /*!
+     * \brief Save trace sting to a disk file.
+     * \param theFileName - name of file.
+     */
+    void SaveTrace(in string theFileName);
+
+    /*!
+     * \brief Returns list of names of extracted Paraview and VTK classes
+     */
+    string_array GetClassesList();
+
+    /*!
+     * \brief Returns container class for the requested Paraview class
+     */
+    PARAVIS_Base CreateClass(in string theClassName);
+
+    /*!
+     * Returns parameters of current (usually built-in) connection which is active in GUI (Paraview client).
+     * \param theId - connection ID
+     * \param theDHost - name of data host
+     * \param theDPort - number of data port
+     * \param theRHost - name of representation host
+     * \param theRPort - number of representation port
+     * \param theReversed - returns 1 or 0 depending on server resource scheme
+     */
+    void GetConnectionParameters(out long theId, out string theDHost, out long theDPort, 
+                                 out string theRHost, out long theRPort, out long theReversed);
+
+    /*! 
+     * \brief Activates GUI of PARAVIS module. If module is active then do nothing.
+     * GUI must be active before call of any server manager API function.
+     * This function is called on activation paravis python module.
+     */
+    void ActivateModule();
+
+  };
+
+};
+
+#endif

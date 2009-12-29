@@ -25,6 +25,19 @@
 
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
+#Executable
+bin_PROGRAMS = vtkWrapIDL_HH vtkWrapIDL_CC
+
+dist_vtkWrapIDL_HH_SOURCES = ${PVHOME}/src/vtkParse.tab.c $(top_srcdir)/idl/vtkWrapIDL.c
+dist_vtkWrapIDL_CC_SOURCES = ${PVHOME}/src/vtkParse.tab.c $(top_srcdir)/idl/vtkWrapIDL.c
+
+vtkWrapIDL_HH_CPPFLAGS = -DIDL_I_HH	${PARAVIEW_INCLUDES}
+
+
+vtkWrapIDL_CC_CPPFLAGS = -DIDL_I_CC	${PARAVIEW_INCLUDES}
+
+include $(srcdir)/wrap.am
+
 # Library target
 lib_LTLIBRARIES = libPARAVIS.la
 
@@ -44,38 +57,87 @@ dist_libPARAVIS_la_SOURCES =	\
 	PVGUI_ViewWindow.h \
 	PVGUI_ViewWindow.cxx \
 	PVGUI_OutputWindowAdapter.h \
-	PVGUI_OutputWindowAdapter.cxx
+	PVGUI_OutputWindowAdapter.cxx \
+	PVGUI_Tools.h \
+	PVGUI_Tools.cxx \
+	PVGUI_Trace.h \
+	PVGUI_Trace.cxx \
+	PV_I.h \
+	PARAVIS_Gen_i.hh \
+	PV_Events.h \
+	PV_Tools.h \
+	PARAVIS_Gen_i.cc \
+	PV_Tools.cxx \
+	$(WRAP_IDL_I_HH) \
+	$(WRAP_IDL_I_CC) \
+	PARAVIS_CreateClass.cxx
 
 # MOC pre-processing
 MOC_FILES = \
 	PVGUI_Module_moc.cxx \
 	PVGUI_ViewManager_moc.cxx \
 	PVGUI_ViewModel_moc.cxx \
-	PVGUI_ViewWindow_moc.cxx
+	PVGUI_ViewWindow_moc.cxx \
+	PVGUI_Trace_moc.cxx
 
 nodist_libPARAVIS_la_SOURCES = $(MOC_FILES)
 
 # additionnal compilation flags
 # Note that ParaView uses HDF5
 libPARAVIS_la_CPPFLAGS = \
+	-ftemplate-depth-32 \
 	$(HDF5_INCLUDES) \
 	$(QT_INCLUDES) \
 	$(QT_ASSISTANT_INCLUDES) \
 	$(PARAVIEW_INCLUDES) \
 	$(CAS_CPPFLAGS) \
 	$(PYTHON_INCLUDES) \
-	$(GUI_CXXFLAGS)
+	@CAS_CPPFLAGS@ @CAS_CXXFLAGS@ \
+	$(KERNEL_CXXFLAGS) \
+	$(CORBA_CXXFLAGS) $(CORBA_INCLUDES) \
+	$(GUI_CXXFLAGS) \
+	$(VISU_CXXFLAGS) \
+	$(MED_CXXFLAGS) \
+	-I$(top_builddir)/idl \
+	-I$(srcdir)/../../idl	\
+	-I$(top_builddir)/salome_adm/unix
 
 # additionnal linkage flags
 # Note that ParaView uses HDF5
 libPARAVIS_la_LDFLAGS = \
+	$(PYTHON_LIBS) \
+	$(QT_MT_LIBS) \
 	$(HDF5_LIBS) \
 	$(QT_ASSISTANT_LIBS) \
 	$(PARAVIEW_LIBS) \
-	$(GUI_LDFLAGS) \
-	-lLightApp 
+	../../idl/libSalomeIDLPARAVIS.la \
+	$(KERNEL_LDFLAGS) -lSalomeNS -lSalomeDSClient -lSalomeContainer -lSalomeLifeCycleCORBA \
+	$(GUI_LDFLAGS) -lSalomeApp -lLightApp \
+	$(VISU_LDFLAGS) -lSalomeIDLVISU
 
+libPARAVIS_la_LIBADD= \
+	-lSalomeIDLKernel \
+	-lSalomeHDFPersist \
+	-lSalomeGenericObj \
+	-lSalomeContainer \
+	-lSalomeCommunication \
+	-lSalomeNS \
+	-lTOOLSDS \
+	-lOpUtil \
+	-lSalomeLifeCycleCORBA \
+	-lEvent \
+	-lSalomeApp \
+	-lSalomeSession \
+	-lqtx \
+	-lLightApp
+
+#	
 # resources files
 nodist_salomeres_DATA = \
            PARAVIS_images.qm \
            PARAVIS_msg_en.qm
+
+mostlyclean-local: clean-wrap
+
+clean-wrap:
+	-rm -f *.hh *.cc

@@ -1,4 +1,7 @@
-#  Copyright (C) 2005  CEA/DEN, EDF R&D, OPEN CASCADE, PRINCIPIA R&D
+#  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+#
+#  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+#  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -14,34 +17,14 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-# -* Makefile *-
+#  VISU VISU_SWIG : binding of C++ implementation and Python
+#  File   : Makefile.am
+#  Author : Paul RASCLE, EDF
+#  Module : VISU
 #
-# Author :
-# Modified by : Alexander BORODIN (OCN) - autotools usage
-#
-
 include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
-ACLOCAL_AMFLAGS = -I adm_local/unix/config_files \
-                  -I ${KERNEL_ROOT_DIR}/salome_adm/unix/config_files \
-                  -I ${GUI_ROOT_DIR}/adm_local/unix/config_files
+dist_salomescript_DATA = paravis.py paravisSM.py pvsimple.py
 
-SUBDIRS = idl adm_local resources src doc bin 
-
-DISTCLEANFILES = a.out aclocal.m4 configure
-
-salomeinclude_DATA = PARAVIS_version.h
-
-EXTRA_DIST += \
-	build_configure \
-	clean_configure
-
-dist-hook:
-	rm -rf `find $(distdir) -name CVS`
-
-dev_docs:
-	(cd doc && $(MAKE) $(AM_MAKEFLAGS) dev_docs)
-
-docs: dev_docs

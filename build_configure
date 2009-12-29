@@ -48,6 +48,18 @@ cp -f ${KERNEL_ROOT_DIR}/salome_adm/unix/SALOMEconfig.h.in salome_adm/unix
 #      rm -f salome_adm/unix/config_files/${deprecated}
 #      done
 
+if test ! -f "${PVHOME}/include/paraview-${PVVERSION}/vtkSMProxyManager.h"; then
+    echo "failed : PVHOME variable is not correct !"
+    exit
+fi
+
+`pvpython getwrapclasses.py`
+
+#file hints contain the size of returned arrays
+cp -f ${PVHOME}/lib/paraview-${PVVERSION}/hints idl/hints
+if [ -f idl/hints_paravis ]; then
+    cat idl/hints_paravis >> idl/hints
+fi
 
 # ____________________________________________________________________
 # aclocal creates the aclocal.m4 file from the standard macro and the

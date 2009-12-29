@@ -27,22 +27,22 @@
 #ifndef PVGUI_Module_H
 #define PVGUI_Module_H
 
-#include <LightApp_Module.h>
+#include <SalomeApp_Module.h>
 
-#include <ostream.h>
+#include <ostream>
 
 class QMenu;
 class QDockWidget;
-class LightApp_Selection;
-class LightApp_SelectionMgr;
+//class LightApp_Selection;
+//class LightApp_SelectionMgr;
 class PVGUI_ProcessModuleHelper;
 class vtkPVMain;
 class pqOptions;
 class pqServer;
-class pqActiveServer;
 class pqViewManager;
+class pqMainWindowCore;
 
-class PVGUI_Module : public LightApp_Module
+class PVGUI_Module : public SalomeApp_Module
 {
   Q_OBJECT
    
@@ -157,9 +157,25 @@ public:
 
   virtual bool           eventFilter( QObject*, QEvent* );
 
+  virtual QString engineIOR() const;
+
   //! Compares the contents of the window with the given reference image, returns true if they "match" within some tolerance
   bool                   compareView( const QString& ReferenceImage, double Threshold,
-				      ostream& Output, const QString& TempDirectory );
+                                      std::ostream& Output, const QString& TempDirectory );
+
+  void openFile(const char* theName);
+  void saveParaviewState(const char* theFileName);
+  void loadParaviewState(const char* theFileName);
+
+  QString printTrace();
+  void saveTrace(const char* theName);
+
+  pqServer* getActiveServer();
+
+  virtual void createPreferences();
+
+public slots:
+  void onImportFromVisu(QString theEntry);
 
 protected:
   //virtual CAM_DataModel* createDataModel();
@@ -197,6 +213,8 @@ private:
   //! Returns QMenu object for a given menu id
   QMenu*                 getMenu( const int );
 
+  void                   deleteTemporaryFiles();
+
 private slots:
   void onUndoLabel( const QString& );
   void onRedoLabel( const QString& );
@@ -228,6 +246,12 @@ private slots:
   void onPostAccept();
   void endWaitCursor();
 
+  void connectToPlay();
+
+  void onOpenFile();
+
+  void activateTrace();
+
 public slots:
   virtual bool           activateModule( SUIT_Study* );
   virtual bool           deactivateModule( SUIT_Study* );
@@ -242,6 +266,8 @@ private:
   int                    myFiltersMenuId;
 
   QList<QDockWidget*>    myDockWidgets;
+
+  QStringList            myTemporaryFiles;
 };
 
 #endif // PVGUI_Module_H

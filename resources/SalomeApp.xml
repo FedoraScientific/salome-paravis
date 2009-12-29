@@ -3,11 +3,19 @@
     <!-- Major module parameters -->
     <parameter name="name" value="ParaViS"/>
     <parameter name="icon" value="pqAppIcon22.png"/>
+    <parameter name="singleton" value="true"/>
+    <!-- Lists all additional popup items separated by ':' -->
+    <parameter name="popupitems" value="importmed"/>
   </section>
   <section name="resources">
     <!-- Module resources -->
     <parameter name="PARAVIS" value="${PARAVIS_ROOT_DIR}/share/salome/resources/paravis"/>
     <!-- ParaView pixmaps -->
-    <parameter name="ParaView" value="${PVSRCHOME}/Qt/Components/Resources/Icons"/>
+    <parameter name="ParaView" value="${PVHOME}/include/paraview-${PVVERSION}/Qt/Components/Resources/Icons"/>
+  </section>
+  <section name="importmed">
+    <parameter name="title" value="Load to ParaView"/>
+    <parameter name="attributelocalid" value="20"/>
+    <parameter name="method" value="onImportFromVisu"/>
   </section>
 </document>
