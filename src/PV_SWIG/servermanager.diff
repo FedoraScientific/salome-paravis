@@ -2,7 +2,7 @@
 < #==============================================================================
 < #
 < #  Program:   ParaView
-< #  Module:    $RCSfile$
+< #  Module:    $RCSfile: servermanager.diff,v $
 < #
 < #  Copyright (c) Kitware, Inc.
 < #  All rights reserved.
@@ -122,96 +122,69 @@
 <         collection = vtk.vtkCollection()
 ---
 >         collection = vtkCollection()
-1844c1819,1820
-<     """Creates a new self connection.Internal method, use Connect() instead."""
----
->     """Initialises self connection.Internal method, use Connect() instead."""
->     print "Connect to self"
-1909c1885
+1909c1884
 < 
 ---
 >        
-2015c1991,1992
+2020c1995,1996
 <         try: isRep = rep.Input == aProxy
 ---
 >         #VSV: ==
 >         try: isRep = rep.Input.IsSame(aProxy)
-2261c2238,2239
+2265,2281c2241,2242
+<     """Turn on/off printing of progress (by default, it is on). You can
+<     always turn progress off and add your own observer to the process
+<     module to handle progress in a custom way. See _printProgress for
+<     an example event observer."""
 <     global progressObserverTag
----
->     pass
->     #vsv global progressObserverTag
-2263,2270c2241,2248
-<     if fromGUI:
-<         raise RuntimeError, "Printing progress in the GUI is not supported."
-<     if progressObserverTag:
+< 
+<     # If value is true and progress printing is currently off...
+<     if value and not GetProgressPrintingIsEnabled():
+<         if fromGUI:
+<             raise RuntimeError("Printing progress in the GUI is not supported.")
+<         progressObserverTag = vtkProcessModule.GetProcessModule().AddObserver(\
+<             "ProgressEvent", _printProgress)
+< 
+<     # If value is false and progress printing is currently on...
+<     elif GetProgressPrintingIsEnabled():
 <         vtkProcessModule.GetProcessModule().RemoveObserver(progressObserverTag)
 <         progressObserverTag = None
-<     else:
-<         progressObserverTag = vtkProcessModule.GetProcessModule().AddObserver(\
-<              "ProgressEvent", _printProgress)
 ---
->     #vsv if fromGUI:
->     #vsv     raise RuntimeError, "Printing progress in the GUI is not supported."
->     #vsv if progressObserverTag:
->     #vsv     vtkProcessModule.GetProcessModule().RemoveObserver(progressObserverTag)
->     #vsv     progressObserverTag = None
->     #VSV Observer is not supported
->     #else:
->     #    progressObserverTag = vtkProcessModule.GetProcessModule().AddObserver("ProgressEvent", _printProgress)
-2273,2278c2251,2256
-<     """Although not required, this can be called at exit to cleanup."""
-<     global progressObserverTag
-<     # Make sure to remove the observer
-<     if progressObserverTag:
-<         ToggleProgressPrinting()
-<     vtkInitializationHelper.Finalize()
----
->    """Although not required, this can be called at exit to cleanup."""
->    global progressObserverTag
->    # Make sure to remove the observer
->    if progressObserverTag:
->        ToggleProgressPrinting()
->    vtkInitializationHelper.Finalize()
-2293,2295c2271,2272
+>     """Is not supported because of not supported observers"""
+>     pass
+2308,2310c2269,2270
 <     if paraview.compatibility.GetVersion() >= 3.5:
 <         if smproxy.GetXMLLabel():
 <             xmlName = smproxy.GetXMLLabel()
 ---
 >     if smproxy.GetXMLLabel():
 >         xmlName = smproxy.GetXMLLabel()
-2335,2338c2312
+2350,2353c2310
 <         if paraview.compatibility.GetVersion() >= 3.5:
 <             return self.GetPropertyValue(propName)
 <         else:
 <             return self.GetProperty(propName)
 ---
 >         return self.GetPropertyValue(propName)
-2447c2421,2432
+2471c2428,2437
 <     return paraview.make_name_valid(name)
 ---
->     "Make a string into a valid Python variable name"
->     if not name:
+>     """Make a string into a valid Python variable name.  Return None if
+>     the name contains parentheses."""
+>     if not name or '(' in name or ')' in name:
 >         return None
->     if name.find('(') >= 0 or name.find(')') >=0:
->         return None
->     name = name.replace(' ','')
->     name = name.replace('-','')
->     name = name.replace(':','')
->     name = name.replace('.','')
+>     import string
+>     valid_chars = "_%s%s" % (string.ascii_letters, string.digits)
+>     name = str().join([c for c in name if c in valid_chars])
 >     if not name[0].isalpha():
 >         name = 'a' + name
 >     return name
-2465,2469c2450,2451
-<         if paraview.compatibility.GetVersion() >= 3.5:
-<             if proto.GetXMLLabel():
-<                 pname = proto.GetXMLLabel()
-<         else:
-<             pname = proxyName
+2490,2491c2456
+<         if paraview.compatibility.GetVersion() >= 3.5 and\
+<            proto.GetXMLLabel():
 ---
 >         if proto.GetXMLLabel():
->             pname = proto.GetXMLLabel()
-2483,2486c2465,2466
+2506,2509c2471,2472
 <             if paraview.compatibility.GetVersion() >= 3.5:
 <                 if (prop.GetInformationOnly() and propName != "TimestepValues" ) \
 <                   or prop.GetIsInternal():
@@ -219,23 +192,12 @@
 ---
 >             if (prop.GetInformationOnly() and propName != "TimestepValues" ) or prop.GetIsInternal():
 >                 continue
-2488,2489c2468
+2511,2512c2474
 <             if paraview.compatibility.GetVersion() >= 3.5:
 <                 names = [iter.PropertyLabel]
 ---
 >             names = [iter.PropertyLabel]
-2502,2503c2481
-<         if proto.GetDocumentation() and \
-<            proto.GetDocumentation().GetDescription():
----
->         if proto.GetDocumentation() and proto.GetDocumentation().GetDescription():
-2505,2506c2483,2484
-<         else:
-<             doc = Proxy.__doc__
----
->         #else:
->         doc = Proxy.__doc__
-2616,2625c2594,2597
+2641,2650c2603,2606
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         ss = sources.SphereSource(Radius=2, ThetaResolution=32)
 <         shr = filters.ShrinkFilter(Input=OutputPort(ss,0))
@@ -251,28 +213,28 @@
 >     shr = filters.Shrink(Input=OutputPort(ss,0))
 >     cs = sources.Cone()
 >     app = filters.AppendDatasets()
-2646,2649c2618
+2671,2674c2627
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         arraySelection = reader.PointResultArrayStatus
 <     else:
 <         arraySelection = reader.PointVariables
 ---
 >     arraySelection = reader.PointVariables
-2683,2686c2652
+2708,2711c2661
 <             if paraview.compatibility.GetVersion() <= 3.4:
 <                 print "Range:", ai.Range(j)
 <             else:
 <                 print "Range:", ai.GetRange(j)
 ---
 >             print "Range:", ai.GetRange(j)
-2717,2720c2683
+2742,2745c2692
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         source = sources.RTAnalyticSource()
 <     else:
 <         source = sources.Wavelet()
 ---
 >     source = sources.Wavelet()
-2751,2758c2714,2716
+2776,2783c2723,2725
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         probe = filters.Probe(Input=source)
 <         # with a line
@@ -285,14 +247,18 @@
 >     probe = filters.ResampleWithDataset(Input=source)
 >     # with a line
 >     line = sources.Line(Resolution=60)
-2802,2805c2760
+2827,2830c2769
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         sphere = sources.SphereSource()
 <     else:
 <         sphere = sources.Sphere()
 ---
 >     sphere = sources.Sphere()
-2871a2827,2833
+2897,2899c2836,2844
+< if hasattr(sys, "ps1"):
+<     # session is interactive.
+<     print vtkSMProxyManager.GetParaViewSourceVersion();
+---
 > # Definitions for working in SALOME GUI mode
 > aParams = myParavis.GetConnectionParameters()
 > ActiveConnection = Connection(aParams[0])
@@ -300,5 +266,5 @@
 > ToggleProgressPrinting()
 > fromGUI = True
 > 
-2872a2835
+> print vtkSMProxyManager.GetParaViewSourceVersion();
 > 

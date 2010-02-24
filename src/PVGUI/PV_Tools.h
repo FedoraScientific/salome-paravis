@@ -46,6 +46,12 @@ namespace PARAVIS
 
   SALOMEDS::SComponent_var FindOrCreateParaVisComponent(SALOMEDS::Study_ptr theStudyDocument);
 
+  /*!
+  * Set/Get flag to restore or not path in paraview state file.
+  */
+  void SetRestoreParam(SALOMEDS::SComponent_ptr theComponent, bool theRestore);
+  bool GetRestoreParam(SALOMEDS::SComponent_ptr theComponent);
+
   PARAVIS_Base_i* GET_SERVANT(CORBA::Object_ptr aObj);
   //dynamic_cast<PARAVIS_Base_i*>(PARAVIS_Gen_i::GetPOA()->reference_to_servant(OBJ).in())
 

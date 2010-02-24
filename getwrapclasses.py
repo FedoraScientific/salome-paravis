@@ -1,4 +1,4 @@
-import paraview, os
+import paraview, os, sys
 import string
 import re
 
@@ -24,17 +24,13 @@ for a in l2:
     if (a not in l1) and a.startswith("vtk"):
         classeslistvtk.append(a)
 
-pvhome = os.environ.get('PVHOME')
-pvversion = os.environ.get('PVVERSION')
-wrap_dir="include/paraview-"+pvversion
-
 dic=dict();
 pv_classes_new=classeslistsm
 while len(pv_classes_new):
     pv_classes_cur=pv_classes_new
     pv_classes_new=[]
     for c in pv_classes_cur:
-        filename=pvhome+"/"+wrap_dir+"/"+c+".h"
+        filename=sys.argv[1]+"/"+c+".h"
         if os.path.isfile(filename):
             c_new=[]
             f=open(filename)
@@ -89,90 +85,22 @@ def collect_dic(cc):
 
 pv_classes_sort=collect_dic(dic.keys())
 
-awidl='WRAP_IDL = '
-awsk='WRAP_SK_FILES = '
-awhh='WRAP_IDL_I_HH = '
-awcc='WRAP_IDL_I_CC = '
-
-fprefix='PARAVIS_Gen_'
-fidl='.idl'
-fsk='SK.cc'
-fhh='_i.hh'
-fcc='_i.cc'
-
-idl_am=open('idl/wrap.am','w')
-idl_i_am=open('src/PVGUI/wrap.am','w')
-
-wrap_h=open('idl/vtkWrapIDL.h','w')
-wrap_h.write('const char* wrapped_classes[] = {\n')
-
-wrap_cxx=open('src/PVGUI/PARAVIS_CreateClass.cxx','w')
-wrap_cxx.write('#include <iostream>\n')
-wrap_cxx.write('#include <QString>\n')
-wrap_cxx.write('#include "PARAVIS_Gen_i.hh"\n')
+wf_str=""
+if(os.path.exists('wrapfiles.txt')):
+    wf_txt=open('wrapfiles.txt','r')
+    strs=wf_txt.readlines()
+    wf_txt.close()
+    for s in strs:
+        wf_str+=s
+str=""
 
 for c in pv_classes_sort:
-    widl=fprefix+c+fidl
-    wsk=fprefix+c+fsk
-    whh=fprefix+c+fhh
-    wcc=fprefix+c+fcc
-    awidl+=' ' + widl
-    awsk+=' ' + wsk
-    awhh+=' ' + whh
-    awcc+=' ' + wcc
-
-    idl_am.write(widl+': vtkWrapIDL')
+    str+=c
     for cc in dic[c][1]:
-        idl_am.write(' '+fprefix+cc+fidl)
-    idl_am.write('\n')
-    idl_am.write('\t@./vtkWrapIDL '+pvhome+'/'+wrap_dir+'/'+c+'.h $(top_srcdir)/idl/hints 0 $@\n')
-    idl_am.write('\n')
+        str+=' '+cc
+    str+='\n'
 
-
-    idl_i_am.write(whh+': vtkWrapIDL_HH')
-    for cc in dic[c][1]:
-        idl_i_am.write(' '+fprefix+cc+fhh)
-    idl_i_am.write('\n')
-    idl_i_am.write('\t@./vtkWrapIDL_HH '+pvhome+'/'+wrap_dir+'/'+c+'.h $(top_srcdir)/idl/hints 0 $@\n')
-    idl_i_am.write('\n')
-
-    idl_i_am.write(wcc+': vtkWrapIDL_CC $(WRAP_IDL_I_HH)')
-    for cc in dic[c][1]:
-        idl_i_am.write(' '+fprefix+cc+fcc)
-    idl_i_am.write('\n')
-    idl_i_am.write('\t@./vtkWrapIDL_CC '+pvhome+'/'+wrap_dir+'/'+c+'.h $(top_srcdir)/idl/hints 0 $@\n')
-    idl_i_am.write('\n')
-
-    wrap_h.write('"'+c+'",\n')
-
-    wrap_cxx.write('#include "'+fprefix+c+fhh+'"\n')
-
-idl_am.write(awidl+'\n')
-idl_am.write('\n')
-idl_am.write(awsk+'\n')
-
-idl_i_am.write(awhh+'\n')
-idl_i_am.write('\n')
-idl_i_am.write(awcc+'\n')
-idl_i_am.write('\n')
-idl_i_am.write('BUILT_SOURCES = $(WRAP_IDL_I_HH) $(WRAP_IDL_I_CC)\n')
-
-wrap_h.write('""\n};\n')
-
-wrap_cxx.write('\n')
-wrap_cxx.write('PARAVIS::PARAVIS_Base_i* CreateInstance(::vtkObjectBase* Inst, const QString& theClassName)\n')
-wrap_cxx.write('{\n')
-for i in range(len(pv_classes_sort)-1,-1,-1):
-    c=pv_classes_sort[i]
-    wrap_cxx.write('    if(theClassName == "'+c+'" || (Inst != NULL && Inst->IsA("'+c+'")))\n')
-    wrap_cxx.write('      return new PARAVIS::'+c+'_i();\n')
-wrap_cxx.write('\n')
-wrap_cxx.write('    cerr << "The class " << theClassName.toStdString() << " is not created!" << endl;\n')
-wrap_cxx.write('    return new PARAVIS::PARAVIS_Base_i();\n')
-wrap_cxx.write('}\n')
-
-idl_am.close()
-idl_i_am.close()
-wrap_h.close()
-wrap_cxx.close()
-
+if(str!=wf_str):
+    wf_txt=open('wrapfiles.txt','w')
+    wf_txt.write(str)
+    wf_txt.close()

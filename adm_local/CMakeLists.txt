@@ -1,3 +1,15 @@
+
+        SET(VERSION_INFO 0.0.0)
+        SET(SOVERSION_INFO 0)
+        SET(SUBDIRS)
+        SET(AM_CPPFLAGS)
+        SET(AM_CXXFLAGS)
+        SET(LDADD)
+        
+
+                SET(AM_CPPFLAGS ${AM_CPPFLAGS} -DHAVE_SALOME_CONFIG -I${KERNEL_ROOT_DIR}/include/salome -include SALOMEconfig.h)
+                SET(AM_CXXFLAGS ${AM_CXXFLAGS} -DHAVE_SALOME_CONFIG -I${KERNEL_ROOT_DIR}/include/salome -include SALOMEconfig.h)
+                
 # Copyright (C) 2005  OPEN CASCADE, CEA, EDF R&D, LEG
 #           PRINCIPIA R&D, EADS CCR, Lip6, BV, CEDRAT
 # This library is free software; you can redistribute it and/or
@@ -15,16 +27,19 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 # 
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-# -* Makefile *- 
-#
-# Author : 
-# Module : PARAVIS
-#
+# 
 
-include $(top_srcdir)/adm_local/unix/make_common_starter.am
+# include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
-# non-distributed files 
-nodist_salomescript_DATA = VERSION
+SET(SUBDIRS
+    unix
+    cmake_files
+)
 
-# distributed files
-dist_salomescript_SCRIPTS =
+
+            FOREACH(dir ${SUBDIRS})
+            IF(NOT dir STREQUAL .)
+            ADD_SUBDIRECTORY(${dir})
+            ENDIF(NOT dir STREQUAL .)
+            ENDFOREACH(dir ${SUBDIRS})
+            

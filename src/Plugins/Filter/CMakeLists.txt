@@ -9,5 +9,5 @@ ADD_PARAVIEW_PLUGIN(SMSampleFilter "1.0"
 
 INSTALL(
 	TARGETS SMSampleFilter 
-	DESTINATION .
+	DESTINATION lib/paraview
 )

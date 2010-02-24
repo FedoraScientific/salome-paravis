@@ -27,13 +27,17 @@
 #define PVGUI_Module_impl_H
 
 #include "PVGUI_Module.h"
+#include "PVGUI_OutputWindowAdapter.h"
 
 //#include <QAssistantClient>
 #include <pqHelpWindow.h>
 #include <QPointer>
 
-#include <pqMainWindowCore.h>
 #include <pqRecentFilesMenu.h>
+#include <pqPVApplicationCore.h>
+#include <pqPQLookupTableManager.h>
+#include <pqActiveObjects.h>
+
 
 //////////////////////////////////////////////////////////////////////////////
 // PVGUI_Module::pqImplementation
@@ -41,30 +45,17 @@
 class PVGUI_Module::pqImplementation
 {
  public:
-  pqImplementation(QWidget* parent) :
-    //AssistantClient(0),
-    myHelpWindow(0),
-    Core(parent),
+  pqImplementation(QWidget* parent):
     RecentFilesMenu(0)
-  {
-  }
+  { }
   
   ~pqImplementation()
-  {
-    if (myHelpWindow)
-      delete myHelpWindow;
-  }
+  { }
   
-  //QPointer<QAssistantClient> AssistantClient;
-  pqMainWindowCore Core;
   pqRecentFilesMenu* RecentFilesMenu;
-  //QPointer<pqServer> ActiveServer;
-  QString DocumentationDir;
-  QPointer<pqHelpWindow> myHelpWindow;
-  
-  static vtkPVMain* myPVMain;
-  static pqOptions* myPVOptions;
-  static PVGUI_ProcessModuleHelper* myPVHelper;
+  static pqApplicationCore* Core;
+  static PVGUI_OutputWindowAdapter* OutputWindowAdapter;
+  static QPointer<pqHelpWindow> helpWindow;
 };
 
 #endif // PVGUI_Module_impl_H

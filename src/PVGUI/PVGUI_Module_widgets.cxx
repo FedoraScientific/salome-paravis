@@ -32,19 +32,40 @@
 #include <QAction>
 #include <QDockWidget>
 #include <QToolBar>
+#include <QStatusBar>
+#include <QShortcut>
 
-//VSV #include <pqAnimationPanel.h>
 #include <pqAnimationViewWidget.h> //VSV
 
 #include <pqApplicationCore.h>
 #include <pqComparativeVisPanel.h>
-#include <pqMainWindowCore.h>
 #include <pqObjectInspectorWidget.h>
-#include <pqPipelineBrowser.h>
-#include <pqPipelineBrowserContextMenu.h>
-#include <pqPipelineMenu.h>
+#include <pqPipelineBrowserWidget.h>
 #include <pqProxyTabWidget.h>
 #include <pqSettings.h>
+#include <pqDataInformationWidget.h>
+#include <pqPVAnimationWidget.h>
+#include <pqSelectionInspectorPanel.h>
+#include <pqProgressWidget.h>
+
+#include <pqAlwaysConnectedBehavior.h>
+#include <pqApplicationCore.h>
+#include <pqAutoLoadPluginXMLBehavior.h>
+#include <pqCommandLineOptionsBehavior.h>
+#include <pqCrashRecoveryBehavior.h>
+#include <pqDataTimeStepBehavior.h>
+#include <pqDefaultViewBehavior.h>
+#include <pqDeleteBehavior.h>
+#include <pqPersistentMainWindowStateBehavior.h>
+#include <pqPluginActionGroupBehavior.h>
+#include <pqPluginDockWidgetsBehavior.h>
+#include <pqPluginManager.h>
+#include <pqPVNewSourceBehavior.h>
+#include <pqSpreadSheetVisibilityBehavior.h>
+#include <pqStandardViewModules.h>
+#include <pqUndoRedoBehavior.h>
+#include <pqViewFrameActionsBehavior.h>
+#include <pqParaViewMenuBuilders.h>
 
 /*!
   \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
@@ -54,128 +75,86 @@ void PVGUI_Module::setupDockWidgets()
 {
   SUIT_Desktop* desk = application()->desktop();
 
-  // See ParaView src/Applications/Client/MainWindow.cxx
+  // Pipeline
   QDockWidget* pipelineBrowserDock = new QDockWidget( tr( "TTL_PIPELINE_BROWSER" ), desk );
   pipelineBrowserDock->setObjectName("pipelineBrowserDock");
   pipelineBrowserDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, pipelineBrowserDock );
-  Implementation->Core.setupPipelineBrowser( pipelineBrowserDock );
-  pqPipelineBrowser *browser = Implementation->Core.pipelineBrowser();
-  Implementation->Core.pipelineMenu().setModels(browser->getModel(), browser->getSelectionModel());
+  pqPipelineBrowserWidget* browser = new pqPipelineBrowserWidget(pipelineBrowserDock);
+  pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(*browser);
+  pipelineBrowserDock->setWidget(browser);
   myDockWidgets.append(pipelineBrowserDock);
 
+  //Object inspector
   QDockWidget* objectInspectorDock = new QDockWidget( tr( "TTL_OBJECT_INSPECTOR" ), desk );
   objectInspectorDock->setObjectName("objectInspectorDock");
   objectInspectorDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, objectInspectorDock );
-  pqProxyTabWidget* const proxyTab = Implementation->Core.setupProxyTabWidget( objectInspectorDock );
+  pqProxyTabWidget* proxyTab = new pqProxyTabWidget(objectInspectorDock);
+  proxyTab->setShowOnAccept(true);
+  objectInspectorDock->setWidget(proxyTab);
   connect( proxyTab->getObjectInspector(), SIGNAL( helpRequested(QString) ),
-	   this,                           SLOT( showHelpForProxy(QString) ) );
-  connect( proxyTab->getObjectInspector(), SIGNAL( preaccept() ),
-	   this,                           SLOT( onPreAccept() ) );
-  connect( proxyTab->getObjectInspector(), SIGNAL( postaccept() ),
-	   this,                           SLOT( onPostAccept() ) );
+          this, SLOT( showHelpForProxy(QString) ) );
+  //connect( proxyTab->getObjectInspector(), SIGNAL( preaccept() ), this, SLOT( onPreAccept() ) );
+  //connect( proxyTab->getObjectInspector(), SIGNAL( postaccept() ), this, SLOT( onPostAccept() ) );
   myDockWidgets.append(objectInspectorDock);
-  
+
+  // Statistic View
   QDockWidget* statisticsViewDock  = new QDockWidget( tr( "TTL_STATISTICS_VIEW" ), desk );
   statisticsViewDock->setObjectName("statisticsViewDock");
-  statisticsViewDock->setAllowedAreas( Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
+  statisticsViewDock->setAllowedAreas(Qt::BottomDockWidgetArea|Qt::LeftDockWidgetArea|
+                                      Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::BottomDockWidgetArea, statisticsViewDock );
-  Implementation->Core.setupStatisticsView( statisticsViewDock );
+  pqDataInformationWidget* aStatWidget = new pqDataInformationWidget(statisticsViewDock);
+  statisticsViewDock->setWidget(aStatWidget);
   myDockWidgets.append(statisticsViewDock);
 
-  QDockWidget* animationPanelDock  = new QDockWidget( tr( "TTL_ANIMATION_INSPECTOR" ), desk );
-  animationPanelDock->setObjectName("animationPanelDock");
-  desk->addDockWidget( Qt::LeftDockWidgetArea, animationPanelDock );
-  //pqAnimationPanel* animation_panel = Implementation->Core.setupAnimationPanel( animationPanelDock );
-  pqAnimationViewWidget* animation_panel = Implementation->Core.setupAnimationView( animationPanelDock );
-  
-  int aToolId = createTool( tr("TOOL_CURRENT_TIME_CONTROLS") );
-  QToolBar* aTB = toolMgr()->toolBar( aToolId );
-  //animation_panel->setCurrentTimeToolbar( aTB );
-  QList<QAction*> anActns = aTB->actions();
-  for (int i = 0; i < anActns.size(); ++i)
-    createTool( anActns.at(i), aToolId );
-
-  myDockWidgets.append(animationPanelDock);
-
-  QDockWidget* lookmarkBrowserDock = new QDockWidget( tr( "TTL_LOOKMARK_BROWSER" ), desk );
-  lookmarkBrowserDock->setObjectName("lookmarkBrowserDock");
-  QSizePolicy sp( QSizePolicy::Preferred, QSizePolicy::Preferred );
-  sp.setHorizontalStretch( 0 );
-  sp.setVerticalStretch( 0 );
-  lookmarkBrowserDock->setSizePolicy( sp );
-  lookmarkBrowserDock->setFloating( false );
-  desk->addDockWidget( Qt::RightDockWidgetArea, lookmarkBrowserDock );
-  Implementation->Core.setupLookmarkBrowser( lookmarkBrowserDock );
-  myDockWidgets.append(lookmarkBrowserDock);
-
-  QDockWidget* lookmarkInspectorDock = new QDockWidget( tr( "TTL_LOOKMARK_INSPECTOR" ), desk );
-  lookmarkInspectorDock->setObjectName("lookmarkInspectorDock");
-  lookmarkInspectorDock->setAllowedAreas( Qt::RightDockWidgetArea );
-  desk->addDockWidget( Qt::RightDockWidgetArea, lookmarkInspectorDock );
-  Implementation->Core.setupLookmarkInspector( lookmarkInspectorDock );
-  myDockWidgets.append(lookmarkInspectorDock);
-
-  QDockWidget* comparativePanelDock  = new QDockWidget( tr( "TTL_COMPARATIVE_VIEW_INSPECTOR" ), desk );
-  comparativePanelDock->setObjectName("comparativePanelDock");
-  desk->addDockWidget( Qt::LeftDockWidgetArea, comparativePanelDock );
-  pqComparativeVisPanel* cv_panel    = new pqComparativeVisPanel( comparativePanelDock );
-  comparativePanelDock->setWidget(cv_panel);
-  myDockWidgets.append(comparativePanelDock);
-
+  //Animation view
   QDockWidget* animationViewDock     = new QDockWidget( tr( "TTL_ANIMATION_VIEW" ), desk );
   animationViewDock->setObjectName("animationViewDock");
   desk->addDockWidget( Qt::BottomDockWidgetArea, animationViewDock );
-  Implementation->Core.setupAnimationView( animationViewDock );
+  pqPVAnimationWidget* animation_panel = new pqPVAnimationWidget(animationViewDock);
+  animationViewDock->setWidget(animation_panel);
   myDockWidgets.append(animationViewDock);
 
+  // Selection view
   QDockWidget* selectionInspectorDock = new QDockWidget( tr( "TTL_SELECTION_INSPECTOR" ), desk );
   selectionInspectorDock->setObjectName("selectionInspectorDock");
   selectionInspectorDock->setAllowedAreas( Qt::AllDockWidgetAreas );
   desk->addDockWidget( Qt::LeftDockWidgetArea, selectionInspectorDock );
-  Implementation->Core.setupSelectionInspector( selectionInspectorDock );
+  pqSelectionInspectorPanel* aSelInspector = new pqSelectionInspectorPanel(selectionInspectorDock);
+  selectionInspectorDock->setWidget(aSelInspector);
   myDockWidgets.append(selectionInspectorDock);
 
-  // Setup the statusbar ...
-  Implementation->Core.setupProgressBar( desk->statusBar() );
+  // Comparative View
+  QDockWidget* comparativePanelDock  = new QDockWidget( tr( "TTL_COMPARATIVE_VIEW_INSPECTOR" ), desk );
+  comparativePanelDock->setObjectName("comparativePanelDock");
+  desk->addDockWidget( Qt::LeftDockWidgetArea, comparativePanelDock );
+  pqComparativeVisPanel* cv_panel = new pqComparativeVisPanel( comparativePanelDock );
+  comparativePanelDock->setWidget(cv_panel);
+  myDockWidgets.append(comparativePanelDock);
 
+  // Setup the statusbar ...
+  pqProgressWidget* aProgress = new pqProgressWidget(desk->statusBar());
+  desk->statusBar()->addPermanentWidget(aProgress);
+  
   // Set up the dock window corners to give the vertical docks more room.
   desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
+  
   // Setup the default dock configuration ...
-  lookmarkBrowserDock->hide();
-  lookmarkInspectorDock->hide();
   statisticsViewDock->hide();
-  animationPanelDock->hide();
   comparativePanelDock->hide();
   animationViewDock->hide();
   selectionInspectorDock->hide();
-}
 
-/*!
-  \brief Create dock widgets context menus.
-*/
-void PVGUI_Module::setupDockWidgetsContextMenu()
-{
-  // Pipeline menu
-  Implementation->Core.pipelineMenu().setMenuAction( pqPipelineMenu::ChangeInputAction,
-						     action(ChangeInputId) );
-  Implementation->Core.pipelineMenu().setMenuAction( pqPipelineMenu::DeleteAction,
-						     action(DeleteId) );
 
-  // Pipeline Browser menu
-  pqPipelineBrowser *browser = Implementation->Core.pipelineBrowser();
-  pqPipelineBrowserContextMenu *browserMenu = new pqPipelineBrowserContextMenu(browser);
+  // Setup quick-launch shortcuts.
+  QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, desk);
+  QObject::connect(ctrlSpace, SIGNAL(activated()), pqApplicationCore::instance(), SLOT(quickLaunch()));
+  QShortcut *altSpace = new QShortcut(Qt::ALT + Qt::Key_Space, desk);
+  QObject::connect(altSpace, SIGNAL(activated()), pqApplicationCore::instance(), SLOT(quickLaunch()));
 
-  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::OPEN, action(OpenFileId));
-  if ( action(OpenFileId)->text().compare(tr("MEN_OPEN")) == 0 )
-    action(OpenFileId)->setText(tr("MEN_OPEN_FILE"));
-
-  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::CHANGE_INPUT, action(ChangeInputId));
-  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::DELETE, action(DeleteId));
-  browserMenu->setMenuAction(pqPipelineBrowserContextMenu::CREATE_CUSTOM_FILTER, action(CreateCustomFilterId));
 }
 
 /*!

@@ -209,7 +209,7 @@
     </message>
     <message>
         <source>MEN_OPEN</source>
-        <translation>&amp;Open</translation>
+        <translation>&amp;Open...</translation>
     </message>
     <message>
         <source>MEN_OPEN_FILE</source>
@@ -325,7 +325,7 @@
     </message>
     <message>
         <source>MEN_DISCONNECT</source>
-        <translation>&amp;Disconnect...</translation>
+        <translation>&amp;Disconnect</translation>
     </message>
     <message>
         <source>STB_DISCONNECT</source>
@@ -458,6 +458,18 @@
     <message>
         <source>INF_APP_CHANGE_INPUTACTIONS</source>
         <translation>Change a Filter's Input</translation>
+    </message>
+    <message>
+        <source>MEN_IGNORE_TIME</source>
+        <translation>Ignore Time</translation>
+    </message>
+    <message>
+        <source>TOP_IGNORE_TIME</source>
+        <translation>Ignore Time</translation>
+    </message>
+    <message>
+        <source>STB_IGNORE_TIME</source>
+        <translation>Disregard this source/filter's time from animation</translation>
     </message>
     <message>
         <source>TOP_DELETE</source>
@@ -897,7 +909,7 @@
     </message>
     <message>
         <source>MEN_MANAGE_PLUGINS</source>
-        <translation>Manage Plugins/Extensions...</translation>
+        <translation>Manage Plugins...</translation>
     </message>
     <message>
         <source>STB_MANAGE_PLUGINS</source>
@@ -953,15 +965,15 @@
     </message>
     <message>
         <source>TOP_MAX_WINDOW_SIZE</source>
-        <translation>Max Window Size: 300x300</translation>
+        <translation>Lock View Size</translation>
     </message>
     <message>
         <source>MEN_MAX_WINDOW_SIZE</source>
-        <translation>Max Window Size: 300x300</translation>
+        <translation>Lock View Size</translation>
     </message>
     <message>
         <source>PRP_APP_MAX_WINDOW_SIZE</source>
-        <translation>Set Max Window Size: 300x300</translation>
+        <translation>Lock View Size</translation>
     </message>
     <message>
         <source>TOP_TIMER_LOG</source>
@@ -1005,7 +1017,7 @@
     </message>
     <message>
         <source>MEN_ABOUT</source>
-        <translation>About ParaView</translation>
+        <translation>About ParaView...</translation>
     </message>
     <message>
         <source>STB_ABOUT</source>
@@ -1017,7 +1029,7 @@
     </message>
     <message>
         <source>MEN_PARAVIEW_HELP</source>
-        <translation>ParaView User Documentation</translation>
+        <translation>ParaView Help</translation>
     </message>
     <message>
         <source>STB_PARAVIEW_HELP</source>
@@ -1094,6 +1106,26 @@
     <message>
         <source>TIT_TRACE</source>
         <translation>Trace</translation>
+    </message>
+    <message>
+        <source>MEN_MACROS</source>
+        <translation>&amp;Macros</translation>
+    </message>
+    <message>
+        <source>PREF_SAVE_TYPE_LBL</source>
+        <translation>Paraview state saving type</translation>
+    </message>
+    <message>
+        <source>PREF_SAVE_TYPE_0</source>
+        <translation>Save referenced files only for builin server</translation>
+    </message>
+    <message>
+        <source>PREF_SAVE_TYPE_1</source>
+        <translation>Always save referenced files when they are accessible</translation>
+    </message>
+    <message>
+        <source>PREF_SAVE_TYPE_2</source>
+        <translation>Never save referenced files</translation>
     </message>
 </context>
 </TS>

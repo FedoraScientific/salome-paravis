@@ -79,6 +79,9 @@ namespace PARAVIS
       anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
       SALOMEDS::AttributePixMap_var aPixmap = SALOMEDS::AttributePixMap::_narrow(anAttr);
       aPixmap->SetPixMap( "pqAppIcon16.png" );
+
+      // Create Attribute parameters for future using
+      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
       
       PARAVIS_Gen_var aParaVisGen = PARAVIS_Gen_i::GetParavisGenImpl()->_this();
       aStudyBuilder->DefineComponentInstance(aSComponent, aParaVisGen);
@@ -101,5 +104,26 @@ namespace PARAVIS
       MESSAGE("GET_SERVANT: Unknown exception!!!");
     }
     return NULL;
+  }
+
+  void SetRestoreParam(SALOMEDS::SComponent_ptr theComponent, bool theRestore)
+  {
+    SALOMEDS::GenericAttribute_var anAttr;
+    if (theComponent->FindAttribute(anAttr, "AttributeParameter")) {
+      SALOMEDS::AttributeParameter_var aParams = SALOMEDS::AttributeParameter::_narrow(anAttr);
+      aParams->SetBool("RestorePath", theRestore);
+    }
+  }
+
+  bool GetRestoreParam(SALOMEDS::SComponent_ptr theComponent)
+  {
+    SALOMEDS::GenericAttribute_var anAttr;
+    if (theComponent->FindAttribute(anAttr, "AttributeParameter")) {
+      SALOMEDS::AttributeParameter_var aParams = SALOMEDS::AttributeParameter::_narrow(anAttr);
+      if (aParams->IsSet("RestorePath", 2)) {
+        return aParams->GetBool("RestorePath");
+      }
+    }
+    return true;
   }
 };

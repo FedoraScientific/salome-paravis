@@ -28,7 +28,7 @@
 #include <SUIT_Desktop.h>
 
 #include <pqViewManager.h>
-
+#include <pqApplicationCore.h>
 
 /*!
   \class PVGUI_ViewWindow
@@ -44,6 +44,14 @@ PVGUI_ViewWindow::PVGUI_ViewWindow( SUIT_Desktop* theDesktop, PVGUI_Viewer* theM
   : SUIT_ViewWindow( theDesktop ), myPVMgr( 0 )
 {
   myModel = theModel;
+  myPVMgr = qobject_cast<pqViewManager*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
+  if (myPVMgr) {
+    myPVMgr->setParent( this );
+    // This is mandatory, see setParent() method in Qt 4 documentation
+    myPVMgr->show();
+    setCentralWidget( myPVMgr );
+  } else
+    qDebug("No multiViewManager defined");
 }
 
 /*!
@@ -83,14 +91,17 @@ void PVGUI_ViewWindow::setVisualParameters( const QString& parameters )
 /*!
   \brief Sets the ParaView multi-view manager for this view window
 */
-void PVGUI_ViewWindow::setMultiViewManager( pqViewManager* viewMgr )
-{
-  myPVMgr = viewMgr;
-  myPVMgr->setParent( this );
-  // This is mandatory, see setParent() method in Qt 4 documentation 
-  myPVMgr->show();
-  setCentralWidget( myPVMgr );
-}
+// void PVGUI_ViewWindow::setMultiViewManager()
+// {
+//   myPVMgr = qobject_cast<pqViewManager*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
+//   if (myPVMgr) {
+//     myPVMgr->setParent( this );
+//     // This is mandatory, see setParent() method in Qt 4 documentation
+//     myPVMgr->show();
+//     setCentralWidget( myPVMgr );
+//   } else
+//     qDebug("No multiViewManager defined");
+// }
 
 /*!
   \brief Returns the ParaView multi-view manager previously set with setMultiViewManager()

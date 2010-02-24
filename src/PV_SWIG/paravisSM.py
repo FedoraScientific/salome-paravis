@@ -1816,8 +1816,7 @@ def _connectDsRs(ds_host, ds_port, rs_host, rs_port):
     return conn
 
 def _connectSelf():
-    """Initialises self connection.Internal method, use Connect() instead."""
-    print "Connect to self"
+    """Creates a new self connection.Internal method, use Connect() instead."""
     pm =  vtkProcessModule.GetProcessModule()
     pmOptions = pm.GetOptions()
     if pmOptions.GetProcessType() == 0x40: # PVBATCH
@@ -1964,26 +1963,31 @@ def CreateRenderView(connection=None, **extraArgs):
     is not specified, then the active connection is used, if available.
 
     This method can also be used to initialize properties by passing
-    keyword arguments where the key is the name of the property.In addition
+    keyword arguments where the key is the name of the property. In addition
     registrationGroup and registrationName (optional) can be specified (as
     keyword arguments) to automatically register the proxy with the proxy
     manager."""
+    return _create_view("RenderView", connection, **extraArgs)
 
+def _create_view(view_xml_name, connection=None, **extraArgs):
+    """Creates a view on the particular connection. If connection
+    is not specified, then the active connection is used, if available.
+    This method can also be used to initialize properties by passing
+    keyword arguments where the key is the name of the property."""
     if not connection:
         connection = ActiveConnection
     if not connection:
-        raise RuntimeError, "Cannot create render window without connection."
+        raise RuntimeError, "Cannot create view without connection."
     pxm = ProxyManager()
-    prototype = pxm.GetPrototypeProxy("views", "RenderView")
-
+    prototype = pxm.GetPrototypeProxy("views", view_xml_name)
     proxy_xml_name = prototype.GetSuggestedViewType(connection.ID)
-    ren_module = None
+    view_module = None
     if proxy_xml_name:
-        ren_module = CreateProxy("views", proxy_xml_name, connection)
-    if not ren_module:
+        view_module = CreateProxy("views", proxy_xml_name, connection)
+    if not view_module:
         return None
-    extraArgs['proxy'] = ren_module
-    proxy = rendering.__dict__[ren_module.GetXMLName()](**extraArgs)
+    extraArgs['proxy'] = view_module
+    proxy = rendering.__dict__[view_module.GetXMLName()](**extraArgs)
     return proxy
 
 def GetRepresentation(aProxy, view):
@@ -2012,7 +2016,7 @@ def CreateRepresentation(aProxy, view, **extraArgs):
     if not aProxy:
         raise RuntimeError, "proxy argument cannot be None."
     if not view:
-        raise RuntimeError, "render module argument cannot be None."
+        raise RuntimeError, "view argument cannot be None."
     if "proxyName" in extraArgs:
       display = CreateProxy("representations", extraArgs['proxyName'], None)
       del extraArgs['proxyName']
@@ -2230,30 +2234,24 @@ def AnimateReader(reader, view, filename=None):
         scene.Play()
     return scene
 
-def ToggleProgressPrinting():
-    """Turn on/off printing of progress (by default, it is on). You can
-    always turn progress off and add your own observer to the process
-    module to handle progress in a custom way. See _printProgress for
-    an example event observer."""
-    pass
-    #vsv global progressObserverTag
+def GetProgressPrintingIsEnabled():
+    return progressObserverTag is not None
 
-    #vsv if fromGUI:
-    #vsv     raise RuntimeError, "Printing progress in the GUI is not supported."
-    #vsv if progressObserverTag:
-    #vsv     vtkProcessModule.GetProcessModule().RemoveObserver(progressObserverTag)
-    #vsv     progressObserverTag = None
-    #VSV Observer is not supported
-    #else:
-    #    progressObserverTag = vtkProcessModule.GetProcessModule().AddObserver("ProgressEvent", _printProgress)
+def SetProgressPrintingEnabled(value):
+    """Is not supported because of not supported observers"""
+    pass
+
+def ToggleProgressPrinting():
+    """Turn on/off printing of progress.  See SetProgressPrintingEnabled."""
+    SetProgressPrintingEnabled(not GetProgressPrintingIsEnabled())
 
 def Finalize():
-   """Although not required, this can be called at exit to cleanup."""
-   global progressObserverTag
-   # Make sure to remove the observer
-   if progressObserverTag:
-       ToggleProgressPrinting()
-   vtkInitializationHelper.Finalize()
+    """Although not required, this can be called at exit to cleanup."""
+    global progressObserverTag
+    # Make sure to remove the observer
+    if progressObserverTag:
+        ToggleProgressPrinting()
+    vtkInitializationHelper.Finalize()
 
 # Internal methods
 
@@ -2322,7 +2320,8 @@ def _createSetProperty(pName):
 def _findClassForProxy(xmlName, xmlGroup):
     """Given the xmlName for a proxy, returns a Proxy class. Note
     that if there are duplicates, the first one is returned."""
-    global sources, filters, rendering, animation, implicit_functions, writers, extended_sources, misc
+    global sources, filters, writers, rendering, animation, implicit_functions,\
+           piecewise_functions, extended_sources, misc
     if not xmlName:
         return None
     if xmlGroup == "sources":
@@ -2331,6 +2330,8 @@ def _findClassForProxy(xmlName, xmlGroup):
         return filters.__dict__[xmlName]
     elif xmlGroup == "implicit_functions":
         return implicit_functions.__dict__[xmlName]
+    elif xmlGroup == "piecewise_functions":
+        return piecewise_functions.__dict__[xmlName]
     elif xmlGroup == "writers":
         return writers.__dict__[xmlName]
     elif xmlGroup == "extended_sources":
@@ -2381,7 +2382,8 @@ def _printProgress(caller, event):
 def updateModules():
     """Called when a plugin is loaded, this method updates
     the proxy class object in all known modules."""
-    global sources, filters, writers, rendering, animation, implicit_functions, extended_sources, misc
+    global sources, filters, writers, rendering, animation, implicit_functions,\
+           piecewise_functions, extended_sources, misc
 
     createModule("sources", sources)
     createModule("filters", filters)
@@ -2394,12 +2396,15 @@ def updateModules():
     createModule("misc", misc)
     createModule('animation_keyframes', animation)
     createModule('implicit_functions', implicit_functions)
+    createModule('piecewise_functions', piecewise_functions)
     createModule("extended_sources", extended_sources)
+    createModule("incremental_point_locators", misc)
 
 def _createModules():
     """Called when the module is loaded, this creates sub-
     modules for all know proxy groups."""
-    global sources, filters, writers, rendering, animation, implicit_functions, extended_sources, misc
+    global sources, filters, writers, rendering, animation, implicit_functions,\
+           piecewise_functions, extended_sources, misc
 
     sources = createModule('sources')
     filters = createModule('filters')
@@ -2411,22 +2416,22 @@ def _createModules():
     animation = createModule('animation')
     createModule('animation_keyframes', animation)
     implicit_functions = createModule('implicit_functions')
+    piecewise_functions = createModule('piecewise_functions')
     extended_sources = createModule("extended_sources")
     misc = createModule("misc")
+    createModule("incremental_point_locators", misc)
 
 class PVModule(object):
     pass
 
 def _make_name_valid(name):
-    "Make a string into a valid Python variable name"
-    if not name:
+    """Make a string into a valid Python variable name.  Return None if
+    the name contains parentheses."""
+    if not name or '(' in name or ')' in name:
         return None
-    if name.find('(') >= 0 or name.find(')') >=0:
-        return None
-    name = name.replace(' ','')
-    name = name.replace('-','')
-    name = name.replace(':','')
-    name = name.replace('.','')
+    import string
+    valid_chars = "_%s%s" % (string.ascii_letters, string.digits)
+    name = str().join([c for c in name if c in valid_chars])
     if not name[0].isalpha():
         name = 'a' + name
     return name
@@ -2447,6 +2452,7 @@ def createModule(groupName, mdl=None):
     for i in range(numProxies):
         proxyName = pxm.GetXMLProxyName(groupName, i)
         proto = pxm.GetPrototypeProxy(groupName, proxyName)
+        pname = proxyName
         if proto.GetXMLLabel():
             pname = proto.GetXMLLabel()
         pname = _make_name_valid(pname)
@@ -2478,10 +2484,11 @@ def createModule(groupName, mdl=None):
                                            None,
                                            propDoc)
         # Add the documentation as the class __doc__
-        if proto.GetDocumentation() and proto.GetDocumentation().GetDescription():
+        if proto.GetDocumentation() and \
+           proto.GetDocumentation().GetDescription():
             doc = proto.GetDocumentation().GetDescription()
-        #else:
-        doc = Proxy.__doc__
+        else:
+            doc = Proxy.__doc__
         cdict['__doc__'] = doc
         # Create the new type
         if proto.GetXMLName() == "ExodusIIReader":
@@ -2517,6 +2524,8 @@ def __determineGroup(proxy):
         return "lookup_tables"
     elif xmlgroup == "implicit_functions":
         return "implicit_functions"
+    elif xmlgroup == "piecewise_functions":
+        return "piecewise_functions"
     return None
 
 __nameCounter = {}

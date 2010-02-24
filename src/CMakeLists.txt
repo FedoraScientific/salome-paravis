@@ -1,3 +1,15 @@
+
+        SET(VERSION_INFO 0.0.0)
+        SET(SOVERSION_INFO 0)
+        SET(SUBDIRS)
+        SET(AM_CPPFLAGS)
+        SET(AM_CXXFLAGS)
+        SET(LDADD)
+        
+
+                SET(AM_CPPFLAGS ${AM_CPPFLAGS} -DHAVE_SALOME_CONFIG -I${KERNEL_ROOT_DIR}/include/salome -include SALOMEconfig.h)
+                SET(AM_CXXFLAGS ${AM_CXXFLAGS} -DHAVE_SALOME_CONFIG -I${KERNEL_ROOT_DIR}/include/salome -include SALOMEconfig.h)
+                
 #  Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 #  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS 
 # 
@@ -23,11 +35,28 @@
 #  Author : (CEA)
 #  Modified by : Alexander BORODIN (OCN) - autotools usage
 
-include $(top_srcdir)/adm_local/unix/make_common_starter.am
+# include $(top_srcdir)/adm_local/unix/make_common_starter.am
 
-if BUILD_PLUGINS
-  SUBDIRS = ENGINE PVGUI PV_SWIG Plugins
-else
-  SUBDIRS = ENGINE PVGUI PV_SWIG
-endif
+IF(BUILD_PLUGINS)
+  SET(SUBDIRS
+      ENGINE
+      PVGUI
+      PV_SWIG
+      Plugins
+  )
+ELSE(BUILD_PLUGINS)
+  SET(SUBDIRS
+      ENGINE
+      PVGUI
+      PV_SWIG
+  )
+ENDIF(BUILD_PLUGINS)
 
+
+
+            FOREACH(dir ${SUBDIRS})
+            IF(NOT dir STREQUAL .)
+            ADD_SUBDIRECTORY(${dir})
+            ENDIF(NOT dir STREQUAL .)
+            ENDFOREACH(dir ${SUBDIRS})
+            

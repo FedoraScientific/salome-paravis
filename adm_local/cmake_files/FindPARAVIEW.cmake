@@ -1,5 +1,3 @@
-# PARAVIS : ParaView wrapper SALOME module
-#
 #  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
 #
 #  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
@@ -21,29 +19,13 @@
 #
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-# -* Makefile *- 
-#
-# Author : Margarita KARPUNINA (OCN)
-# Date : 05/12/2008
-# $Header$
-#
 
-include $(top_srcdir)/adm_local/unix/make_common_starter.am
+FIND_PACKAGE(ParaView REQUIRED)
 
-EXTRA_DIST += images static
+SET(PARAVIS_ROOT_DIR $ENV{PARAVIS_ROOT_DIR})
 
-dev_docs: doxyfile
-	echo "Running doxygen in directory: "`pwd`; \
-	$(DOXYGEN) $<;
+SET(PARAVIEW_INCLUDES -I${PARAVIEW_INCLUDE_DIRS})
+SET(PARAVIEW_LIBS -L${PARAVIEW_LIBRARY_DIRS} -lvtkPVServerManager -lpqApplicationComponents)
 
-clean-local:
-	-rm -fr PARAVIS doxygen.bak
-
-install-data-local:
-	if test -d PARAVIS; then \
-	  $(INSTALL) -d $(DESTDIR)$(docdir)/gui ; \
-	  cp -rp PARAVIS $(DESTDIR)$(docdir)/gui ; \
-	fi;
-
-uninstall-local:
-	rm -rf $(DESTDIR)$(docdir)/gui/PARAVIS
+FIND_LIBRARY(vtkPVServerManager vtkPVServerManager ${PARAVIEW_LIBRARY_DIRS})
+FIND_LIBRARY(pqApplicationComponents pqApplicationComponents ${PARAVIEW_LIBRARY_DIRS})

@@ -46,8 +46,6 @@ namespace PARAVIS
       PARAVIS_Gen_var aPARAVIS = PARAVIS_Gen::_narrow(aComponent);
       if(!CORBA::is_nil(aPARAVIS)){
         aGen = PARAVIS_Gen_i::GetParavisGenImpl();
-        //if(aGen)
-        //aGen->SetCurrentStudy(GetDSStudy(GetCStudy(GetAppStudy(theModule))));
       }
     }
     if(!aGen)

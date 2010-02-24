@@ -117,7 +117,7 @@ namespace PARAVIS {
    */
   struct TGetTrace: public TModuleEvent
   {
-    typedef const char* TResult;
+    typedef std::string TResult;
     TResult myResult;
     TGetTrace(SalomeApp_Application* theApp) :
       TModuleEvent(theApp)
@@ -129,7 +129,7 @@ namespace PARAVIS {
     {
       PVGUI_Module* aPVModule = getModule();
       if (aPVModule)
-        myResult = qPrintable(aPVModule->printTrace());
+        myResult = qPrintable(aPVModule->getTraceString());
     }
   };
 

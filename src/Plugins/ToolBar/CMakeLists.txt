@@ -14,5 +14,5 @@ ADD_PARAVIEW_PLUGIN(GUISampleToolBar "1.0"
 
 INSTALL(
 	TARGETS GUISampleToolBar 
-	DESTINATION .
+	DESTINATION lib/paraview
 )

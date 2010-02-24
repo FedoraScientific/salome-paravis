@@ -22,6 +22,7 @@
 #include "PARAVIS_Engine_i.hh"
 #include "utilities.h"
 
+
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 
 #include "SALOME_NamingService.hxx"

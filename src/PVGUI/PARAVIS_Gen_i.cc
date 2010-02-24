@@ -36,6 +36,7 @@
 #include <CAM_Module.h>
 #include "PVGUI_Module.h"
 #include <SalomeApp_Application.h>
+#include <SUIT_ResourceMgr.h>
 
 #include <SALOMEDS_Tool.hxx>
 #include <QFileInfo>
@@ -47,6 +48,7 @@
 #include "QDomNode"
 #include "QDomElement"
 #include "QFile"
+#include "QDir"
 #include "QTextStream"
 
 #include "vtkWrapIDL.h"
@@ -181,7 +183,7 @@ namespace PARAVIS
   char* PARAVIS_Gen_i::GetTrace()
   {
     if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::PrintTrace: ");
-    return CORBA::string_dup(ProcessEvent(new TGetTrace(mySalomeApp)));
+    return CORBA::string_dup(ProcessEvent(new TGetTrace(mySalomeApp)).c_str());
   }
 
   //----------------------------------------------------------------------------
@@ -192,7 +194,7 @@ namespace PARAVIS
   }
 
   //----------------------------------------------------------------------------
-  void processElements(QDomNode& thePropertyNode, QStringList& theFileNames, const char* theNewPath)
+  void processElements(QDomNode& thePropertyNode, QStringList& theFileNames, const char* theNewPath, bool theRestore)
   {
     QDomNode aElementNode = thePropertyNode.firstChild();
     while (aElementNode.isElement()) {
@@ -202,13 +204,16 @@ namespace PARAVIS
         if (aIndex == "0") {
           QString aValue = aElement.attribute("value");
           if (!aValue.isNull()) {
-            if (theNewPath == 0) {
+            if (!theNewPath) {
               QFileInfo aFInfo(aValue);
-              theFileNames<<aValue;
-              aElement.setAttribute("value", aFInfo.fileName());
+              if (aFInfo.exists()) {
+                theFileNames<<aValue;
+                aElement.setAttribute("value", aFInfo.fileName());
+              }
               break;
             } else {
-              aElement.setAttribute("value", QString(theNewPath) + aValue);            
+              if (theRestore)
+                aElement.setAttribute("value", QString(theNewPath) + aValue);
             }
           }
         }
@@ -219,14 +224,14 @@ namespace PARAVIS
 
 
   //----------------------------------------------------------------------------
-  void processProperties(QDomNode& theProxyNode, QStringList& theFileNames, const char* theNewPath)
+  void processProperties(QDomNode& theProxyNode, QStringList& theFileNames, const char* theNewPath, bool theRestore)
   {
     QDomNode aPropertyNode = theProxyNode.firstChild();
     while (aPropertyNode.isElement()) {
       QDomElement aProperty = aPropertyNode.toElement();
       QString aName = aProperty.attribute("name");
       if ((aName == "FileName") || (aName == "FileNameInfo") || (aName == "FileNames")) {
-        processElements(aPropertyNode, theFileNames, theNewPath);
+        processElements(aPropertyNode, theFileNames, theNewPath, theRestore);
       }
       aPropertyNode = aPropertyNode.nextSibling();
     }
@@ -234,7 +239,7 @@ namespace PARAVIS
 
 
   //----------------------------------------------------------------------------
-  void processProxies(QDomNode& theNode, QStringList& theFileNames, const char* theNewPath)
+  void processProxies(QDomNode& theNode, QStringList& theFileNames, const char* theNewPath, bool theRestore)
   {
     QDomNode aProxyNode = theNode.firstChild();
     while (aProxyNode.isElement()) {
@@ -242,7 +247,7 @@ namespace PARAVIS
       if (aProxy.tagName() == "Proxy") {
         QString aGroup = aProxy.attribute("group");
         if (aGroup == "sources") {
-          processProperties(aProxyNode, theFileNames, theNewPath);
+          processProperties(aProxyNode, theFileNames, theNewPath, theRestore);
         }
       }
       aProxyNode = aProxyNode.nextSibling();
@@ -250,7 +255,8 @@ namespace PARAVIS
   }
 
   //----------------------------------------------------------------------------
-  bool processAllFilesInState(const char* aFileName, QStringList& theFileNames, const char* theNewPath)
+  bool processAllFilesInState(const char* aFileName, QStringList& theFileNames,
+                              const char* theNewPath, bool theRestore = false)
   {
     QFile aFile(aFileName);
     if (!aFile.open(QFile::ReadOnly)) {
@@ -267,7 +273,7 @@ namespace PARAVIS
     }
     
     QDomElement aRoot = aDoc.documentElement();
-    if ( aRoot.isNull() || aRoot.tagName() != "ParaView" ) {
+    if ( aRoot.isNull() /*|| aRoot.tagName() != "SALOME" Names are different in various versions */ ) {
       MESSAGE( "Invalid XML root" );
       return false;
     }
@@ -278,7 +284,7 @@ namespace PARAVIS
       if ( aRes ) {
         QDomElement aSection = aNode.toElement();
         if (aSection.tagName() == "ServerManagerState") {
-          processProxies(aNode, theFileNames, theNewPath);
+          processProxies(aNode, theFileNames, theNewPath, theRestore);
         }
       }
       aNode = aNode.nextSibling();
@@ -295,45 +301,78 @@ namespace PARAVIS
   }
 
 
+  SALOMEDS::TMPFile* SaveState(long thePID, SalomeApp_Application* theApp, SALOMEDS::SComponent_ptr theComponent, 
+                               const char* theURL, bool isMultiFile)
+  {
+    std::string aTmpDir = SALOMEDS_Tool::GetTmpDir();
+
+    std::ostringstream aStream;
+    aStream<<"paravisstate:"<<thePID;
+    std::string aFileName = "_" + aStream.str();
+    if(MYDEBUG) MESSAGE("aFileName = '"<<aFileName);
+
+    SALOMEDS::TMPFile_var aStreamFile = new SALOMEDS::TMPFile(0);
+
+    std::string aFile = aTmpDir + aFileName;
+    ProcessVoidEvent(new TSaveStateFile(theApp, aFile.c_str()));
+
+    // Collect all files from state
+    SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
+    int aSavingType = aResourceMgr->integerValue( "PARAVIS", "savestate_type", 0 );
+
+    QStringList aFileNames;
+    QStringList aNames;
+   
+    switch (aSavingType) {
+    case 0: // Save referenced files only for builin server
+      {
+        MESSAGE("Save as built in;")
+        bool aIsBuiltIn = true;
+        pqServer* aServer = ProcessEvent(new TGetActiveServer(theApp));
+        if (aServer) 
+          aIsBuiltIn != aServer->isRemote();
+      
+        if (aIsBuiltIn)
+        {
+          // Find referenced files and collect their paths nullyfying references
+          processAllFilesInState(aFile.c_str(), aFileNames, 0); 
+          SetRestoreParam(theComponent, true);
+        } else {
+          SetRestoreParam(theComponent, false);
+       }
+      }
+      break;
+    case 1: //Save referenced files when they are accessible
+      {
+        // Find referenced files and collect their paths nullyfying references
+        processAllFilesInState(aFile.c_str(), aFileNames, 0);
+        SetRestoreParam(theComponent, true);
+      }
+      break;
+    case 2: //Never save referenced files
+      SetRestoreParam(theComponent, false);
+      break;
+    }
+    aFileNames<<QString(aFile.c_str());
+    foreach(QString aFile, aFileNames) {
+      QFileInfo aInfo(aFile);
+      aNames<<aInfo.fileName();
+    }
+    SALOMEDS::ListOfFileNames_var aListOfFileNames = GetListOfFileNames(aFileNames);
+    SALOMEDS::ListOfFileNames_var aListOfNames = GetListOfFileNames(aNames);
+
+    aStreamFile = SALOMEDS_Tool::PutFilesToStream(aListOfFileNames.in(), aListOfNames.in());
+    //SALOMEDS_Tool::RemoveTemporaryFiles(theURL, aListOfFileNames, true);
+    
+    return aStreamFile._retn();
+  }
+
   //----------------------------------------------------------------------------
   SALOMEDS::TMPFile* PARAVIS_Gen_i::Save(SALOMEDS::SComponent_ptr theComponent, 
                                          const char* theURL, bool isMultiFile)
   {
     if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::Save - theURL = '"<<theURL<<"'");
-
-    std::string aTmpDir = SALOMEDS_Tool::GetTmpDir();
-
-    std::ostringstream aStream;
-    aStream<<"paravisstate:"<<(long)this;
-    std::string aFileName = "_" + aStream.str();
-    if(MYDEBUG) MESSAGE("aFileName = '"<<aFileName);
-
-    //std::vector<std::string> aFileNames;
-    //aFileNames.push_back(aFileName);
-
-    SALOMEDS::TMPFile_var aStreamFile = new SALOMEDS::TMPFile(0);
-
-    std::string aFile = aTmpDir + aFileName;
-    ProcessVoidEvent(new TSaveStateFile(mySalomeApp, aFile.c_str()));
-
-    // TO Do: Collect all files from state
-    QStringList aFileNames;
-    processAllFilesInState(aFile.c_str(), aFileNames, 0);
-    aFileNames<<QString(aFile.c_str());
-
-    QStringList aNames;
-    foreach(QString aFile, aFileNames) {
-      QFileInfo aInfo(aFile);
-      aNames<<aInfo.fileName();
-    }
-    
-    SALOMEDS::ListOfFileNames_var aListOfFileNames = GetListOfFileNames(aFileNames);
-    SALOMEDS::ListOfFileNames_var aListOfNames = GetListOfFileNames(aNames);
-
-    aStreamFile = SALOMEDS_Tool::PutFilesToStream(aListOfFileNames.in(), aListOfNames.in());
-    SALOMEDS_Tool::RemoveTemporaryFiles(theURL, aListOfFileNames, true);
-
-    return aStreamFile._retn();
+    return SaveState((long) this, mySalomeApp, theComponent, theURL, isMultiFile);
   }
     
   //----------------------------------------------------------------------------
@@ -341,43 +380,13 @@ namespace PARAVIS
                                               const char* theURL, bool isMultiFile)
   {
     if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::Save - theURL = '"<<theURL<<"'");
-
-    std::string aTmpDir = SALOMEDS_Tool::GetTmpDir();
-
-    std::ostringstream aStream;
-    aStream<<"paravisstate:"<<(long)this;
-    std::string aFileName = "_" + aStream.str();
-    if(MYDEBUG) MESSAGE("aFileName = '"<<aFileName);
-
-    SALOMEDS::TMPFile_var aStreamFile = new SALOMEDS::TMPFile(0);
-
-    std::string aFile = aTmpDir + aFileName;
-    ProcessVoidEvent(new TSaveStateFile(mySalomeApp, aFile.c_str()));
-
-    //Collect all files from state
-    QStringList aFileNames;
-    processAllFilesInState(aFile.c_str(), aFileNames, 0);
-    aFileNames<<QString(aFile.c_str());
-
-    QStringList aNames;
-    foreach(QString aFile, aFileNames) {
-      QFileInfo aInfo(aFile);
-      aNames<<aInfo.fileName();
-    }
-    
-    SALOMEDS::ListOfFileNames_var aListOfFileNames = GetListOfFileNames(aFileNames);
-    SALOMEDS::ListOfFileNames_var aListOfNames = GetListOfFileNames(aNames);
-
-    aStreamFile = SALOMEDS_Tool::PutFilesToStream(aListOfFileNames.in(), aListOfNames.in());
-    SALOMEDS_Tool::RemoveTemporaryFiles(theURL, aListOfFileNames, true);
-
-    return aStreamFile._retn();
+    return SaveState((long) this, mySalomeApp, theComponent, theURL, isMultiFile);
   }
     
 
   //----------------------------------------------------------------------------
-  bool PARAVIS_Gen_i::Load(SALOMEDS::SComponent_ptr theComponent,	 const SALOMEDS::TMPFile& theStream,
-                           const char* theURL, bool isMultiFile)
+  bool LoadState(SalomeApp_Application* theApp, SALOMEDS::SComponent_ptr theComponent,
+                 const SALOMEDS::TMPFile& theStream, const char* theURL, bool isMultiFile)
   {
     std::string aTmpDir = isMultiFile ? theURL : SALOMEDS_Tool::GetTmpDir();
     if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::Load - "<<aTmpDir);
@@ -386,12 +395,22 @@ namespace PARAVIS
     if (aSeq->length() == 0)
       return false;
 
+    bool aRestore = GetRestoreParam(theComponent);
+    MESSAGE("PARAVIS_Gen_i::Restore path - "<<aRestore);
+
     std::string aFile = aTmpDir + std::string(aSeq[aSeq->length() - 1]);
     QStringList aEmptyList;
-    processAllFilesInState(aFile.c_str(), aEmptyList, aTmpDir.c_str());
-    ProcessVoidEvent(new TLoadStateFile(mySalomeApp, aFile.c_str()));
+    processAllFilesInState(aFile.c_str(), aEmptyList, aTmpDir.c_str(), aRestore);
+    ProcessVoidEvent(new TLoadStateFile(theApp, aFile.c_str()));
 
     return true;
+  }
+
+  //----------------------------------------------------------------------------
+  bool PARAVIS_Gen_i::Load(SALOMEDS::SComponent_ptr theComponent,	 const SALOMEDS::TMPFile& theStream,
+                           const char* theURL, bool isMultiFile)
+  {
+    return LoadState(mySalomeApp, theComponent, theStream, theURL, isMultiFile);
   }
 
   //----------------------------------------------------------------------------
@@ -399,19 +418,7 @@ namespace PARAVIS
                                 const SALOMEDS::TMPFile& theStream,
                                 const char* theURL, bool isMultiFile)
   {
-    std::string aTmpDir = isMultiFile ? theURL : SALOMEDS_Tool::GetTmpDir();
-    if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::Load - "<<aTmpDir);
-
-    SALOMEDS::ListOfFileNames_var aSeq = SALOMEDS_Tool::PutStreamToFiles(theStream, aTmpDir, false);
-    if (aSeq->length() == 0)
-      return false;
-
-    std::string aFile = aTmpDir + std::string(aSeq[aSeq->length() - 1]);
-    QStringList aEmptyList;
-    processAllFilesInState(aFile.c_str(), aEmptyList, aTmpDir.c_str());
-    ProcessVoidEvent(new TLoadStateFile(mySalomeApp, aFile.c_str()));
-
-    return true;
+    return LoadState(mySalomeApp, theComponent, theStream, theURL, isMultiFile);
   }
     
   //----------------------------------------------------------------------------
@@ -540,6 +547,7 @@ namespace PARAVIS
     aResult += "\ndef RebuildData(theStudy):\n  pass\n";
     CORBA::ULong aSize = aResult.size() + 1;
     char* aBuffer = new char[aSize];
+    memset(aBuffer, 0, aSize);
     strcpy(aBuffer, &aResult[0]);
     Engines::TMPFile_var aDump = new Engines::TMPFile(aSize,aSize,(CORBA::Octet*)aBuffer,1);
     return aDump._retn();

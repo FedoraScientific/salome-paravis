@@ -33,9 +33,7 @@
 
 class QMenu;
 class QDockWidget;
-//class LightApp_Selection;
-//class LightApp_SelectionMgr;
-class PVGUI_ProcessModuleHelper;
+class QToolBar;
 class vtkPVMain;
 class pqOptions;
 class pqServer;
@@ -71,44 +69,46 @@ class PVGUI_Module : public SalomeApp_Module
 	 CameraRedoId,
 
 	 ChangeInputId,
+   IgnoreTimeId, 
 	 DeleteId,
 	 DeleteAllId,
 
-	 InteractId,
-	 SelectCellsOnId,
-	 SelectPointsOnId,
-	 SelectCellsThroughId,
-	 SelectPointsThroughId,
-	 SelectBlockId,
+	 //InteractId,
+	 //SelectCellsOnId,
+	 //SelectPointsOnId,
+	 //SelectCellsThroughId,
+	 //SelectPointsThroughId,
+	 //SelectBlockId,
 
 	 SettingsId,
 	 ViewSettingsId,
 
 	 // Menu "View"
-	 ResetCameraId,
-	 PositiveXId,
-	 NegativeXId,
-	 PositiveYId,
-	 NegativeYId,
-	 PositiveZId,
-	 NegativeZId,
-
-	 ShowCenterId,
-	 ResetCenterId,
-	 PickCenterId,
-	 ShowColorLegendId,
-	 EditColorMapId,
-	 ResetRangeId,
-
-	 AnimationInspectorId,
-	 AnimationViewId,
-	 ComparativeViewInspectorId,
-	 SelectionInspectorId,
-	 LookmarkBrowserId,
-	 LookmarkInspectorId,
-	 ObjectInspectorId,
-	 PipelineBrowserId,
-	 StatisticsViewId,
+   FullScreenId, 
+// 	 ResetCameraId,
+// 	 PositiveXId,
+// 	 NegativeXId,
+// 	 PositiveYId,
+// 	 NegativeYId,
+// 	 PositiveZId,
+// 	 NegativeZId,
+// 
+// 	 ShowCenterId,
+// 	 ResetCenterId,
+// 	 PickCenterId,
+// 	 ShowColorLegendId,
+// 	 EditColorMapId,
+// 	 ResetRangeId,
+// 
+// 	 AnimationInspectorId,
+// 	 AnimationViewId,
+// 	 ComparativeViewInspectorId,
+// 	 SelectionInspectorId,
+// 	 LookmarkBrowserId,
+// 	 LookmarkInspectorId,
+// 	 ObjectInspectorId,
+// 	 PipelineBrowserId,
+// 	 StatisticsViewId,
 
 	 // Menu "Sources"
 	 // TODO...
@@ -155,19 +155,19 @@ public:
 
   pqViewManager*         getMultiViewManager() const;
 
-  virtual bool           eventFilter( QObject*, QEvent* );
-
   virtual QString engineIOR() const;
 
-  //! Compares the contents of the window with the given reference image, returns true if they "match" within some tolerance
-  bool                   compareView( const QString& ReferenceImage, double Threshold,
-                                      std::ostream& Output, const QString& TempDirectory );
+  /*! Compares the contents of the window with the given reference image,
+   * returns true if they "match" within some tolerance
+   */
+  /*bool                   compareView( const QString& ReferenceImage, double Threshold,
+    std::ostream& Output, const QString& TempDirectory );*/
 
   void openFile(const char* theName);
   void saveParaviewState(const char* theFileName);
   void loadParaviewState(const char* theFileName);
 
-  QString printTrace();
+  QString getTraceString();
   void saveTrace(const char* theName);
 
   pqServer* getActiveServer();
@@ -177,14 +177,9 @@ public:
 public slots:
   void onImportFromVisu(QString theEntry);
 
-protected:
-  //virtual CAM_DataModel* createDataModel();
-
 private:
   //! Initialize ParaView if not yet done (once per session)
   static bool            pvInit();  
-  //! Shutdown ParaView, should be called on application exit
-  static void            pvShutdown();   
  
   //! Create actions for ParaView GUI operations
   void                   pvCreateActions();
@@ -197,9 +192,6 @@ private:
 
   //! Create dock widgets for ParaView widgets
   void                   setupDockWidgets();
-
-  //! Create dock widgets context menus
-  void                   setupDockWidgetsContextMenu();
 
   //! Save states of dockable ParaView widgets
   void                   saveDockWidgetsState();
@@ -214,43 +206,23 @@ private:
   QMenu*                 getMenu( const int );
 
   void                   deleteTemporaryFiles();
+  
+  QList<QToolBar*>       getParaViewToolbars();
 
 private slots:
-  void onUndoLabel( const QString& );
-  void onRedoLabel( const QString& );
-  
-  void onCameraUndoLabel( const QString& );
-  void onCameraRedoLabel( const QString& );
-
-  void onDeleteAll();
-
-  void onSelectionModeChanged( int mode );
-
-  void onShowCenterAxisChanged( bool );
-
-  void setTimeRanges( double, double );
-
-  void onPlaying( bool );
-  
-  void onAddCameraLink();
-  
-  void onHelpAbout();
-
-  void onParaViewHelp();
 
   void showHelpForProxy( const QString& proxy );
-  void makeAssistant();
-  void assistantError( const QString& err );
   
   void onPreAccept();
   void onPostAccept();
   void endWaitCursor();
 
-  void connectToPlay();
-
-  void onOpenFile();
-
   void activateTrace();
+
+  void buildToolbarsMenu();
+
+  void showParaViewHelp();
+  void showHelp(const QString& url);
 
 public slots:
   virtual bool           activateModule( SUIT_Study* );
@@ -264,10 +236,16 @@ private:
   int                    mySelectionControlsTb;
   int                    mySourcesMenuId;
   int                    myFiltersMenuId;
+  int                    myToolbarsMenuId;
+  int                    myMacrosMenuId;
 
   QList<QDockWidget*>    myDockWidgets;
 
   QStringList            myTemporaryFiles;
+
+  QMap<QToolBar*, bool>  myToolbarState;
+
+  QtMsgHandler           myOldMsgHandler;
 };
 
 #endif // PVGUI_Module_H

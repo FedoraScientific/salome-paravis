@@ -19,7 +19,8 @@
 #include <PVGUI_ViewManager.h>
 #include <PVGUI_ViewModel.h>
 #include <PVGUI_ViewWindow.h>
-
+#include <pqApplicationCore.h>
+#include <pqViewManager.h>
 
 /*!
   Constructor
@@ -42,9 +43,5 @@ PVGUI_ViewManager::~PVGUI_ViewManager()
 */
 pqViewManager* PVGUI_ViewManager::getMultiViewManager()
 {
-  pqViewManager* aMVM = 0;
-  PVGUI_ViewWindow* aVW = dynamic_cast<PVGUI_ViewWindow*>( getActiveView() );
-  if ( aVW )
-    aMVM = aVW->getMultiViewManager();
-  return aMVM;
+  return qobject_cast<pqViewManager*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
 }

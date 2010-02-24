@@ -1,0 +1,940 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.2  (Linux)">
+	<META NAME="CREATED" CONTENT="20100112;18335600">
+	<META NAME="CHANGED" CONTENT="20100126;17235200">
+	<STYLE TYPE="text/css">
+	<!--
+		H2 { margin-top: 0.33in; margin-bottom: 0.08in; color: #ff0000; text-align: left }
+		H2.western { font-family: "Liberation Serif", serif; font-size: 14pt }
+		H2.cjk { font-family: "DejaVu Sans"; font-size: 14pt }
+		H2.ctl { font-family: "DejaVu Sans"; font-size: 14pt }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P ALIGN=CENTER><FONT SIZE=6><B>PARAVIS development</B></FONT></P>
+<P ALIGN=CENTER><FONT SIZE=6><B>General architecture of PARAVIEW
+extractor</B></FONT></P>
+<H1 STYLE="page-break-before: always"><A NAME="1.Introduction|outline"></A>
+<A HREF="#1.Introduction|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>1.Introduction</B></FONT></FONT></A></H1>
+<P><A HREF="#2.General architecture|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>2.General
+architecture</B></FONT></FONT></A></P>
+<P><A HREF="#3.Automatic generation of container classes|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.Automatic
+generation of container classes</B></FONT></FONT></A></P>
+<H1><A NAME="3.1. Source files related to PARAVIS server definition|outline"></A>
+<A HREF="#3.1. Source files related to PARAVIS server definition|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.1.
+Source files related to PARAVIS server definition</B></FONT></FONT></A></H1>
+<P><A HREF="#3.2. Process of generation|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.2.
+Process of generation</B></FONT></FONT></A></P>
+<P><A HREF="#3.3. Definition of IDL interfaces|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.3.
+Definition of IDL interfaces</B></FONT></FONT></A></P>
+<P><A HREF="#3.4. Base interface and its implementation|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.4.
+Base interface and its implementation</B></FONT></FONT></A></P>
+<H1><A NAME="3.5. GUI events queue|outline"></A><A HREF="#3.5. GUI events queue|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.5.
+GUI events queue</B></FONT></FONT></A></H1>
+<P><A HREF="#3.6. Overloaded methods definition|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.6.
+Overloaded methods definition</B></FONT></FONT></A></P>
+<P><A HREF="#3.7. Creation of objects in Python|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.7.
+Creation of objects in Python</B></FONT></FONT></A></P>
+<P><A HREF="#3.8. servermanager.py and simple.py|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>3.8.
+servermanager.py and simple.py</B></FONT></FONT></A></P>
+<P><A HREF="#4.Trace functionality|outline"><FONT FACE="Liberation Serif, serif"><FONT SIZE=4 STYLE="font-size: 15pt"><B>4.Trace
+functionality</B></FONT></FONT></A></P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H1>Introduction</H1>
+<P>This document describes development of ParaView server manager API
+for PARAVIS module. The new API must provide following features:</P>
+<OL>
+	<LI><P>Define interaction between two different processes: Python
+	console and PARAVIS GUI defined in SALOME desktop.</P>
+	<LI><P>Make possible to manage PARAVIS GUI and ParaView server data
+	from Python scripts in synchronized mode.</P>
+	<LI><P>The new API must be similar as much as possible to the API
+	provided by servermanager.py module from ParaView in order to make
+	possible launching the same scripts as in ParaView as in PARAVIS
+	without modifications.</P>
+</OL>
+<P>General architecture and development features of this task are
+described below.</P>
+<H1><A NAME="2.General architecture|outline"></A>General architecture</H1>
+<P>Main components of PARAVIS architecture and their relations can be
+represented as on the following picture:</P>
+<P><IMG SRC="GeneralArchitecture_html_m4ed0a034.gif" NAME="graphics1" ALIGN=LEFT WIDTH=100% BORDER=0><BR CLEAR=LEFT><BR><BR>
+</P>
+<P>The usual way to implement SALOME module is to develop a
+Data/Algorithms engine unit as a CORBA server and module GUI as a
+CORBA client. But in case if we need to use GUI and Algorithms from
+Python console (what usually is an external process) in synchronized
+mode then we have to implement them together as a CORBA server within
+a one process.</P>
+<P>On the diagram above following component are shown: 
+</P>
+<UL>
+	<LI><P>PARAVIS module GUI which is responsible for creation of
+	necessary widgets within SALOME Desktop, initialization of ParaView
+	client objects, connection of ParaView GUI objects to created
+	widgets.</P>
+	<LI><P>ParaView client code is a set of ParaView objects what
+	provides ParaView GUI.</P>
+	<LI><P>ParaView server for PARAVIS module can be used as built-in
+	(by default) as remote. For connection to remote server it is
+	necessary to use corresponded menu commands connect/disconnect as it
+	is used in standard ParaView GUI client.</P>
+	<LI><P>ParaView server manager API is a set of classes provided by
+	ParaView for definition of API for Python interpreter.</P>
+	<LI><P>Container objects - implementation of CORBA servants for
+	wrapping server manager object instances and redirection of CORBA
+	interface calls to corresponded server manager object.</P>
+</UL>
+<H1><A NAME="3.Automatic generation of container classes|outline"></A>
+Automatic generation of container classes</H1>
+<H2 CLASS="western">Source files related to PARAVIS server definition</H2>
+<P STYLE="margin-bottom: 0in">In PARAVIS_SRC/idl/ directory:</P>
+<OL>
+	<LI><P><B>PARAVIS_Gen.idl</B> – defines main interfaces to PARAVIS
+	module.</P>
+	<LI><P><B>PARAVIS_Gen_Types.idl</B> – defines data collection
+	types.</P>
+	<LI><P><B>hints_paravis</B> – defines sizes of arrays missed in
+	standard VTK hints file. If some functions of VTK classes which
+	return array data are not extracted then it is necessary to edit
+	this file in order to describe missed functions.</P>
+	<LI><P><B>pythonIDL.py</B> – command file which is used for
+	extraction of IDL interfaces to Python files. This is modification
+	of similar file from omniidl product what takes into account
+	overloading of methods in class.</P>
+	<LI><P><B>vtkWrapIDL.c</B> – source file for building extraction
+	executables: <SPAN STYLE="font-weight: medium">vtkWrapIDL,
+	vtkWrapIDL_CC, vtkWrapIDL_HH.</SPAN></P>
+</OL>
+<P STYLE="font-weight: medium">In PARAVIS_SRC/src/PVGUI directory:</P>
+<OL>
+	<LI><P><B>PARAVIS_Gen_i.cc</B> <SPAN STYLE="font-weight: medium">and
+	</SPAN><B>PARAVIS_Gen_i.hh</B> – <SPAN STYLE="font-weight: medium">implementation
+	of PARAVIS_Gen interface.</SPAN></P>
+	<LI><P><B>PV_Events.h</B> – <SPAN STYLE="font-weight: medium">defines
+	events for synchronization of CORBA client calls with main GUI
+	events queue.</SPAN></P>
+	<LI><P STYLE="font-weight: medium">Other files are related to GUI
+	definition and auxiliary tools.</P>
+</OL>
+<P STYLE="font-weight: medium">In <SPAN STYLE="font-weight: medium">PARAVIS_SRC/src/PV_SWIG
+directory:</SPAN></P>
+<OL>
+	<LI><P STYLE="font-weight: medium"><B>paravis.py</B> – <SPAN STYLE="font-weight: medium">general
+	Python module for PARAVIS. It installs connection to PARAVIS CORBA
+	server, defines a variable </SPAN><B>myParavis</B> <SPAN STYLE="font-weight: medium">in
+	order to provide acces to </SPAN><B>PARAVIS_Gen</B> <SPAN STYLE="font-weight: medium">functions,
+	creates a set of empty constructors for all extracted ParaView
+	classes.</SPAN></P>
+	<LI><P STYLE="font-weight: medium"><B>paravisSM.py</B> – <SPAN STYLE="font-weight: medium">modified
+	copy of servermanager.py module from ParaView. Modification done
+	according to conventions defined by paravis.py module and features
+	of working with CORBA server.</SPAN></P>
+	<LI><P STYLE="font-weight: medium"><B>pvsimple.py</B> – <SPAN STYLE="font-weight: medium">modified
+	copy of simple.py module from ParaView. Modifications done because
+	of the same reasons.</SPAN></P>
+</OL>
+<H2 CLASS="western">Process of generation</H2>
+<P>CORBA servant classes for wrapping of server manager API classes
+is generated automatically. The process of building PARAVIS module
+with generation of wrappers is performed in the following way:</P>
+<OL>
+	<LI><P>Call <B>build_configure</B> script. During performing of this
+	script it performs some standard steps of SALOME module building and
+	calls a Python command file <B>getwrapclasses.py</B> is called. This
+	procedure creates a list of ParaView and VTK class names what has to
+	be extracted. This list includes all <B>vtkSM*</B> classes and <B>vtk*
+	</B>classes what are referred by previous group of classes. Results
+	of build_configure step are:</P>
+	<OL TYPE=a>
+		<LI><P>idl/wrap.am – defines variables what lists all interfaces
+		(*.idl and *.cc files) what will be generated.</P>
+		<LI><P>idl/vtkWrapIDL.h – defines a list of extracted classes in
+		form of char* array.</P>
+		<LI><P>src/PVGUI/wrap.am - defines variables what lists all servant
+		classes (*.hh and *.cc files) what will be generated.</P>
+		<LI><P>src/PVGUI/PARAVIS_CreateClass.cxx is a C++ file what
+		contains a one function CreateInstance. This function creates a
+		servant class which corresponds to a given name of original
+		ParaView/VTK class.</P>
+	</OL>
+	<LI><P>Launch <B>configure</B> script from a build directory. This
+	step is similar to the same steps in other SALOME modules and does
+	not have any special related to automatic generation of CORBA
+	interfaces.</P>
+	<LI><P>Call <B>make</B> command in build directory. This command
+	does following steps related to automatic generation:</P>
+	<OL TYPE=a>
+		<LI><P>Builds <B>vtkWrapIDL</B> executable in <B>idl</B> directory
+		what is responsible for generation of IDL files using names of
+		classes to wrap. This executable analyzes related header files for
+		classes from vtkWrapIDL.h and defines corresponded IDL file.</P>
+		<LI><P>Defines all IDL files with help of this executable and
+		launches standard SALOME compilation for <B>idl</B> directory.</P>
+		<LI><P>Compiles <B>vtkWrapIDL_CC </B><SPAN STYLE="font-weight: medium">and
+		</SPAN><B>vtkWrapIDL_HH</B> <SPAN STYLE="font-weight: medium">executables
+		in src/PVGUI directory what are responsible for generation of
+		header files (*.hh) and implementation files (*.cc) for servants
+		classes.</SPAN></P>
+		<LI><P STYLE="font-weight: medium">Generation of servant classes
+		with help of these executables and building the library.</P>
+	</OL>
+	<LI><P><SPAN STYLE="font-weight: medium">Call </SPAN><B>make install</B>
+	<SPAN STYLE="font-weight: medium">command in build directory. This
+	will finalize building of libraries and generate Python files for
+	IDL interfaces.</SPAN></P>
+</OL>
+<P STYLE="font-weight: medium"><SPAN STYLE="background: transparent">Note:</SPAN></P>
+<P STYLE="font-weight: medium"><SPAN STYLE="background: transparent">make
+command can not be used with -j key because extraction of parent
+classes should be done before extraction of child classes.</SPAN></P>
+<H2 CLASS="western">Definition of IDL interfaces</H2>
+<P>Process of IDL interfaces generation has to respect following
+restrictions of IDL format:</P>
+<OL>
+	<LI><P>IDL does not support several functions with the same name
+	within a one interface definition. Even they have different
+	parameters (overloading of methods as in C++). Also this is not
+	supported between parent and its ancestors.</P>
+	<LI><P>In context of PARAVIS it is difficult to extract methods what
+	accept or return “void*” data type. In IDL it can be described
+	as “ANY” data type, but in context of ParaView it is not clear
+	to what type it has to be casted.</P>
+</OL>
+<P>IDL interfaces extracted following to the next principals:</P>
+<OL>
+	<LI><P>All interfaces are inherited from a common parent interface
+	Base. 
+	</P>
+	<LI><P>Each interface includes all extracted methods of its
+	prototype class including all its parents.</P>
+	<LI><P>If the prototype class contains overloaded methods (methods
+	with the same name) then each appearance of this method name is
+	supplied with index.</P>
+	<LI><P>If prototype class contains methods which return or accept
+	void* then these methods are ignored.</P>
+	<LI><P>If prototype class contains methods which return array (int*,
+	double*, ...) which size is not defined in “hints” or
+	“hints_paravis” files then these methods are ignored.</P>
+	<LI><P><SPAN STYLE="background: transparent">If prototype class
+	contains methods which get a pointer to function then these methods
+	are ignored.</SPAN></P>
+	<LI><P>If a method of prototype class returns/accepts a pointer on
+	ParaView/VTK class instance then interface will return/accept Base
+	interface.</P>
+</OL>
+<H2 CLASS="western">Base interface and its implementation</H2>
+<P>Base interface is defined in order to satisfy following points:</P>
+<OL>
+	<LI><P>Sometimes we need to have a possibility to use a servant as a
+	pointer on a common interface.</P>
+	<LI><P>We need to have possibility to define a common auxiliary
+	methods for all generated interfaces which out of ParaView/VTK
+	definitions.</P>
+	<LI><P>We need to have a base implementation for all servant
+	classes.</P>
+</OL>
+<P>Currently Base class implements smart pointer on a vtkObjectBase
+instance and several methods to Get/Set this pointer. By default each
+ancestor class initializes this pointer with help of New() method.
+This useful for classes what contain static methods. But after this
+pointer can be reinitialized from outside what is used when we need
+to have access to certain instance.</P>
+<P>Also Base interface introduces a method IsSame(Base theOther). We
+need this method when it is necessary to compare two ParaView objects
+in Python process. In fact if we will apply standard operation “==”
+then we will compare two wrapper instances instead of ParaView
+objects instances. So, method IsSame(Base theOther) checks if two
+wrappers refer to the same ParaView instance or not.</P>
+<H2 CLASS="western">GUI events queue</H2>
+<P>Some calls of server manager API functions cause a modification of
+GUI state: creation of new widgets, update of widgets state,
+visualization of presentable objects in viewers. In our case we have
+two different processes: Python console and PARAVIS GUI. At the same
+moment the Python console “manages” PARAVIS GUI with help of
+server manager API functions calls. So, for correct performance of
+Python scripts the calls of Python commands have to be synchronized
+with PARAVIS GUI events queue.</P>
+<P>For this purposes all calls to server manager API from servant are
+additionally wrapped by event classes. Therefore implementation of
+servants methods accords to following general template:</P>
+<OL>
+	<LI><P>Get an encapsulated pointer on VTK object instance.</P>
+	<LI><P>Create a special event instance for target function call.</P>
+	<LI><P>Launch event and wait while it returns.</P>
+	<LI><P>Get result from event (if result is supposed).</P>
+	<LI><P>Return this result as result of servant method.</P>
+</OL>
+<P>For example:</P>
+<P>Class vtkSMProxyManager has a method GetProxy. This method
+implemented in corresponded servant class as following:</P>
+<TABLE WIDTH=100% BORDER=1 BORDERCOLOR="#000000" CELLPADDING=3 CELLSPACING=0>
+	<COL WIDTH=12*>
+	<COL WIDTH=164*>
+	<COL WIDTH=80*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#000080">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>#</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#000080">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Code</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#000080">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Remarks</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>1</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>//C++:
+			vtkSMProxy *GetProxy (const char *groupname, const char *name);</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>2</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>struct
+			CreateEventName(GetProxy_0): public SALOME_Event</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Generation
+			of unique event class name with help of a special macros</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>3</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>{</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>4</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>typedef
+			::vtkSMProxy* TResult;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>5</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>TResult
+			myResult;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Definition
+			of the return type</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>6</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>typedef
+			::vtkSMProxyManager* TObj;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>7</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>TObj
+			myObj;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Definition
+			of parameters</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>8</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>typedef
+			char* TParam0;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>9</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>TParam0
+			myParam0;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>10</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>typedef
+			char* TParam1;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>11</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>TParam1
+			myParam1;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>12</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>13</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>CreateEventName(GetProxy_0)(TObj
+			theObj, TParam0 theParam0, TParam1 theParam1):</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Constructor
+			of event. Defines object instance and necessary parameters</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>14</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>myObj(theObj),
+			myParam0(theParam0), myParam1(theParam1)</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>15</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>{
+			}</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>16</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>17</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>virtual
+			void Execute()</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Execution
+			method.</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>18</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>{</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>19</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>myResult
+			= myObj-&gt;GetProxy(myParam0, myParam1);</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Call
+			of target method</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>20</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>}</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>21</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>};</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>22</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>//</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>23</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>PARAVIS_Base_ptr
+			vtkSMProxyManager_i::GetProxy_0 (const char *temp0, const char
+			*temp1) {</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Implementation
+			of servant method</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>24</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>try
+			{</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>25</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>char
+			*c_temp0 = CORBA::string_dup(temp0);</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Getting
+			parameters</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>26</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>char
+			*c_temp1 = CORBA::string_dup(temp1);</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>27</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>::vtkSMProxy*
+			avtkSMProxy = (getVTKObject() != NULL) ? ProcessEvent(new
+			CreateEventName(GetProxy_0)((::vtkSMProxyManager*)getVTKObject(),
+			c_temp0 , c_temp1)):NULL;</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>If
+			wrapped object is defined then create event and launch it. Finally
+			it will return result.</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>28</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>29</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>if(avtkSMProxy
+			== NULL) {</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>30</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>return
+			PARAVIS::vtkSMProxy::_nil();</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>31</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>}</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>32</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>PARAVIS_Base_i*
+			aPtr = ::CreateInstance(<FONT COLOR="#000000"><SPAN STYLE="text-decoration: none"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><SPAN STYLE="font-weight: medium">avtkSMProxy</SPAN></FONT></FONT></SPAN></FONT>,
+			avtkSMProxy-&gt;GetClassName());</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Create
+			a wrapper (servant) class according to class name of result object</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>33</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>aPtr-&gt;Init(avtkSMProxy);</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Initialize
+			the internal pointer of wrapper class by result</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>34</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>return
+			aPtr-&gt;_this();</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>Return
+			wrapper instance as result</I></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>35</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>}
+			catch(...) {</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>36</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>MESSAGE(&quot;GetProxy
+			- Unknown exception was occurred!!!&quot;);</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>37</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>return
+			PARAVIS::vtkSMProxy::_nil();</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>38</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#ffffff">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>}</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=5% BGCOLOR="#4d4d4d">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#ffffff"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>39</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=64% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT STYLE="font-weight: medium; text-decoration: none"><FONT COLOR="#000000"><FONT FACE="Liberation Serif, serif"><FONT SIZE=2><I>}</I></FONT></FONT></FONT></P>
+		</TD>
+		<TD WIDTH=31% BGCOLOR="#cccccc">
+			<P ALIGN=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<H2 CLASS="western">Overloaded methods definition</H2>
+<P>Classes of ParaView server manager API have overloaded methods. As
+it is mentioned above description of IDL interface prohibits using of
+the same name for various methods even they have different
+parameters. To avoid this limitation we have to add index to name in
+each appearance of overloaded method. But at Python script level it
+is necessary to avoid using of function names with indexes. It is
+necessary to provide possibility to use methods as they was defined
+in API of corresponded class.</P>
+<P>For tis purposes we redefined standard IDL to Python wrapping in
+order to add a function which has a name of overloaded method and
+accepts any parameters. This function analyzes input parameters and
+selects what function (with which index) it has to be called.</P>
+<P>For example:</P>
+<P>vtkObject class contains definition of overloaded functions:</P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>void RemoveObservers
+(unsigned long event);</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>void RemoveObservers
+(const char *event);</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in">In IDL interface these function will be
+defined as:</P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>void _RemoveObservers_0
+(in long temp0);</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>void _RemoveObservers_1
+(in string temp0);</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in; font-style: normal">These functions
+will be wrapped by standard IDL to Python wrapper as it is (with
+indexes). But we need to call this function in Python as they were
+defined in vtkObject definition – by name “RemoveObservers”.
+For this purposes we modify IDL to Python wrapper in order to add the
+following function:</P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>def
+RemoveObservers(self, *args):</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>if len(args) == 1 and
+(type(args[0]) in [IntType, LongType]):</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>return
+self.RemoveObservers_0(*args)</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>if len(args) == 1 and
+(type(args[0]) in [StringType]):</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>return
+self.RemoveObservers_1(*args)</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><FONT SIZE=2><I>print 'Warning: The
+corresponding method of RemoveObservers group is not found for ' +
+str(args)</I></FONT></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<P STYLE="margin-bottom: 0in">After this we can use function
+RemoveObserves in Python as it was defined without indexes.</P>
+<H2 CLASS="western">Creation of objects in Python</H2>
+<P>Creation of CORBA object on client side is not so trivial as
+usually. When client requests a creation of object then it has to be
+created: 
+</P>
+<UL>
+	<LI><P>CORBA client object instance on client side, 
+	</P>
+	<LI><P>CORBA servant instance on server side 
+	</P>
+	<LI><P>and both of them are connected to each other across CORBA
+	interface. 
+	</P>
+</UL>
+<P STYLE="margin-bottom: 0.08in">More simplest way is to request an
+object from PARAVIS server interface <B>PARAVIS_Gen</B>. For this
+purposes a method <B>CreateClass</B> function in <B>PARAVIS_Gen
+</B>interface is defined. Also there is a function <B>GetClassesList</B>
+which returns list of names of extracted classes. Both these methods
+let to define a set of functions which looks like an object
+constructor for all extracted classes. 
+</P>
+<P STYLE="margin-bottom: 0.08in">These definitions done in paravis.py
+module with help of createConstructors function. Result of this
+function is a set of functions which looks like vtkClassName(). These
+functions return an object instance which wraps a pointer on
+requested class vtkClassName instance with corresponded API.</P>
+<P STYLE="margin-bottom: 0.08in">For example call in Python console</P>
+<P STYLE="margin-bottom: 0.08in"><FONT SIZE=2><I>&gt; a =
+vtkSMProxyManager()</I></FONT></P>
+<P STYLE="margin-bottom: 0.08in">returns an instance of
+PARAVIS_Gen_vtkSMProxyManager object on client side which implements
+all methods of vtkSMProxyManager class readdressing them to
+incapsulated vtkSMProxyManager instance on server side.</P>
+<H2 CLASS="western">servermanager.py and simple.py</H2>
+<P STYLE="margin-bottom: 0.08in">In ParaView Python API is defined
+with help of two modules servermanager.py and simple.py. PARAVIS has
+corresponded modules paravisSM.py and pvsimple.py. Because of actions
+described above we got a set of Python interfaces which is very close
+to original Python API of ParaView. So, PARAVIS Python modules have
+fiew modifications in comparison to original ones. These
+modifications mainly related to:</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0.08in">Already mentioned problem with
+	“==” operation to wrapper classes.</P>
+	<LI><P STYLE="margin-bottom: 0.08in">Impossibility to use observers.</P>
+	<LI><P STYLE="margin-bottom: 0.08in">Reimplementation of hidden code
+	existing in ParaView which is called in Python console on its
+	creation.</P>
+	<LI><P STYLE="margin-bottom: 0.08in">Providing access to Trace
+	functionality.</P>
+</OL>
+<H1><A NAME="4.Trace functionality|outline"></A>Trace functionality</H1>
+<P>Trace functionality in PARAVIS module is defined in GUI of module
+using already existing Python functions in ParaView.</P>
+<P>Because this trace functionality is used for “Dump Study”
+functionality defined in SALOME then tracing is started automatically
+on loading of PARAVIS module and registers all actions during whole
+session. In case if there are no necessity tracing can be switched
+off in preferences dialog box. But it is necessary to take into
+account that dumping of study can't be done for PARAVIS module in
+this case.</P>
+<P>To check the trace content there are two functions defined in
+pvsimple.py module and accessible in SALOME Python console:</P>
+<UL>
+	<LI><P>PrintTrace() - this function prints trace directly to Python
+	console</P>
+	<LI><P>SaveTrace(fileName) – this function outputs trace into disk
+	file according to given name.</P>
+</UL>
+<H1>Connection with other SALOME modules</H1>
+<P>According to SALOME general architecture each module independs
+from other modules by default. In general case adding of module to
+module dependency can be caused by necessity to transfer some data
+from one module to another. In this case a module consumer has to
+“know” about API of module supplier what is going to be used. If
+this API is not defined on a general module level then we have to use
+direct connection to module object instance what implements a
+necessary API.</P>
+<P>In general algorithm of connected to a module-supplier API on a
+module-consumer side looks like following:</P>
+<OL>
+	<LI><P>Find and load a module-supplier component CORBA object from
+	active study.</P>
+	<LI><P>Get a module-supplier engine from the component.</P>
+	<LI><P>Using of the engine to get necessary data.</P>
+</OL>
+</BODY>
+</HTML>
