@@ -5,7 +5,6 @@
             ENDIF(COMMAND cmake_policy)
             
 
-                SET(WITH_BOOST $ENV{BOOSTDIR})
                 SET(KERNEL_ROOT_DIR $ENV{KERNEL_ROOT_DIR})
                 INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/FindPLATFORM.cmake)
                 INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/FindPYTHON.cmake)
