@@ -11,7 +11,7 @@
     <!-- Module resources -->
     <parameter name="PARAVIS" value="${PARAVIS_ROOT_DIR}/share/salome/resources/paravis"/>
     <!-- ParaView pixmaps -->
-    <parameter name="ParaView" value="${PARAVIEW_INCLUDE_DIRS}/Qt/Components/Resources/Icons"/>
+    <parameter name="ParaView" value="${PVHOME}/include/paraview-${PVVERSION}/Qt/Components/Resources/Icons"/>
   </section>
   <section name="importmed">
     <parameter name="title" value="Load to ParaView"/>
