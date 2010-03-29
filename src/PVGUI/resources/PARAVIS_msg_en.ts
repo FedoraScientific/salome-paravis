@@ -205,19 +205,19 @@
     </message>
     <message>
         <source>TOP_OPEN_FILE</source>
-        <translation>Open File</translation>
+        <translation>Import File</translation>
     </message>
     <message>
         <source>MEN_OPEN</source>
-        <translation>&amp;Open...</translation>
+        <translation>&amp;Import...</translation>
     </message>
     <message>
         <source>MEN_OPEN_FILE</source>
-        <translation>&amp;Open ParaView File...</translation>
+        <translation>&amp;Import ParaView File...</translation>
     </message>
     <message>
         <source>STB_OPEN_FILE</source>
-        <translation>Open File</translation>
+        <translation>Import File</translation>
     </message>
     <message>
         <source>MEN_RECENT_FILES</source>
