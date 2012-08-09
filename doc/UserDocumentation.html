@@ -1,30 +1,32 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.2  (Linux)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.5  (Linux)">
 	<META NAME="CREATED" CONTENT="20100112;19261000">
-	<META NAME="CHANGED" CONTENT="20100129;12431800">
+	<META NAME="CHANGED" CONTENT="20100528;14505900">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <P ALIGN=CENTER><FONT SIZE=6><B>PARAVIS development</B></FONT></P>
 <P ALIGN=CENTER><FONT SIZE=6><B>PARAVIS user documentation</B></FONT></P>
-<P STYLE="page-break-before: always"><A HREF="#1.Introduction|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>1.Introduction</B></SPAN></FONT></A></P>
-<P><A HREF="#2.Building environment|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>2.Building
-environment</B></SPAN></FONT></A></P>
-<P><A HREF="#3.VTK library|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>3.VTK
-library</B></SPAN></FONT></A></P>
-<P><A HREF="#4.Building of PARAVIS|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>4.Building
-of PARAVIS</B></SPAN></FONT></A></P>
-<P><A HREF="#5.Starting SALOME with PARAVIS|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>5.Starting
-SALOME with PARAVIS</B></SPAN></FONT></A></P>
-<P><A HREF="#6.Commands accessible in Python console|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>6.Commands
-accessible in Python console</B></SPAN></FONT></A></P>
-<P><A HREF="#7.Trace management|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>7.Trace
-management</B></SPAN></FONT></A></P>
-<P><A HREF="#8.PARAVIS GUI specific|outline"><FONT SIZE=4 STYLE="font-size: 15pt"><SPAN LANG="fr-FR"><B>8.PARAVIS
-GUI specific</B></SPAN></FONT></A></P>
+<P STYLE="page-break-before: always"><A HREF="#1.Introduction|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">1.Introduction</FONT></SPAN></B></A></P>
+<P><A HREF="#2.Building environment|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">2.Building
+environment</FONT></SPAN></B></A></P>
+<P><A HREF="#3.VTK library|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">3.VTK
+library</FONT></SPAN></B></A></P>
+<P><A HREF="#4.Building of PARAVIS|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">4.Building
+of PARAVIS</FONT></SPAN></B></A></P>
+<P><A HREF="#5.Starting SALOME with PARAVIS|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">5.Starting
+SALOME with PARAVIS</FONT></SPAN></B></A></P>
+<P><A HREF="#6.Commands accessible in Python console|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">6.Commands
+accessible in Python console</FONT></SPAN></B></A></P>
+<P><A HREF="#7.Trace management|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">7.Trace
+management</FONT></SPAN></B></A></P>
+<P><A HREF="#8.PARAVIS GUI specific|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">8.PARAVIS
+GUI specific</FONT></SPAN></B></A></P>
+<P><A HREF="#PARAVIEW options|outline"><B><SPAN LANG="fr-FR"><FONT SIZE=4 STYLE="font-size: 15pt">9.
+PARAVIEW options</FONT></SPAN></B></A></P>
 <H1><A NAME="1.Introduction|outline"></A>Introduction</H1>
 <P STYLE="margin-bottom: 0in">This document describes features of
 ParaView Python extractor using in PARAVIS module of SALOME platform.
@@ -34,25 +36,8 @@ API extracted for using in SALOME Python console is similar to the
 server manager API of ParaView. But there are some features what is
 desirable to understand for effective using of extractor.</P>
 <H1><A NAME="2.Building environment|outline"></A>Building environment</H1>
-<P STYLE="margin-bottom: 0in; page-break-inside: auto">In addition to
-standard SALOME environment following environment variables has to be
-defined for PARAVIS building and testing:</P>
-<OL>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">PVHOME –
-	points to installation directory of ParaView.</P>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">PVVERSION
-	– defines a number of installed ParaView version.</P>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">PATH=&quot;${PVHOME}/bin:${PATH}&quot;</P>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">LD_LIBRARY_PATH=”${PVHOME}/bin:${PVHOME}/lib/paraview-${PVVERSION}:${LD_LIBRARY_PATH}&quot;</P>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">PYTHONPATH=&quot;${PVHOME}/bin:${PVHOME}/lib/paraview-${PVVERSION}:${PYTHONPATH}&quot;</P>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">TESTDIR –
-	points to a directory which contains test script files. Usually it
-	is PARAVIS_SRC/test.</P>
-	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">PVDATA –
-	points to ParaViewData directory.</P>
-</OL>
-<P STYLE="margin-bottom: 0in; page-break-inside: auto">Also it is
-necessary to check that PARAVIS_SRC  directory contains following
+<P STYLE="margin-bottom: 0in; page-break-inside: auto">It is
+necessary to check that PARAVIS_SRC directory contains following
 files and they are up-to-date:</P>
 <OL>
 	<LI><P STYLE="margin-bottom: 0in; page-break-inside: auto">src/Paraview/lex.yy.c</P>
@@ -69,42 +54,37 @@ same version supplied with ParaView for all components and modules of
 SALOME. 
 </P>
 <P STYLE="margin-bottom: 0in; page-break-inside: auto">For this
-purposes a new option “--with-paraview” has been defined for
-configure script. This option configures building procedure to use
-VTK from ParaView. It means that GUI package and all modules has to
-be configured with this option.</P>
+purposes a new option &ldquo;--with-paraview&rdquo; has been defined
+for configure script. This option configures building procedure to
+use VTK from ParaView. It means that GUI package and all modules has
+to be configured with this option.</P>
 <H1><A NAME="4.Building of PARAVIS|outline"></A>Building of PARAVIS</H1>
 <P STYLE="margin-bottom: 0in; page-break-inside: auto"><BR>
 </P>
 <OL>
 	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0.08in; page-break-inside: auto; widows: 2; orphans: 2">
-	Call <FONT COLOR="#000000"><FONT FACE="Arial, sans-serif"><FONT SIZE=2><SPAN LANG="en-US"><B>build_</B></SPAN></FONT></FONT></FONT><B>configure</B>
-	script in sources directory: 
+	Call <B>cmake</B> in a build directory: 
 	</P>
 	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0.08in; page-break-inside: auto; widows: 2; orphans: 2">
-	<I><FONT COLOR="#000000"><FONT FACE="Arial, sans-serif"><FONT SIZE=2><SPAN LANG="en-US">&gt;
-	</SPAN></FONT></FONT></FONT>build configure</I></P>
-	<LI><P>Launch <B>configure</B> script from a build directory. 
-	</P>
-	<P><I>&gt; ../PARAVIS_SRC/configure --prefix=$PARAVIS_ROOT_DIR</I></P>
+	<I><FONT SIZE=3><FONT FACE="Nimbus Roman No9 L"><FONT COLOR="#000000">&gt;
+	ccmake ../PARAVIS_SRC</FONT></FONT></FONT></I></P>
 	<LI><P>Call <B>make</B> command in build directory. 
 	</P>
 	<P><I>&gt; make</I></P>
 	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0.08in; page-break-inside: auto; widows: 2; orphans: 2">
-	<FONT COLOR="#000000"><FONT FACE="Arial, sans-serif"><FONT SIZE=2><SPAN LANG="en-US"><B>Call
-	</B></SPAN></FONT></FONT></FONT><B>make install</B> <SPAN STYLE="font-weight: medium">command
-	in build directory. </SPAN>
+	<FONT FACE="Nimbus Roman No9 L"><B><FONT SIZE=2><FONT COLOR="#000000">Call
+	</FONT></FONT>make install</B> command in</FONT> build directory. 
 	</P>
 	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0.08in; page-break-inside: auto; widows: 2; orphans: 2">
-	<I><SPAN STYLE="font-weight: medium">&gt; </SPAN><FONT COLOR="#000000"><FONT FACE="Arial, sans-serif"><FONT SIZE=2><SPAN LANG="en-US"><SPAN STYLE="font-weight: medium">make
-	</SPAN></SPAN></FONT></FONT></FONT><SPAN STYLE="font-weight: medium">install</SPAN></I></P>
+	<FONT FACE="Nimbus Roman No9 L"><FONT SIZE=3><I>&gt; <FONT COLOR="#000000">make
+	</FONT>install</I></FONT></FONT></P>
 </OL>
 <H1 ALIGN=LEFT STYLE="margin-top: 0.42in; margin-bottom: 0.08in; page-break-inside: avoid; widows: 2; orphans: 2; page-break-after: avoid"><A NAME="5.Starting SALOME with PARAVIS|outline"></A>
 <FONT COLOR="#000000"><FONT FACE="Arial, sans-serif"><FONT SIZE=4 STYLE="font-size: 16pt"><B>Starting
 SALOME with PARAVIS</B></FONT></FONT></FONT></H1>
-<P>&gt; runSalome –modules=&quot;PARAVIS&quot;</P>
+<P>&gt; runSalome &ndash;modules=&quot;PARAVIS&quot;</P>
 <P>If it is necessary then other SALOME modules can be added to
-“modules” list separated by comma.</P>
+&ldquo;modules&rdquo; list separated by comma.</P>
 <H1><A NAME="6.Commands accessible in Python console|outline"></A>Commands
 accessible in Python console</H1>
 <P>Loading ParaView Python API for PARAVIS can be done with help of
@@ -120,8 +100,9 @@ which can start/stop trace in any moment, in PARAVIS trace is
 activating or deactivating for whole session.</P>
 <P>Trace functionality can be switched on/off in SALOME preferences
 dialog box in PARAVIS tab (main menu | Preferences...). It contains
-check box “Deactivate Trace”. By default the trace is activated.
-Change of check box state makes effect only for next session.</P>
+check box &ldquo;Deactivate Trace&rdquo;. By default the trace is
+activated. Change of check box state makes effect only for next
+session.</P>
 <P>User can get the trace with help of two commands (after pvsimple
 import):</P>
 <OL>
@@ -129,29 +110,29 @@ import):</P>
 	console window.</P>
 	<LI><P>SaveTrace(fileName) - saves the trace into a given disk file.</P>
 </OL>
-<P>Also trace is using for “Dump Study” functionality. But if the
-tracing is switched off then “Dump Study” doesn't saves PARAVIS
-module state.</P>
+<P>Also trace is using for &ldquo;Dump Study&rdquo; functionality.
+But if the tracing is switched off then &ldquo;Dump Study&rdquo;
+doesn't saves PARAVIS module state.</P>
 <H1>SALOME study save</H1>
 <P>On SALOME study saving PARAVIS module data is also saved in the
 study. This data is saved in form of ParaView state file. ParaView
 state file could have references on external files imported during
 PARAVIS working session. These referenced files can be saved with the
-current study depending on preference “Paraview state saving type”
-defined in PARAVIS preferences dialog box.  This preference can have
-three possible state:</P>
+current study depending on preference &ldquo;Paraview state saving
+type&rdquo; defined in PARAVIS preferences dialog box. This
+preference can have three possible state:</P>
 <OL>
-	<LI><P>“Save referenced files only for built-in server”. In case
-	if this option is active then referenced files will be saved in
-	study together with ParaView state only if in PARAVIS was used
+	<LI><P>&ldquo;Save referenced files only for built-in server&rdquo;.
+	In case if this option is active then referenced files will be saved
+	in study together with ParaView state only if in PARAVIS was used
 	built-in ParaView server. In case of remote ParaView server the
 	state will be saved as it is without referenced files.</P>
-	<LI><P>“Always save referenced files if they are accessible”. In
-	this case referenced files will be saved with ParaView state for any
-	type of ParaView server but only in case if they are accessible
+	<LI><P>&ldquo;Always save referenced files if they are accessible&rdquo;.
+	In this case referenced files will be saved with ParaView state for
+	any type of ParaView server but only in case if they are accessible
 	across local file system.</P>
-	<LI><P>“Never save referenced files”. In this case referenced
-	files will be never saved with ParaView state.</P>
+	<LI><P>&ldquo;Never save referenced files&rdquo;. In this case
+	referenced files will be never saved with ParaView state.</P>
 </OL>
 <P>It is necessary to be aware that if referenced files are not saved
 in study then there is no guarantee that the saved study will be
@@ -173,5 +154,13 @@ appeared after SALOME launch. Other desktops, even they opened with
 study containing PARAVIS data, can not load PARAVIS module.</P>
 <P ALIGN=LEFT><BR><BR>
 </P>
+<H1><A NAME="PARAVIEW options|outline"></A>PARAVIEW options</H1>
+<P ALIGN=LEFT>If it is necessary to define a spcific command line
+parameters for ParaView application then it can be defined with help
+of PARAVIS_OPTIONS environment variable. For example:</P>
+<P ALIGN=LEFT>export PARAVIS_OPTIONS=--server=myServer</P>
+<P ALIGN=LEFT>If it is necessary to define several command line
+parameters then these parameters has to be separated by &ldquo;:&rdquo;
+symbol.</P>
 </BODY>
 </HTML>

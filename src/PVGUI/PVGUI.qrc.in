@@ -1,0 +1,6 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource prefix="/salome/Documentation">
+     <file alias="paraview.qch">${PV_DOC_FILE}</file>
+ </qresource>
+ </RCC>
+ 

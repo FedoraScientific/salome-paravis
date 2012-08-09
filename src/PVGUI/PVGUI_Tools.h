@@ -1,7 +1,6 @@
 // PARAVIS : ParaView wrapper SALOME module
 //
-// Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -28,6 +27,8 @@
 
 #include "PARAVIS_Gen_i.hh"
 
+#include "SALOMEDSClient_Study.hxx"
+
 class CAM_Module;
 
 namespace PARAVIS 
@@ -35,6 +36,7 @@ namespace PARAVIS
   
   PARAVIS_Gen_i* GetParavisGen(const CAM_Module* theModule);
 
+  _PTR(Study)    GetCStudy(const CAM_Module* theModule);
 };
 
 #endif // PVGUI_Tools_H

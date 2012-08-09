@@ -1,23 +1,20 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-//
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 //  File   : PARAVIS_Gen_i.hh
 //  Author : Vitaly Smetannikov
@@ -49,8 +46,12 @@ class SalomeApp_Application;
 class PVGUI_Module;
 class vtkObjectBase;
 
+#define PVSTATEID 15555
+
 namespace PARAVIS
 {
+
+  const char* checkNullStr(const char* theStr);
 
   /*!
    * Base implementation for all container objects for Paravis serevrmanager API classes
@@ -67,8 +68,14 @@ namespace PARAVIS
     //! Initialises internal pointer on existing Paraview class instance
     virtual void Init(::vtkObjectBase* base);
 
+    virtual ::vtkObjectBase* GetNew() { return NULL; }
+
     //! Returns pointer on internal Paraview class instance
-    virtual ::vtkObjectBase* getVTKObject() { return mySmartPointer.GetPointer(); }
+    virtual ::vtkObjectBase* getVTKObject() 
+    { if (mySmartPointer == NULL)
+        mySmartPointer = GetNew();
+      return mySmartPointer.GetPointer(); 
+    }
 
     //! The same as previous in static context
     static ::vtkObjectBase* getVTKObject(PARAVIS_Base_ptr theBase);
@@ -104,6 +111,9 @@ namespace PARAVIS
 
     //! Import file to PARAVIS module by its name. 
     virtual void ImportFile(const char* theFileName);
+
+    //! Execute a PARAVIS script on Session
+    virtual void ExecuteScript(const char* script);
     
     //! Returns Trace string. If Trace is not activated then empty string is returned
     virtual char* GetTrace();
@@ -114,6 +124,7 @@ namespace PARAVIS
     //! inherited methods from Engines::Component
     virtual Engines::TMPFile* DumpPython(CORBA::Object_ptr theStudy,
                                          CORBA::Boolean theIsPublished,
+					 CORBA::Boolean theIsMultiFile,
                                          CORBA::Boolean& theIsValidScript);
 
     //! inherited methods from SALOMEDS::Driver
@@ -183,6 +194,10 @@ namespace PARAVIS
 
     //! Implementation of PARAVIS_Gen interface
     virtual void ActivateModule();
+
+    virtual void SetCurrentStudy(SALOMEDS::Study_ptr theStudy);
+
+    virtual SALOMEDS::Study_ptr GetCurrentStudy();
 
     //! Returns current ORB
     static CORBA::ORB_var GetORB() { return myOrb;}

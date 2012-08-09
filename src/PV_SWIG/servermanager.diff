@@ -1,8 +1,28 @@
-29,55c29,35
+0a1,19
+> # Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+> #
+> # This library is free software; you can redistribute it and/or
+> # modify it under the terms of the GNU Lesser General Public
+> # License as published by the Free Software Foundation; either
+> # version 2.1 of the License.
+> #
+> # This library is distributed in the hope that it will be useful,
+> # but WITHOUT ANY WARRANTY; without even the implied warranty of
+> # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> # Lesser General Public License for more details.
+> #
+> # You should have received a copy of the GNU Lesser General Public
+> # License along with this library; if not, write to the Free Software
+> # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+> #
+> # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+> #
+> 
+29,43d47
 < #==============================================================================
 < #
 < #  Program:   ParaView
-< #  Module:    $RCSfile: servermanager.diff,v $
+< #  Module:    servermanager.py
 < #
 < #  Copyright (c) Kitware, Inc.
 < #  All rights reserved.
@@ -13,50 +33,37 @@
 < #     PURPOSE.  See the above copyright notice for more information.
 < #
 < #==============================================================================
-< import paraview, re, os, new, sys, vtk
-< 
+< import paraview, re, os, os.path, new, sys, vtk
+45,53c49,54
 < if not paraview.compatibility.minor:
 <     paraview.compatibility.major = 3
 < if not paraview.compatibility.major:
 <     paraview.compatibility.minor = 5
 < 
-< if os.name == "posix":
-<     from libvtkPVServerCommonPython import *
-<     from libvtkPVServerManagerPython import *
-< else:
-<     from vtkPVServerCommonPython import *
-<     from vtkPVServerManagerPython import *
+< from vtkPVClientServerCorePython import *
+< from vtkPVServerImplementationPython import *
+< from vtkPVServerManagerPython import *
+< from vtkPVCommonPython import *
 ---
-> 
 > 
 > 
 > import re, os, new, sys
 > from paravis import *
 > 
 > 
-63,64c43
+61,62c62
 <     if paraview.compatibility.GetVersion() >= 3.5 and \
 <       smproperty.IsA("vtkSMStringVectorProperty"):
 ---
 >     if smproperty.IsA("vtkSMStringVectorProperty"):
-66,67c45
-<         if  al and al.IsA("vtkSMArraySelectionDomain") and \
-<             smproperty.GetRepeatable():
----
->         if  al and al.IsA("vtkSMArraySelectionDomain") and smproperty.GetRepeatable():
-87,88c65
-<         if smproperty.IsA("vtkSMIntVectorProperty") and \
-<           smproperty.GetDomain("enum"):
----
->         if smproperty.IsA("vtkSMIntVectorProperty") and smproperty.GetDomain("enum"):
-237,238c214,216
+251,252c251,253
 <             return self.SMProxy == other.SMProxy
 <         return self.SMProxy == other
 ---
->             ## VSV using IsSame instead
+>             ## VSV using IsSame instead ==
 >             return self.SMProxy.IsSame(other.SMProxy)
 >         return self.SMProxy.IsSame(other)
-333,336c311,314
+347,350c348,351
 <         if not c.HasObserver("ModifiedEvent"):
 <             self.ObserverTag =c.AddObserver("ModifiedEvent", \
 <                               _makeUpdateCameraMethod(weakref.ref(self)))
@@ -66,7 +73,7 @@
 > ##         if not c.HasObserver("ModifiedEvent"):
 > ##             self.ObserverTag =c.AddObserver("ModifiedEvent", _makeUpdateCameraMethod(weakref.ref(self)))
 > ##             self.Observed = c
-439,457c417,434
+454,472c455,472
 <     if paraview.compatibility.GetVersion() >= 3.5:
 <         def FileNameChanged(self):
 <             "Called when the filename changes. Selects all variables."
@@ -105,33 +112,36 @@
 >                      'ElementVariables', 'GlobalVariables'):
 >             f = getattr(self, prop)
 >             f.DeselectAll()
-1040c1017,1018
+1110c1110,1111
 <             if proxy == px:
 ---
 >             ## VSV: ==
 >             if proxy.IsSame(px):
-1217c1195
-<         return vtk.vtkDataObjectTypes.GetClassNameFromTypeId(self.GetDataSetType())
----
->         return vtkDataObjectTypes.GetClassNameFromTypeId(self.GetDataSetType())
-1259,1261d1236
+1329,1332d1329
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <        def Range(self, component=0):
 <            return self.GetRange(component)
-1521c1496
-<         collection = vtk.vtkCollection()
----
->         collection = vtkCollection()
-1909c1884
 < 
+1526c1523
+<         aProxy = self.SMProxyManager.NewProxy(group, name)
 ---
->        
-2020c1995,1996
+>         aProxy = self.SMProxyManager.NewProxy(group, name, "NULL")
+1838a1836
+>         # VTN: Observers are not supported
+1840c1838
+<         self.DefinitionObserverTag = self.Session.GetProxyDefinitionManager().AddObserver(2000, _update_definitions)
+---
+> ##        self.DefinitionObserverTag = self.Session.GetProxyDefinitionManager().AddObserver(2000, _update_definitions)
+1842c1840
+<         self.CustomDefinitionObserverTag = self.Session.GetProxyDefinitionManager().AddObserver(2001, _update_definitions)
+---
+> ##        self.CustomDefinitionObserverTag = self.Session.GetProxyDefinitionManager().AddObserver(2001, _update_definitions)
+2056c2054,2055
 <         try: isRep = rep.Input == aProxy
 ---
 >         #VSV: ==
 >         try: isRep = rep.Input.IsSame(aProxy)
-2265,2281c2241,2242
+2287,2303c2286,2287
 <     """Turn on/off printing of progress (by default, it is on). You can
 <     always turn progress off and add your own observer to the process
 <     module to handle progress in a custom way. See _printProgress for
@@ -152,26 +162,25 @@
 ---
 >     """Is not supported because of not supported observers"""
 >     pass
-2308,2310c2269,2270
+2330,2332c2314,2315
 <     if paraview.compatibility.GetVersion() >= 3.5:
 <         if smproxy.GetXMLLabel():
 <             xmlName = smproxy.GetXMLLabel()
 ---
 >     if smproxy.GetXMLLabel():
 >         xmlName = smproxy.GetXMLLabel()
-2350,2353c2310
+2375,2378c2358
 <         if paraview.compatibility.GetVersion() >= 3.5:
 <             return self.GetPropertyValue(propName)
 <         else:
 <             return self.GetProperty(propName)
 ---
 >         return self.GetPropertyValue(propName)
-2471c2428,2437
+2494c2474,2482
 <     return paraview.make_name_valid(name)
 ---
->     """Make a string into a valid Python variable name.  Return None if
->     the name contains parentheses."""
->     if not name or '(' in name or ')' in name:
+>     """Make a string into a valid Python variable name."""
+>     if not name:
 >         return None
 >     import string
 >     valid_chars = "_%s%s" % (string.ascii_letters, string.digits)
@@ -179,25 +188,26 @@
 >     if not name[0].isalpha():
 >         name = 'a' + name
 >     return name
-2490,2491c2456
+2520,2521c2508
 <         if paraview.compatibility.GetVersion() >= 3.5 and\
 <            proto.GetXMLLabel():
 ---
 >         if proto.GetXMLLabel():
-2506,2509c2471,2472
+2536,2539c2523,2525
 <             if paraview.compatibility.GetVersion() >= 3.5:
 <                 if (prop.GetInformationOnly() and propName != "TimestepValues" ) \
 <                   or prop.GetIsInternal():
 <                     continue
 ---
->             if (prop.GetInformationOnly() and propName != "TimestepValues" ) or prop.GetIsInternal():
+>             if (prop.GetInformationOnly() and propName != "TimestepValues" ) \
+>                    or prop.GetIsInternal():
 >                 continue
-2511,2512c2474
+2541,2542c2527
 <             if paraview.compatibility.GetVersion() >= 3.5:
 <                 names = [iter.PropertyLabel]
 ---
 >             names = [iter.PropertyLabel]
-2641,2650c2603,2606
+2681,2690c2666,2669
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         ss = sources.SphereSource(Radius=2, ThetaResolution=32)
 <         shr = filters.ShrinkFilter(Input=OutputPort(ss,0))
@@ -213,28 +223,28 @@
 >     shr = filters.Shrink(Input=OutputPort(ss,0))
 >     cs = sources.Cone()
 >     app = filters.AppendDatasets()
-2671,2674c2627
+2711,2714c2690
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         arraySelection = reader.PointResultArrayStatus
 <     else:
 <         arraySelection = reader.PointVariables
 ---
 >     arraySelection = reader.PointVariables
-2708,2711c2661
+2748,2751c2724
 <             if paraview.compatibility.GetVersion() <= 3.4:
 <                 print "Range:", ai.Range(j)
 <             else:
 <                 print "Range:", ai.GetRange(j)
 ---
 >             print "Range:", ai.GetRange(j)
-2742,2745c2692
+2782,2785c2755
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         source = sources.RTAnalyticSource()
 <     else:
 <         source = sources.Wavelet()
 ---
 >     source = sources.Wavelet()
-2776,2783c2723,2725
+2816,2823c2786,2788
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         probe = filters.Probe(Input=source)
 <         # with a line
@@ -247,24 +257,49 @@
 >     probe = filters.ResampleWithDataset(Input=source)
 >     # with a line
 >     line = sources.Line(Resolution=60)
-2827,2830c2769
+2867,2870c2832
 <     if paraview.compatibility.GetVersion() <= 3.4:
 <         sphere = sources.SphereSource()
 <     else:
 <         sphere = sources.Sphere()
 ---
 >     sphere = sources.Sphere()
-2897,2899c2836,2844
-< if hasattr(sys, "ps1"):
-<     # session is interactive.
-<     print vtkSMProxyManager.GetParaViewSourceVersion();
+2960,2965c2922,2927
+<     pvoptions = None
+<     if paraview.options.batch:
+<       pvoptions = vtkPVOptions();
+<       pvoptions.SetProcessType(0x40)
+<       if paraview.options.symmetric:
+<         pvoptions.SetSymmetricMPIMode(True)
 ---
+> #    pvoptions = None Not applicable for SALOME Python console
+> #    if paraview.options.batch:
+> #      pvoptions = vtkPVOptions();
+> #      pvoptions.SetProcessType(0x40)
+> #      if paraview.options.symmetric:
+> #        pvoptions.SetSymmetricMPIMode(True)
+2994,2995c2956,2957
+< 
+<     if not paraview.fromFilter:
+---
+>     ## VSV fromFilter is alwais False for SALOME because it can't be changed from ParaView code
+>     #if not paraview.fromFilter:
+2998,2999c2960,2963
+<         connection.AttachDefinitionUpdater()
+<         pass
+---
+> #    global _defUpdater
+> #    _defUpdater = __DefinitionUpdater()
+>     connection.AttachDefinitionUpdater()
+>     pass
+3008a2973,2982
 > # Definitions for working in SALOME GUI mode
-> aParams = myParavis.GetConnectionParameters()
-> ActiveConnection = Connection(aParams[0])
-> ActiveConnection.SetHost(aParams[1], aParams[2], aParams[3], aParams[4], aParams[5])
-> ToggleProgressPrinting()
-> fromGUI = True
+> #aParams = myParavis.GetConnectionParameters()
+> #ActiveConnection = Connect()
+> ##Connection(aParams[0])
+> #ActiveConnection.SetHost(aParams[1], aParams[2], aParams[3], aParams[4], aParams[5])
+> #ToggleProgressPrinting()
+> #fromGUI = True
 > 
-> print vtkSMProxyManager.GetParaViewSourceVersion();
+> InitFromGUI()
 > 

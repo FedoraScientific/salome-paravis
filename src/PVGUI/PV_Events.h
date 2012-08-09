@@ -1,25 +1,21 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-//
-//  VISU OBJECT : interactive object for VISU entities implementation
 //  File   : PV_Events.h
 //  Author : Vitaly Smetannikov 
 //  Module : PARAVIS
@@ -49,9 +45,7 @@ namespace PARAVIS {
     typedef SalomeApp_Application* TResult;
     TResult myResult;
     
-     TGetGUIApplication(const int theStudyId):
-      myStudyId(theStudyId), myResult(0)
-    {}
+    TGetGUIApplication(const int theStudyId):myStudyId(theStudyId), myResult(0) {}
     
     virtual void Execute()
     {
@@ -59,11 +53,11 @@ namespace PARAVIS {
       SUIT_Session* aSession = SUIT_Session::session();
       QList<SUIT_Application*> anApplications = aSession->applications();
       for (int i = 0; i < anApplications.count() && !myResult; i++ ){
-	if ( anApplications[i]->activeStudy() && anApplications[i]->activeStudy()->id() == myStudyId )
-	  myResult = dynamic_cast<SalomeApp_Application*>( anApplications[i] );
+        if ( anApplications[i]->activeStudy() && anApplications[i]->activeStudy()->id() == myStudyId )
+          myResult = dynamic_cast<SalomeApp_Application*>( anApplications[i] );
       }
       if ( !myResult ) {
-	MESSAGE("Error: application is not found for study with id = : " << myStudyId);
+        MESSAGE("Error: application is not found for study with id = : " << myStudyId);
       }
     }
   };
@@ -75,9 +69,7 @@ namespace PARAVIS {
   {
     SalomeApp_Application* myApp;
 
-    TModuleEvent(SalomeApp_Application* theApp ) :
-      myApp(theApp)
-    {}
+    TModuleEvent(SalomeApp_Application* theApp ):myApp(theApp) {}
 
       //! Returns pointer on PARAVIS module instance
     PVGUI_Module* getModule() 
@@ -99,9 +91,7 @@ namespace PARAVIS {
    */
   struct TActivateModule: public TModuleEvent
   {
-    TActivateModule(SalomeApp_Application* theApp ) :
-      TModuleEvent(theApp)
-   {}
+    TActivateModule(SalomeApp_Application* theApp ):TModuleEvent(theApp) {}
     
     virtual void Execute()
     {
@@ -180,6 +170,22 @@ namespace PARAVIS {
     }
   };
 
+  /*!
+   * Event to execute a script to PARAVIS
+   */
+  struct TExecuteScript: public TParavisFileEvent
+  {
+    TExecuteScript(SalomeApp_Application* theApp, const char* theFileName ) :
+      TParavisFileEvent(theApp, theFileName)
+    {}
+    
+    virtual void Execute()
+    {
+      PVGUI_Module* aPVModule = getModule();
+      if (aPVModule)
+        aPVModule->executeScript(myName);
+    }
+  };
 
   /*!
    * Event to save current Paraview state.

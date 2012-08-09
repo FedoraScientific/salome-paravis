@@ -1,9 +1,28 @@
+# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 SET(WRAP_IDL_I_HH)
 SET(WRAP_IDL_I_CC)
 
 IF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
  EXECUTE_PROCESS(
-  COMMAND cat ${CMAKE_BINARY_DIR}/wrapfiles.txt
+  COMMAND ${PYTHON_EXECUTABLE} -c "f = open('${CMAKE_BINARY_DIR}/wrapfiles.txt') ; print f.read(), ; f.close()"
   OUTPUT_VARIABLE WRAP_LIST_FULL
  )
 
@@ -31,16 +50,34 @@ IF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
   SET(WRAP_IDL_I_HH ${WRAP_IDL_I_HH} PARAVIS_Gen_${VAL}_i.hh)
   SET(WRAP_IDL_I_CC ${WRAP_IDL_I_CC} PARAVIS_Gen_${VAL}_i.cc)
 
+  SET(vtkWrapIDL_HH_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_HH)
+  IF(WINDOWS)
+    IF(CMAKE_BUILD_TOOL STREQUAL nmake)
+      SET(vtkWrapIDL_HH_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_HH.exe)
+    ELSE(CMAKE_BUILD_TOOL STREQUAL nmake)
+      SET(vtkWrapIDL_HH_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/vtkWrapIDL_HH.exe)
+    ENDIF(CMAKE_BUILD_TOOL STREQUAL nmake)
+  ENDIF(WINDOWS)
+
   ADD_CUSTOM_COMMAND(
    OUTPUT PARAVIS_Gen_${VAL}_i.hh
-   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_HH_exe ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints 0 PARAVIS_Gen_${VAL}_i.hh
-   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_HH_exe ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints ${DEP_HH}
+   COMMAND ${vtkWrapIDL_HH_EXEFILE} ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints 0 PARAVIS_Gen_${VAL}_i.hh
+   DEPENDS vtkWrapIDL_HH ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints ${DEP_HH}
   ) 
+
+  SET(vtkWrapIDL_CC_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_CC)
+  IF(WINDOWS)
+    IF(CMAKE_BUILD_TOOL STREQUAL nmake)
+      SET(vtkWrapIDL_CC_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_CC.exe)
+    ELSE(CMAKE_BUILD_TOOL STREQUAL nmake)
+      SET(vtkWrapIDL_CC_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/vtkWrapIDL_CC.exe)
+    ENDIF(CMAKE_BUILD_TOOL STREQUAL nmake)
+  ENDIF(WINDOWS)
 
   ADD_CUSTOM_COMMAND(
    OUTPUT PARAVIS_Gen_${VAL}_i.cc
-   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_CC_exe ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints 0 PARAVIS_Gen_${VAL}_i.cc
-   DEPENDS PARAVIS_Gen_${VAL}_i.hh ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_CC_exe ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints ${DEP_CC}
+   COMMAND ${vtkWrapIDL_CC_EXEFILE} ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints 0 PARAVIS_Gen_${VAL}_i.cc
+   DEPENDS PARAVIS_Gen_${VAL}_i.hh vtkWrapIDL_CC ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h ${CMAKE_BINARY_DIR}/idl/hints ${DEP_CC}
   )
 
  ENDFOREACH(STR ${WRAP_LIST_REG})
@@ -48,7 +85,7 @@ ENDIF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
 
 ADD_CUSTOM_COMMAND(
  OUTPUT PARAVIS_CreateClass.cxx
- COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/create_class.sh ${CMAKE_SOURCE_DIR}
+ COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/create_class.py ${CMAKE_BINARY_DIR}
  DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt ${WRAP_IDL_I_HH}
 )
 ADD_CUSTOM_TARGET(generate_pvgui ALL DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt PARAVIS_CreateClass.cxx ${WRAP_IDL_I_HH} ${WRAP_IDL_I_CC})

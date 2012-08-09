@@ -1,8 +1,28 @@
-21,39c21,24
+0a1,19
+> # Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+> #
+> # This library is free software; you can redistribute it and/or
+> # modify it under the terms of the GNU Lesser General Public
+> # License as published by the Free Software Foundation; either
+> # version 2.1 of the License.
+> #
+> # This library is distributed in the hope that it will be useful,
+> # but WITHOUT ANY WARRANTY; without even the implied warranty of
+> # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> # Lesser General Public License for more details.
+> #
+> # You should have received a copy of the GNU Lesser General Public
+> # License along with this library; if not, write to the Free Software
+> # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+> #
+> # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+> #
+> 
+21,34d39
 < #==============================================================================
 < #
 < #  Program:   ParaView
-< #  Module:    $RCSfile: simple.diff,v $
+< #  Module:    simple.py
 < #
 < #  Copyright (c) Kitware, Inc.
 < #  All rights reserved.
@@ -13,32 +33,240 @@
 < #     PURPOSE.  See the above copyright notice for more information.
 < #
 < #==============================================================================
-< 
+36,39c41
 < import paraview
 < paraview.compatibility.major = 3
 < paraview.compatibility.minor = 5
 < import servermanager
 ---
-> 
 > import paravisSM
-> 
+41,42c43
+< def enableMultiServer():
+<     servermanager.enableMultiServer()
+---
 > servermanager = paravisSM
-280c265,266
+44,56c45,46
+< def switchActiveConnection(newActiveConnection=None, ns=None):
+<     if not ns:
+<        ns = globals()
+<     _remove_functions(ns)
+<     servermanager.switchActiveConnection(newActiveConnection)
+<     _add_functions(ns)
+< 
+< def Disconnect(ns=None, force=True):
+<     if servermanager.ActiveConnection and (force or servermanager.MultiServerConnections == None):
+<         if ns:
+<            _remove_functions(ns)
+<         _remove_functions(globals())
+<         servermanager.ProxyManager().DisableStateUpdateNotification()
+---
+> def _disconnect():
+>     if servermanager.ActiveConnection:
+61d50
+<         servermanager.Disconnect()
+62a52
+>         servermanager.Disconnect()
+69,70c59,60
+<     Disconnect(globals(), False)
+<     connection = servermanager.Connect(ds_host, ds_port, rs_host, rs_port)
+---
+>     _disconnect()
+>     session = servermanager.Connect(ds_host, ds_port, rs_host, rs_port)
+73,88c63,67
+<     servermanager.ProxyManager().DisableStateUpdateNotification()
+<     servermanager.ProxyManager().UpdateFromRemote()
+<     tk = servermanager.ProxyManager().GetProxy("timekeeper", "TimeKeeper")
+<     if not tk:
+<        tk = servermanager.misc.TimeKeeper()
+<        servermanager.ProxyManager().RegisterProxy("timekeeper", "TimeKeeper", tk)
+< 
+<     scene = servermanager.ProxyManager().GetProxy("animation", "AnimationScene")
+<     if not scene:
+<        scene = AnimationScene()
+<        scene.TimeKeeper = tk
+< 
+<     servermanager.ProxyManager().EnableStateUpdateNotification()
+<     servermanager.ProxyManager().TriggerStateUpdate()
+< 
+<     return connection
+---
+>     tk =  servermanager.misc.TimeKeeper()
+>     servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", tk)
+>     scene = AnimationScene()
+>     scene.TimeKeeper = tk
+>     return session
+93,94c72,73
+<     Disconnect(globals(), False)
+<     connection = servermanager.ReverseConnect(port)
+---
+>     _disconnect()
+>     session = servermanager.ReverseConnect(port)
+96,112c75,79
+< 
+<     servermanager.ProxyManager().DisableStateUpdateNotification()
+<     servermanager.ProxyManager().UpdateFromRemote()
+<     tk = servermanager.ProxyManager().GetProxy("timekeeper", "TimeKeeper")
+<     if not tk:
+<        tk = servermanager.misc.TimeKeeper()
+<        servermanager.ProxyManager().RegisterProxy("timekeeper", "TimeKeeper", tk)
+< 
+<     scene = servermanager.ProxyManager().GetProxy("animation", "AnimationScene")
+<     if not scene:
+<        scene = AnimationScene()
+<        scene.TimeKeeper = tk
+< 
+<     servermanager.ProxyManager().EnableStateUpdateNotification()
+<     servermanager.ProxyManager().TriggerStateUpdate()
+< 
+<     return connection
+---
+>     tk =  servermanager.misc.TimeKeeper()
+>     servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", tk)
+>     scene = AnimationScene()
+>     scene.TimeKeeper = tk
+>     return session
+121c88
+< 
+---
+>     
+161a129,131
+>     reader_factor = servermanager.ProxyManager().GetReaderFactory()
+>     if  reader_factor.GetNumberOfRegisteredPrototypes() == 0:
+>       reader_factor.RegisterPrototypes("sources")
+163,165d132
+<     reader_factor = servermanager.vtkSMProxyManager.GetProxyManager().GetReaderFactory()
+<     if reader_factor.GetNumberOfRegisteredPrototypes() == 0:
+<       reader_factor.RegisterPrototypes(session, "sources")
+170,171c137
+<         msg = "File not readable: %s " % first_file
+<         raise RuntimeError, msg
+---
+>         raise RuntimeError, "File not readable: %s " % first_file
+173,174c139
+<         msg = "File not readable. No reader found for '%s' " % first_file
+<         raise RuntimeError, msg
+---
+>         raise RuntimeError, "File not readable. No reader found for '%s' " % first_file
+192,193c157
+<     session = servermanager.ActiveConnection.Session
+<     writer_factory = servermanager.vtkSMProxyManager.GetProxyManager().GetWriterFactory()
+---
+>     writer_factory = servermanager.ProxyManager().GetWriterFactory()
+195c159
+<         writer_factory.RegisterPrototypes(session, "writers")
+---
+>         writer_factory.RegisterPrototypes("writers")
+441c405,406
 <         if proxy == GetActiveSource():
 ---
 >         #VSV:==
 >         if proxy.IsSame(GetActiveSource()):
-288c274,275
+449c414,415
 <             if rep.Input == proxy:
 ---
 >             #VSV:==
 >             if rep.Input.IsSame(proxy):
-292c279,280
+453c419,420
 <         if proxy == GetActiveView():
 ---
 >         ##VSV:==
 >         if proxy.IsSame(GetActiveView()):
-709a698,704
+691,693c658,659
+<     activeModule = servermanager.ActiveConnection.Modules
+<     for m in [activeModule.filters, activeModule.sources,
+<               activeModule.writers, activeModule.animation]:
+---
+>     for m in [servermanager.filters, servermanager.sources,
+>               servermanager.writers, servermanager.animation]:
+699d664
+<                     #print "add %s function" % key
+703,715d667
+< def _remove_functions(g):
+<     list = []
+<     if servermanager.ActiveConnection:
+<        list = [m for m in dir(servermanager.ActiveConnection.Modules) if m[0] != '_']
+< 
+<     for m in list:
+<         dt = servermanager.ActiveConnection.Modules.__dict__[m].__dict__
+<         for key in dt.keys():
+<             cl = dt[key]
+<             if not isinstance(cl, str) and g.has_key(key):
+<                 g.pop(key)
+<                 #print "remove %s function" % key
+< 
+844c796
+<             if cue.AnimatedProxy == proxy and\
+---
+>             if cue.AnimatedProxy.IsSame(proxy) and\
+846c798
+<                 if index == None or index == cue.AnimatedElement:
+---
+>                 if index == None or index.IsSame(cue.AnimatedElement): ##index == cue.AnimatedElement:
+870c822
+<         if cue.AnimatedProxy == view and\
+---
+>         if cue.AnimatedProxy.IsSame(view) and\
+887c839
+<         if cue.GetXMLName() == "TimeAnimationCue" and cue.AnimatedProxy == tk\
+---
+>         if cue.GetXMLName() == "TimeAnimationCue" and cue.AnimatedProxy.IsSame(tk)\
+929,931c881
+<     if not servermanager.ActiveConnection:
+<         raise RuntimeError, "Cannot load a plugin without a session."
+<     plm = servermanager.vtkSMProxyManager.GetProxyManager().GetPluginManager()
+---
+>     plm = servermanager.ProxyManager().GetSession().GetPluginManager()
+933,934c883
+<         session = servermanager.ActiveConnection.Session
+<         info = plm.GetRemoteInformation(session)
+---
+>         info = plm.GetRemoteInformation()
+942,959d890
+< def GetLayouts():
+<     """Returns the layout proxies on the active session.
+<     Layout proxies are used to place views in a grid."""
+<     return servermanager.ProxyManager().GetProxiesInGroup("layouts")
+< 
+< def GetLayout(view=None):
+<     """Return the layout containing the give view, if any.
+<     If no view is specified, active view is used.
+<     """
+<     if not view:
+<         view = GetActiveView()
+<     if not view:
+<         raise RuntimeError, "No active view was found."
+<     layouts = GetLayouts()
+<     for layout in layouts.values():
+<         if layout.GetViewLocation(view) != -1:
+<             return layout
+<     return None
+966c897
+<     def __get_selection_model(self, name, session=None):
+---
+>     def __get_selection_model(self, name):
+968,970c899
+<         if session and session != servermanager.ActiveConnection.Session:
+<             raise RuntimeError, "Try to set an active object with invalid active connection."
+<         pxm = servermanager.ProxyManager(session)
+---
+>         pxm = servermanager.ProxyManager()
+979c908
+<         active_view_model = self.__get_selection_model("ActiveView")
+---
+>         active_view_model = self.__get_selection_model("ActiveView") 
+981d909
+<             active_view_model = self.__get_selection_model("ActiveView", view.GetSession())
+984d911
+<             active_view_model = self.__get_selection_model("ActiveView")
+994c921
+<         active_sources_model = self.__get_selection_model("ActiveSources")
+---
+>         active_sources_model = self.__get_selection_model("ActiveSources") 
+997d923
+<             active_sources_model = self.__get_selection_model("ActiveSources", source.GetSession())
+1000d925
+<             active_sources_model = self.__get_selection_model("ActiveSources")
+1107a1033,1041
 > def PrintTrace():
 >     print paravisSM.myParavis.GetTrace()
 > 
@@ -46,10 +274,32 @@
 >     paravisSM.myParavis.SaveTrace(fileName)
 > 
 > 
-711a707,708
-> ## Initialisation for SALOME GUI
-> active_objects.view = servermanager.GetRenderView()
-714a712,714
+> _add_functions(globals())
 > 
+1110,1111d1043
+< else:
+<     _add_functions(globals())
+1113c1045,1046
+< active_objects = ActiveObjects()
+---
 > def ImportFile(theFileName):
 >     paravisSM.ImportFile(theFileName)
+1115,1129c1048,1049
+< def _switchToActiveConnectionCallback(caller, event):
+<    if servermanager:
+<       session = servermanager.vtkSMProxyManager.GetProxyManager().GetActiveSession()
+<       if session and ((not servermanager.ActiveConnection) or session != servermanager.ActiveConnection.Session):
+<          switchActiveConnection(servermanager.GetConnectionFromSession(session))
+< 
+< class ActiveSessionObserver:
+<     def __init__(self):
+<         self.ObserverTag = servermanager.vtkSMProxyManager.GetProxyManager().AddObserver(9753, _switchToActiveConnectionCallback)
+< 
+<     def __del__(self):
+<         if servermanager:
+<             servermanager.vtkSMProxyManager.GetProxyManager().RemoveObserver(self.ObserverTag)
+< 
+< active_session_observer = ActiveSessionObserver()
+---
+> active_objects = ActiveObjects()
+> active_objects.view = GetRenderView()

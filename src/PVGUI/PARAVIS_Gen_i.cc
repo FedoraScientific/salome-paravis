@@ -1,25 +1,21 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-//
-//  PARAVIS OBJECT : interactive object for PARAVIS entities implementation
 //  File   : PARAVIS_Gen_i.cc
 //  Author : Vitaly Smetannikov
 //  Module : PARAVIS
@@ -85,6 +81,30 @@ PARAVIS_I_EXPORT PARAVIS::PARAVIS_Gen_ptr GetImpl(CORBA::ORB_ptr theORB,
 
 namespace PARAVIS
 {
+
+  const char* checkNullStr(const char* theStr)
+  {
+    if (strcmp(theStr, "NULL") == 0)
+      return NULL;
+    else
+      return theStr;
+  }
+
+  std::string tabify( const std::string& source, bool isTabify )
+  {
+    std::string result = source;
+    if ( isTabify && !result.empty() ) {
+      std::string caret = "\n";
+      int idx = result.rfind( caret );
+      while ( idx != std::string::npos ) {
+	result.replace( idx, caret.size(), "\n\t" );
+	idx = result.rfind( caret, idx-1 );
+      }
+      result.insert(0, "\t" );
+    }
+    return result;
+  }
+
   PARAVIS_Base_i::~PARAVIS_Base_i() {
     if(mySmartPointer != NULL) mySmartPointer->Delete();
   }
@@ -177,6 +197,12 @@ namespace PARAVIS
   {
     if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::ImportFile: " <<theFileName);
     ProcessVoidEvent(new TImportFile(mySalomeApp, theFileName));
+  }
+
+  void PARAVIS_Gen_i::ExecuteScript(const char* script)
+  {
+    if(MYDEBUG) MESSAGE("PARAVIS_Gen_i::ExecuteScript: " <<script);
+    ProcessVoidEvent(new TExecuteScript(mySalomeApp, script));
   }
 
   //----------------------------------------------------------------------------
@@ -273,7 +299,7 @@ namespace PARAVIS
     }
     
     QDomElement aRoot = aDoc.documentElement();
-    if ( aRoot.isNull() /*|| aRoot.tagName() != "SALOME" Names are different in various versions */ ) {
+    if ( aRoot.isNull() ) {
       MESSAGE( "Invalid XML root" );
       return false;
     }
@@ -300,6 +326,45 @@ namespace PARAVIS
     return true;
   }
 
+  //----------------------------------------------------------------------------
+  QStringList getAllSavedStates(SALOMEDS::SComponent_ptr theComponent, 
+				QString theNewPath = QString())
+  {
+    QStringList aStateFiles;
+
+    if (!CORBA::is_nil(theComponent)) {
+      SALOMEDS::Study_var aStudy = theComponent->GetStudy();
+      SALOMEDS::ChildIterator_var anIter = aStudy->NewChildIterator(theComponent);
+      for (; anIter->More(); anIter->Next()) {
+	SALOMEDS::SObject_var aSObj = anIter->Value();
+	SALOMEDS::GenericAttribute_var anAttr;
+	if (!aSObj->FindAttribute(anAttr, "AttributeLocalID")) {
+	  continue;
+	}
+	SALOMEDS::AttributeLocalID_var anID = SALOMEDS::AttributeLocalID::_narrow(anAttr);
+	if (!anID->Value() == PVSTATEID) {
+	  continue;
+	}
+	if (aSObj->FindAttribute(anAttr, "AttributeString")) {
+	  SALOMEDS::AttributeString_var aStringAttr = SALOMEDS::AttributeString::_narrow(anAttr);
+	  QString aStateFile(aStringAttr->Value());
+	  printf("getAllSavedStates, aStateFile = %s\n", aStateFile.toLatin1().constData());
+	  // Replace the old path with the new one
+	  if (!theNewPath.isEmpty()) {
+	    QFileInfo aFileInfo(aStateFile);
+	    QString aPath = aFileInfo.path();
+	    aStateFile.replace(aPath, theNewPath);
+	    aStringAttr->SetValue(aStateFile.toLatin1().constData());
+	    
+	    printf("getAllSavedStates, aStateFile NEW = %s\n", aStateFile.toLatin1().constData());
+	  }
+	  aStateFiles<<aStateFile;
+	}
+      }
+    }
+
+    return aStateFiles;
+  }
 
   SALOMEDS::TMPFile* SaveState(long thePID, SalomeApp_Application* theApp, SALOMEDS::SComponent_ptr theComponent, 
                                const char* theURL, bool isMultiFile)
@@ -315,6 +380,9 @@ namespace PARAVIS
 
     std::string aFile = aTmpDir + aFileName;
     ProcessVoidEvent(new TSaveStateFile(theApp, aFile.c_str()));
+
+    // Get saved states
+    QStringList aSavedStates = getAllSavedStates(theComponent);
 
     // Collect all files from state
     SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
@@ -334,8 +402,16 @@ namespace PARAVIS
       
         if (aIsBuiltIn)
         {
-          // Find referenced files and collect their paths nullyfying references
+	  // Find referenced files and collect their paths nullyfying references:
+	  
+	  // for saved states
+	  foreach (QString aState, aSavedStates) {
+	    processAllFilesInState(aState.toLatin1().constData(), aFileNames, 0);
+	  }
+
+	  // for main state
           processAllFilesInState(aFile.c_str(), aFileNames, 0); 
+
           SetRestoreParam(theComponent, true);
         } else {
           SetRestoreParam(theComponent, false);
@@ -345,6 +421,13 @@ namespace PARAVIS
     case 1: //Save referenced files when they are accessible
       {
         // Find referenced files and collect their paths nullyfying references
+
+	// for saved states
+	foreach (QString aState, aSavedStates) {
+	  processAllFilesInState(aState.toLatin1().constData(), aFileNames, 0);
+	}
+	
+	// for main state
         processAllFilesInState(aFile.c_str(), aFileNames, 0);
         SetRestoreParam(theComponent, true);
       }
@@ -353,7 +436,16 @@ namespace PARAVIS
       SetRestoreParam(theComponent, false);
       break;
     }
+
+    // Add saved states
+    foreach (QString aSavedState, aSavedStates) {
+      aFileNames<<aSavedState;
+    }
+
+    // Add main state to the end of the list
     aFileNames<<QString(aFile.c_str());
+
+    // File names for main state and its data files
     foreach(QString aFile, aFileNames) {
       QFileInfo aInfo(aFile);
       aNames<<aInfo.fileName();
@@ -362,7 +454,6 @@ namespace PARAVIS
     SALOMEDS::ListOfFileNames_var aListOfNames = GetListOfFileNames(aNames);
 
     aStreamFile = SALOMEDS_Tool::PutFilesToStream(aListOfFileNames.in(), aListOfNames.in());
-    //SALOMEDS_Tool::RemoveTemporaryFiles(theURL, aListOfFileNames, true);
     
     return aStreamFile._retn();
   }
@@ -398,16 +489,24 @@ namespace PARAVIS
     bool aRestore = GetRestoreParam(theComponent);
     MESSAGE("PARAVIS_Gen_i::Restore path - "<<aRestore);
 
+    // Process main state
     std::string aFile = aTmpDir + std::string(aSeq[aSeq->length() - 1]);
     QStringList aEmptyList;
     processAllFilesInState(aFile.c_str(), aEmptyList, aTmpDir.c_str(), aRestore);
     ProcessVoidEvent(new TLoadStateFile(theApp, aFile.c_str()));
 
+    // Process saved states
+    QStringList aSavedStates = getAllSavedStates(theComponent, QString(aTmpDir.c_str()));
+    foreach(QString aState, aSavedStates) {
+      processAllFilesInState(aState.toLatin1().constData(), 
+			     aEmptyList, aTmpDir.c_str(), aRestore);
+    }
+    
     return true;
   }
 
   //----------------------------------------------------------------------------
-  bool PARAVIS_Gen_i::Load(SALOMEDS::SComponent_ptr theComponent,	 const SALOMEDS::TMPFile& theStream,
+  bool PARAVIS_Gen_i::Load(SALOMEDS::SComponent_ptr theComponent, const SALOMEDS::TMPFile& theStream,
                            const char* theURL, bool isMultiFile)
   {
     return LoadState(mySalomeApp, theComponent, theStream, theURL, isMultiFile);
@@ -496,7 +595,7 @@ namespace PARAVIS
   //----------------------------------------------------------------------------
   PARAVIS::string_array* PARAVIS_Gen_i::GetClassesList()
   {
-    int k;
+    uint k;
     for (k = 0; strcmp(wrapped_classes[k], "") != 0; k++);
     PARAVIS::string_array_var aNames = new PARAVIS::string_array();
     aNames->length(k);
@@ -540,11 +639,16 @@ namespace PARAVIS
   //----------------------------------------------------------------------------
   Engines::TMPFile* PARAVIS_Gen_i::DumpPython(CORBA::Object_ptr theStudy,
                                               CORBA::Boolean theIsPublished,
+					      CORBA::Boolean theIsMultiFile,
                                               CORBA::Boolean& theIsValidScript)
   {
     theIsValidScript = true;
-    std::string aResult(ProcessEvent(new TGetTrace(mySalomeApp)));
-    aResult += "\ndef RebuildData(theStudy):\n  pass\n";
+    std::string aResult;
+    if ( theIsMultiFile )
+      aResult += "\ndef RebuildData(theStudy):\n";
+    aResult += tabify(ProcessEvent(new TGetTrace(mySalomeApp)), theIsMultiFile );
+    if ( theIsMultiFile )
+      aResult += "\n\tpass\n";
     CORBA::ULong aSize = aResult.size() + 1;
     char* aBuffer = new char[aSize];
     memset(aBuffer, 0, aSize);
@@ -558,4 +662,67 @@ namespace PARAVIS
   {
     ProcessVoidEvent(new TActivateModule(mySalomeApp));
   }
+
+  //----------------------------------------------------------------------------
+  struct TSetStudyEvent: public SALOME_Event {
+    std::string myStudyName;
+    typedef SalomeApp_Application* TResult;
+    TResult myResult;
+    
+    TSetStudyEvent(const std::string theStudyName):myStudyName(theStudyName), myResult(0) {}
+    virtual void Execute()
+    {
+      bool isActive = false;
+      SUIT_Session* aSession = SUIT_Session::session();
+        QList<SUIT_Application*> anApplications = aSession->applications();
+        QList<SUIT_Application*>::Iterator anIter = anApplications.begin();
+        SUIT_Application* aFirstApp = *anIter;
+        while (anIter != anApplications.end()) {
+          SUIT_Application* anApp = *anIter;
+          if (SUIT_Study* aSStudy = anApp->activeStudy()) {
+            if (SalomeApp_Study* aStudy = dynamic_cast<SalomeApp_Study*>(aSStudy)) {
+              if (_PTR(Study) aCStudy = aStudy->studyDS()) {
+                if(MYDEBUG) MESSAGE("There is an application with active study : StudyId = "
+                                    << aCStudy->StudyId() << "; Name = '" << aCStudy->Name() << "'");
+                if (myStudyName == aCStudy->Name()) {
+                  isActive = true;
+                  break;
+                }
+              }
+            }
+          }
+          anIter++;
+        }
+        SalomeApp_Application* anApp = dynamic_cast<SalomeApp_Application*>(aFirstApp);
+        if (!isActive) {
+          MESSAGE("!!! anApp->onLoadDoc(myStudyName) !!!");
+          // Has to be loaded in an empty or in a new application
+          anApp->onLoadDoc(myStudyName.c_str());
+        }
+        myResult = anApp;
+    }
+  };
+
+  void PARAVIS_Gen_i::SetCurrentStudy(SALOMEDS::Study_ptr theStudy)
+  {
+    if (!CORBA::is_nil(theStudy)) {
+      CORBA::String_var aName = theStudy->Name();
+      std::string aStudyName (aName.in());
+
+      myStudyDocument = SALOMEDS::Study::_duplicate(theStudy);
+      SalomeApp_Application*  anApp = ProcessEvent(new TSetStudyEvent(aStudyName));
+      if (!mySalomeApp)
+        mySalomeApp = anApp;
+    } else {
+      INFOS("CORBA::is_nil(theStudy)");
+    }
+  }
+  
+  
+  //----------------------------------------------------------------------------
+  SALOMEDS::Study_ptr PARAVIS_Gen_i::GetCurrentStudy()
+  {
+    return SALOMEDS::Study::_duplicate(myStudyDocument);
+  }
+
 }

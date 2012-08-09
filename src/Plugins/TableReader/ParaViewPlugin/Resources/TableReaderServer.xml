@@ -1,0 +1,80 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <SourceProxy
+      name="TableReader"
+      class="vtkVisuTableReader"
+      label="Table Reader">
+      
+      <StringVectorProperty
+         name="FileName"
+	 command="SetFileName"
+         number_of_elements="1"
+	 animateable="0">
+	 <FileListDomain name="files" />
+	 <Documentation>
+	    This property specifies the file name for the table reader.
+        </Documentation>
+      </StringVectorProperty>
+
+      <IntVectorProperty 
+        name="DetectNumericColumns"
+        command="SetDetectNumericColumns"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          When set to true, the reader will detect numeric columns and create
+          vtkDoubleArray or vtkIntArray for those instead of vtkStringArray.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty 
+        name="FirstStringAsTitles"
+        command="SetFirstStringAsTitles"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          When set to true, the reader will interpret the first string as
+	  column titles.
+        </Documentation>
+      </IntVectorProperty>
+
+      <StringVectorProperty 
+        name="ValueDelimiter"
+        command="SetValueDelimiter"
+        number_of_elements="1"
+        default_values=" ">
+        <Documentation>
+          This property defines string to be used to separate table values.
+        </Documentation>
+      </StringVectorProperty>
+
+      <IntVectorProperty 
+        name="TableNumber"
+        command="SetTableNumber"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          This property defines the number of table to read.
+        </Documentation>
+      </IntVectorProperty>
+
+      <StringVectorProperty
+        name="AvailableTables"
+	command="GetAvailableTables"
+	number_of_elements="0"
+        information_only="1">
+        <StringArrayHelper />
+	<Documentation>
+          Names of available tables.
+	</Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <View type="SpreadSheetView" />
+      </Hints>
+      
+    </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

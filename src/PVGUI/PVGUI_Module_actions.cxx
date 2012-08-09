@@ -1,7 +1,6 @@
 // PARAVIS : ParaView wrapper SALOME module
 //
-// Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,7 +22,7 @@
 // Author : Margarita KARPUNINA
 //
 
-#include "PVGUI_Module_impl.h"
+#include "PVGUI_Module.h"
 
 #include <QtxAction.h>
 #include <QtxActionMenuMgr.h>
@@ -37,6 +36,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QToolBar>
+#include <QFile>
 
 #include <pqApplicationCore.h>
 #include <pqColorScaleToolbar.h>
@@ -78,6 +78,8 @@
 #include <pqAboutDialogReaction.h>
 #include <pqHelpReaction.h>
 #include <pqViewManager.h>
+#include <pqDataQueryReaction.h>
+#include <pqRecentFilesMenu.h>
 
 #include "PVGUI_Tools.h"
 
@@ -99,7 +101,7 @@ void PVGUI_Module::pvCreateActions()
 
   // Open File
   aPixmap = resMgr->loadPixmap( "ParaView", tr("ICON_OPEN_FILE"), false );
-  anAction = new QAction(QIcon(aPixmap), tr("MEN_OPEN"), this);
+  anAction = new QAction(QIcon(aPixmap), tr("MEN_OPEN_FILE"), this);
   anAction->setToolTip(tr("TOP_OPEN_FILE"));
   anAction->setStatusTip(tr("STB_OPEN_FILE"));
   registerAction(OpenFileId, anAction);
@@ -208,6 +210,13 @@ void PVGUI_Module::pvCreateActions()
   registerAction(CameraRedoId, anAction);
   new pqCameraUndoRedoReaction(anAction, false);
 
+  // Find Data
+  anAction = new QAction(tr("MEN_FIND_DATA"), this);
+  anAction->setToolTip("");
+  anAction->setStatusTip("");
+  registerAction(FindDataId, anAction);
+  new pqDataQueryReaction(anAction);
+  
   // Change Input
   anAction = new QAction(tr("MEN_CHANGE_INPUT"), this);
   anAction->setToolTip(tr("TOP_CHANGE_INPUT"));
@@ -239,11 +248,11 @@ void PVGUI_Module::pvCreateActions()
 
 
   // Setting
-  anAction = new QAction(tr("MEN_SETTINGS"), this);
+  /*anAction = new QAction(tr("MEN_SETTINGS"), this);
   anAction->setToolTip(tr("TOP_SETTINGS"));
   anAction->setStatusTip(tr("STB_SETTINGS"));
   registerAction(SettingsId, anAction);
-  new pqApplicationSettingsReaction(anAction);
+  new pqApplicationSettingsReaction(anAction);*/
   
   // View Settings
   anAction = new QAction(tr("MEN_VIEW_SETTINGS"), this);
@@ -253,15 +262,19 @@ void PVGUI_Module::pvCreateActions()
   new pqViewSettingsReaction(anAction);
 
   // --- Menu "View"
-  pqViewManager* viewManager = qobject_cast<pqViewManager*>(
-                               pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
-  if (viewManager) {
-    anAction = new QAction("Full Screen", this);
-    anAction->setObjectName("actionFullScreen");
-    anAction->setShortcut(QKeySequence("F11"));
-    connect(anAction, SIGNAL(triggered()), viewManager, SLOT(toggleFullScreen()));
-    registerAction(FullScreenId, anAction);
-  }
+  //pqViewManager* viewManager = qobject_cast<pqViewManager*>(
+  //                             pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
+
+  //rnv: Commented to implement issue 
+  //21318: EDF 1615 ALL: Display in full screen mode
+  //Switching to the "Full screen" mode added in the SALOME GUI module.
+  //if (viewManager) {
+  //anAction = new QAction("Full Screen", this);
+  //anAction->setObjectName("actionFullScreen");
+  //anAction->setShortcut(QKeySequence("F11"));
+  //connect(anAction, SIGNAL(triggered()), viewManager, SLOT(toggleFullScreen()));
+  //registerAction(FullScreenId, anAction);
+  //}
 
   // --- Menu "Tools"
   // Create Custom Filter
@@ -322,6 +335,15 @@ void PVGUI_Module::pvCreateActions()
   new pqTestingReaction(anAction << pqSetName("actionTesting_Window_Size"),
                         pqTestingReaction::LOCK_VIEW_SIZE);
 
+  // Custom Window Size
+  anAction = new QAction(tr("MEN_CUSTOM_WINDOW_SIZE"), this);
+  anAction->setToolTip(tr(""));
+  anAction->setStatusTip(tr(""));
+  anAction->setCheckable(true);
+  registerAction(CustomWindowSizeId, anAction);
+  new pqTestingReaction(anAction << pqSetName("actionTesting_Window_Size_Custom"),
+                        pqTestingReaction::LOCK_VIEW_SIZE_CUSTOM);
+
   // Timer Log
   anAction = new QAction(tr("MEN_TIMER_LOG"), this);
   anAction->setToolTip(tr("TOP_TIMER_LOG"));
@@ -344,6 +366,13 @@ void PVGUI_Module::pvCreateActions()
   registerAction(PythonShellId, anAction);
   new pqPythonShellReaction(anAction << pqSetName("actionToolsPythonShell"));
 
+  //Show Trace
+  anAction = new QAction(tr("MEN_SHOW_TRACE"), this);
+  anAction->setToolTip(tr("TOP_SHOW_TRACE"));
+  anAction->setStatusTip(tr("STB_SHOW_TRACE"));
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onShowTrace()));
+  registerAction(ShowTraceId, anAction);
+
   // --- Menu "Help"
 
   // About
@@ -353,15 +382,15 @@ void PVGUI_Module::pvCreateActions()
   registerAction(AboutParaViewId, anAction);
   new pqAboutDialogReaction(anAction << pqSetName("actionAbout"));
 
+#ifdef HAS_PV_DOC
   // Native ParaView user documentation
   aPixmap = resMgr->loadPixmap( "ParaView", tr("ICON_PARAVIEW_HELP"), false );
-  anAction = new QAction(QIcon(aPixmap), tr("MEN_PARAVIEW_HELP"), this);
+  anAction = new QAction(tr("MEN_PARAVIEW_HELP"), this);
   anAction->setToolTip(tr("TOP_PARAVIEW_HELP"));
   anAction->setStatusTip(tr("STB_PARAVIEW_HELP"));
-  anAction->setShortcut(QKeySequence::HelpContents);
-  connect(anAction, SIGNAL(triggered()), this, SLOT(showParaViewHelp()));
   registerAction(ParaViewHelpId, anAction);
-  //new pqHelpReaction(anAction << pqSetName("actionHelp"));
+  new pqHelpReaction(anAction);
+#endif
 }
 
 /*!
@@ -382,12 +411,13 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( OpenFileId, aPVMnu, 5 );
 
   // Recent Files
-   int aMenuId = createMenu( tr( "MEN_RECENT_FILES" ), aPVMnu, -1, 5 );
-   QMenu* aMenu = menuMgr()->findMenu( aMenuId );
-   Implementation->RecentFilesMenu = new pqRecentFilesMenu( *aMenu, getApp()->desktop() );
+   myRecentMenuId = createMenu( tr( "MEN_RECENT_FILES" ), aPVMnu, -1, 5 );
+   QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
+   pqRecentFilesMenu* aRecentFilesMenu = new pqRecentFilesMenu( *aMenu, getApp()->desktop() );
    QList<QAction*> anActns = aMenu->actions();
-   for (int i = 0; i < anActns.size(); ++i)
-     createMenu( anActns.at(i), aMenuId );
+   for (int i = 0; i < anActns.size(); ++i) {
+	createMenu( anActns.at(i), myRecentMenuId );
+   }
 
 
   createMenu( separator(), aPVMnu, -1, 5 );
@@ -420,25 +450,27 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( CameraRedoId, aPVMnu );
   createMenu( separator(), aPVMnu );
 
+  createMenu( FindDataId, aPVMnu );
   createMenu( ChangeInputId, aPVMnu );
   createMenu( IgnoreTimeId, aPVMnu );
   createMenu( DeleteId, aPVMnu );
   createMenu( DeleteAllId, aPVMnu );
   createMenu( separator(), aPVMnu );
 
-  createMenu( SettingsId, aPVMnu );
+  //createMenu( SettingsId, aPVMnu );
   createMenu( ViewSettingsId, aPVMnu );
   createMenu( separator(), aPVMnu );
 
   // --- Menu "View"
   aPVMnu = createMenu( tr( "MEN_DESK_VIEW" ), -1, -1 );
-  myToolbarsMenuId = createMenu( "Toolbars", aPVMnu );
+  /*myToolbarsMenuId = createMenu( "Toolbars", aPVMnu );
   aMenu = getMenu( myToolbarsMenuId );
   if (aMenu) {
     buildToolbarsMenu();
     connect(aMenu, SIGNAL(aboutToShow()), this, SLOT(buildToolbarsMenu()));
   }
-  createMenu( separator(), aPVMnu );
+  createMenu( separator(), aPVMnu );*/
+
   createMenu( FullScreenId, aPVMnu );
   
   // --- Menu "Sources"
@@ -479,6 +511,7 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( RecordTestId, aToolsMnu );
   createMenu( PlayTestId, aToolsMnu );
   createMenu( MaxWindowSizeId, aToolsMnu );
+  createMenu( CustomWindowSizeId, aToolsMnu );
   createMenu( separator(), aToolsMnu );
 
   createMenu( TimerLogId, aToolsMnu );
@@ -486,14 +519,18 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( separator(), aToolsMnu );
 
   createMenu( PythonShellId, aToolsMnu );
+  createMenu( separator(), aToolsMnu );
+  createMenu( ShowTraceId, aToolsMnu );
 
   // --- Menu "Help"
 
   int aHelpMnu = createMenu( tr( "MEN_DESK_HELP" ), -1, -1 );
-  createMenu( AboutParaViewId, aHelpMnu );
-
-  int aHelpModule = createMenu( LightApp_Application::tr( "MEN_DESK_MODULE_HELP" ), aHelpMnu, -1 );
-  createMenu( ParaViewHelpId, aHelpModule );
+  int aPVHelpMnu = createMenu( tr( "ParaViS module" ), aHelpMnu, -1, 0 );
+#ifdef HAS_PV_DOC
+  createMenu( ParaViewHelpId,  aPVHelpMnu );
+  createMenu( separator(),     aPVHelpMnu );
+#endif
+  createMenu( AboutParaViewId, aPVHelpMnu );
 }
 
 /*!
@@ -524,7 +561,7 @@ QMenu* PVGUI_Module::getMenu( const int id )
 /*!
   \brief Returns list of ParaView toolbars
 */
-QList<QToolBar*> PVGUI_Module::getParaViewToolbars()
+/*QList<QToolBar*> PVGUI_Module::getParaViewToolbars()
 {
   QList<QToolBar*> all_toolbars = application()->desktop()->findChildren<QToolBar*>();
   // First two toolbars has to be ignored because they are not from ParaView
@@ -533,14 +570,14 @@ QList<QToolBar*> PVGUI_Module::getParaViewToolbars()
     all_toolbars.removeFirst();
   }
   return all_toolbars;
-}
+  }*/
 
 
 
 /*!
   \brief Builds a menu which referred to toolbars
 */
-void PVGUI_Module::buildToolbarsMenu()
+/*void PVGUI_Module::buildToolbarsMenu()
 {
   SUIT_Desktop* desk = application()->desktop();
   QMenu* aMenu = menuMgr()->findMenu( myToolbarsMenuId );
@@ -575,5 +612,54 @@ void PVGUI_Module::buildToolbarsMenu()
     }
     disconnect(aMenu, SIGNAL(aboutToShow()), this, SLOT(buildToolbarsMenu()));
   }
+  }*/
+
+/*!
+  \brief Create actions for ParaViS
+*/
+void PVGUI_Module::createActions()
+{
+  QAction* anAction;
+
+  // New ParaView window
+  anAction = new QtxAction(tr("MEN_NEW_PV_VIEW"), tr("MEN_NEW_PV_VIEW"), 0, 
+			   this, false, "ParaViS:Create new ParaView view");
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onNewParaViewWindow()));
+  registerAction(ParaViewNewWindowId, anAction);
+
+  // Save state under the module root object
+  anAction = new QAction(tr("MEN_SAVE_MULTI_STATE"), this);
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onSaveMultiState()));
+  registerAction(SaveStatePopupId, anAction);
+
+  // Restore the selected state by merging with the current one
+  anAction = new QAction(tr("MEN_ADD_STATE"), this);
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onAddState()));
+  registerAction(AddStatePopupId, anAction);
+
+  // Clean the current state and restore the selected one
+  anAction = new QAction(tr("MEN_CLEAN_ADD_STATE"), this);
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onCleanAddState()));
+  registerAction(CleanAndAddStatePopupId, anAction);
+
+  // Rename the selected object (Object Browser)
+  anAction = new QAction(tr("MEN_PARAVIS_RENAME"), this);
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onRename()));
+  registerAction(ParaVisRenameId, anAction);
+
+  // Delete the selected object (Object Browser)
+  anAction = new QAction(tr("MEN_PARAVIS_DELETE"), this);
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onDelete()));
+  registerAction(ParaVisDeleteId, anAction);
 }
 
+/*!
+  \brief Create actions for ParaViS
+*/
+void PVGUI_Module::createMenus()
+{
+  // "Window" - "New Window" - "ParaView view" menu
+  int aWindowMenu = createMenu(tr( "MEN_DESK_WINDOW" ), -1, -1);
+  int aNewWindowMenu = createMenu(tr( "MEN_DESK_NEWWINDOW"), aWindowMenu, -1, -1);
+  createMenu(ParaViewNewWindowId, aNewWindowMenu);
+}

@@ -1,7 +1,6 @@
 // PARAVIS : ParaView wrapper SALOME module
 //
-// Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -27,7 +26,9 @@
 #include <string.h>
 #include <ctype.h>
 #include "vtkParse.h"
+#include "vtkParseType.h"
 #include "vtkWrapIDL.h"
+#include "vtkWrap.h"
 
 char* Copyright[] = {
   "// Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,",
@@ -51,11 +52,12 @@ char* Copyright[] = {
   ""
 };
 
-#define bs 8192
+#define bs 12288
 
 int numberOfWrappedFunctions = 0;
 FunctionInfo *wrappedFunctions[1000];
 extern FunctionInfo *currentFunction;
+
 
 static void add_to_sig(char *sig, const char *add, int *i)
 {
@@ -71,7 +73,12 @@ void AddReturnArg(char *Result, int *CurrPos) {
   add_to_sig(Result,"virtual ",CurrPos);
 }
 
-void AddNotReturnArg(int Type, char *Result, int *CurrPos) {
+int IsIn(ValueInfo* Type) {
+  return 1;
+  //return ((Type % VTK_PARSE_BASE_TYPE)/0x100 < 1 || (Type % VTK_PARSE_BASE_TYPE)/0x100 > 7);
+}
+
+void AddNotReturnArg(ValueInfo* Type, char *Result, int *CurrPos) {
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
   ;
 #else
@@ -82,12 +89,14 @@ void AddNotReturnArg(int Type, char *Result, int *CurrPos) {
 #endif
 }
 
-int IsFunction(int Type) {
-  return (Type == 0x5000);
+int IsFunction(ValueInfo* Type) {
+  //return (Type == VTK_PARSE_FUNCTION);
+  return vtkWrap_IsFunction(Type);
 }
 
-int IsConst(int Type) {
-  return ((Type % 0x2000) >= 0x1000);
+int IsConst(ValueInfo* Type) {
+  //return ((Type % 0x2000) >= 0x1000);
+  return vtkWrap_IsConst(Type);
 }
 
 void AddConst(char *Result, int *CurrPos) {
@@ -98,20 +107,29 @@ void AddConst(char *Result, int *CurrPos) {
 #endif
 }
 
-int IsPtr(int Type) {
-  return ((Type % 0x1000)/0x100 == 0x1);
+
+int IsClass(ValueInfo* theType) {
+  //return ((theType->Type % 0x10) == 0x9);
+  return vtkWrap_IsObject(theType) || vtkWrap_IsVTKObject(theType);
 }
 
-int IsIn(int Type) {
-  return 1;
-  //return ((Type % 0x1000)/0x100 < 1 || (Type % 0x1000)/0x100 > 7);
+int IsString(ValueInfo* Type) {
+  //return (IsChar(Type) && IsArray(Type));
+  //return (IsChar(Type) && IsPtr(Type));
+  return vtkWrap_IsCharPointer(Type) || vtkWrap_IsString(Type) || (strcmp(Type->Class, "vtkStdString") == 0);
 }
 
-int IsUnknown(int Type) {
-  return ((Type % 0x1000)/0x100 == 0x8);
+int IsPtr(ValueInfo* Type) {
+  //return ((Type % VTK_PARSE_BASE_TYPE)/0x100 == 0x1);
+  return vtkWrap_IsPointer(Type) && (!IsString(Type)) && (!IsClass(Type));
 }
 
-void AddAtomArg(int I, int Type, char *TypeIDL, char *TypeCorba, char *Result, int *CurrPos) {
+int IsUnknown(ValueInfo* theType) {
+  //return ((Type % VTK_PARSE_BASE_TYPE)/0x100 == 0x8);
+  return (theType->Type & VTK_PARSE_BASE_TYPE) == VTK_PARSE_UNKNOWN;
+}
+
+void AddAtomArg(int I, ValueInfo* Type, char *TypeIDL, char *TypeCorba, char *Result, int *CurrPos) {
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
   add_to_sig(Result,"CORBA::",CurrPos);
   add_to_sig(Result,TypeCorba,CurrPos);
@@ -124,11 +142,12 @@ void AddAtomArg(int I, int Type, char *TypeIDL, char *TypeCorba, char *Result, i
   add_to_sig(Result," ",CurrPos);
 }
 
-int IsArray(int Type) {
-  return ((Type % 0x1000)/0x100 == 0x3);
+int IsArray(ValueInfo* Type) {
+  //return ((Type % VTK_PARSE_BASE_TYPE)/0x100 == 0x3);
+  return vtkWrap_IsArray(Type);
 }
 
-void AddArrayArg(int I, int Type, char *TypeIDL, char *Result, int *CurrPos) {
+void AddArrayArg(int I, ValueInfo* Type, char *TypeIDL, char *Result, int *CurrPos) {
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
   if(!IsReturnArg(I) && !IsConst(Type))
     add_to_sig(Result, "const ",CurrPos);
@@ -146,24 +165,27 @@ void AddArrayArg(int I, int Type, char *TypeIDL, char *Result, int *CurrPos) {
   add_to_sig(Result, " ",CurrPos);
 }
 
-int IsBoolean(int Type) {
-  return ((Type % 0x10) == 0xE);
+int IsBoolean(ValueInfo* Type) {
+  //return ((Type % 0x10) == 0xE);
+  return vtkWrap_IsBool(Type);
 }
 
-void AddBooleanAtomArg(int I, int Type, char *Result, int *CurrPos) {
+void AddBooleanAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"boolean","Boolean",Result,CurrPos);
 }
 
-int IsChar(int Type) {
-  return ((Type % 0x10) == 0x3 || (Type % 0x10) == 0xD);
+int IsChar(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x3 || (Type % 0x10) == 0xD);
+  int aBase = theType->Type & VTK_PARSE_BASE_TYPE;
+  return (aBase == VTK_PARSE_CHAR) || (aBase == VTK_PARSE_UNSIGNED_CHAR) || (aBase == VTK_PARSE_SIGNED_CHAR);
 }
 
-void AddCharAtomArg(int I, int Type, char *Result, int *CurrPos) {
+int IsCharArray(ValueInfo* theType) {
+  return (IsChar(theType) && IsArray(theType));
+}
+
+void AddCharAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"char","Char",Result,CurrPos);
-}
-
-int IsString(Type) {
-  return (IsChar(Type) && IsArray(Type));
 }
 
 void AddStringArg(int I, char *Result, int *CurrPos) {
@@ -174,79 +196,86 @@ void AddStringArg(int I, char *Result, int *CurrPos) {
 #endif
 }
 
-int IsFloat(int Type) {
-  return ((Type % 0x10) == 0x1);
+int IsFloat(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x1);
+  return (theType->Type & VTK_PARSE_BASE_TYPE) == VTK_PARSE_FLOAT;
 }
 
-void AddFloatAtomArg(int I, int Type, char *Result, int *CurrPos) {
+void AddFloatAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"float","Float",Result,CurrPos);
 }
 
-int IsFloatArray(int Type) {
-  return (IsFloat(Type) && IsArray(Type));
+int IsFloatArray(ValueInfo* theType) {
+  return (IsFloat(theType) && IsArray(theType));
 }
 
-void AddFloatArrayArg(int I, int Type, char *Result, int *CurrPos) {
+void AddFloatArrayArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddArrayArg(I,Type,"float",Result,CurrPos);
 }
 
-int IsDouble(int Type) {
-  return ((Type % 0x10) == 0x7);
+int IsDouble(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x7);
+  return (theType->Type & VTK_PARSE_BASE_TYPE) == VTK_PARSE_DOUBLE;
 }
 
-void AddDoubleAtomArg(int I, int Type, char *Result, int *CurrPos) {
+void AddDoubleAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"double","Double",Result,CurrPos);
 }
 
-int IsDoubleArray(int Type) {
+int IsDoubleArray(ValueInfo*  Type) {
   return (IsDouble(Type) && IsArray(Type));
 }
 
-void AddDoubleArrayArg(int I, int Type, char *Result, int *CurrPos) {
+void AddDoubleArrayArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddArrayArg(I,Type,"double",Result,CurrPos);
 }
 
-int IsvtkIdType(int Type) {
-  return((Type % 0x10) == 0xA);
+int IsvtkIdType(ValueInfo* theType) {
+  //return((Type % 0x10) == 0xA);
+  return (theType->Type & VTK_PARSE_BASE_TYPE) == VTK_PARSE_ID_TYPE;
 }
 
-int IsShort(int Type) {
-  return ((Type % 0x10) == 0x4 || (Type % 0x10) == 0x5 || (Type % 0x10) == 0xA);
+int IsShort(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x4 || (Type % 0x10) == 0x5 || (Type % 0x10) == 0xA);
+  int aVal = theType->Type & VTK_PARSE_BASE_TYPE;
+  return (aVal == VTK_PARSE_SHORT) || (aVal == VTK_PARSE_INT) || 
+    (aVal == VTK_PARSE_ID_TYPE) || (aVal == VTK_PARSE_UNSIGNED_INT) || (aVal == VTK_PARSE_UNSIGNED_SHORT) ||
+    (aVal == VTK_PARSE_SSIZE_T) || (aVal == VTK_PARSE_SIZE_T);
 }
 
-void AddShortAtomArg(int I, int Type, char *Result, int *CurrPos) {
+void AddShortAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"short","Short",Result,CurrPos);
 }
 
-int IsShortArray(int Type) {
+int IsShortArray(ValueInfo* Type) {
   return (IsShort(Type) && IsArray(Type));
 }
 
-void AddShortArrayArg(int I, int Type, char *Result, int *CurrPos) {
+void AddShortArrayArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddArrayArg(I,Type,"short",Result,CurrPos);
 }
 
-int IsLong(int Type) {
-  return ((Type % 0x10) == 0x6 || (Type % 0x10) == 0xB || (Type % 0x10) == 0xC);
+int IsLong(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x6 || (Type % 0x10) == 0xB || (Type % 0x10) == 0xC);
+  unsigned int aVal = theType->Type & VTK_PARSE_BASE_TYPE;
+  return (aVal == VTK_PARSE_LONG) || (aVal == VTK_PARSE_UNSIGNED_LONG) || 
+    (aVal == VTK_PARSE___INT64) || (aVal == VTK_PARSE_UNSIGNED___INT64) || (aVal == VTK_PARSE_LONG_LONG) || 
+    (aVal == VTK_PARSE_UNSIGNED_LONG_LONG);
 }
 
-void AddLongAtomArg(int I, int Type, char *Result, int *CurrPos) {
+void AddLongAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"long","Long",Result,CurrPos);
 }
 
-int IsLongArray(int Type) {
+int IsLongArray(ValueInfo* Type) {
   return (IsLong(Type) && IsArray(Type));
 }
 
-void AddLongArrayArg(int I, int Type, char *Result, int *CurrPos) {
+void AddLongArrayArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddArrayArg(I,Type,"long",Result,CurrPos);
 }
 
-int IsClass(int Type) {
-  return ((Type % 0x10) == 0x9);
-}
-
-void AddClassArg(int I, int Type, char *Class, char *Result, int *CurrPos) {
+void AddClassArg(int I, ValueInfo* Type, const char *Class, char *Result, int *CurrPos) {
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
   add_to_sig(Result,"PARAVIS_Base",CurrPos);
   if(IsReturnArg(I) || IsConst(Type) || IsIn(Type)) {
@@ -260,23 +289,46 @@ void AddClassArg(int I, int Type, char *Class, char *Result, int *CurrPos) {
 #endif
 }
 
-int _IsVoid(int Type) {
-  return ((Type % 0x10) == 0x2);
+int _IsVoid(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x2);
+  return (theType->Type & VTK_PARSE_BASE_TYPE) == VTK_PARSE_VOID;
 }
 
-int IsVoid(int Type) {
+int IsVoid(ValueInfo* Type) {
   return (_IsVoid(Type) && (!IsPtr(Type)));
+}
+
+int IsUnsigned(ValueInfo* theType) {
+  unsigned int aVal = theType->Type & VTK_PARSE_BASE_TYPE;
+  switch (aVal) {
+  case VTK_PARSE_UNSIGNED_CHAR:
+  case VTK_PARSE_UNSIGNED_INT:
+  case VTK_PARSE_UNSIGNED_SHORT:
+  case VTK_PARSE_UNSIGNED_LONG:
+  case VTK_PARSE_UNSIGNED_ID_TYPE:
+  case VTK_PARSE_UNSIGNED_LONG_LONG:
+  case VTK_PARSE_UNSIGNED___INT64:
+  case VTK_PARSE_UNSIGNED_CHAR_PTR:
+  case VTK_PARSE_UNSIGNED_INT_PTR:
+  case VTK_PARSE_UNSIGNED_SHORT_PTR:
+  case VTK_PARSE_UNSIGNED_LONG_PTR:
+  case VTK_PARSE_UNSIGNED_ID_TYPE_PTR:
+  case VTK_PARSE_UNSIGNED_LONG_LONG_PTR:
+  case VTK_PARSE_UNSIGNED___INT64_PTR:
+    return 1;
+  }
+  return 0;
 }
 
 void AddVoid(char *Result, int *CurrPos) {
   add_to_sig(Result,"void ",CurrPos);
 }
 
-int IsVoidPtr(int Type) {
+int IsVoidPtr(ValueInfo* Type) {
   return (_IsVoid(Type) && (IsPtr(Type) || IsArray(Type)));
 }
 
-void AddVoidArg(int I, char *Result, int *CurrPos, int Type) {
+void AddVoidArg(int I, char *Result, int *CurrPos, ValueInfo* Type) {
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
   if(!IsReturnArg(I)) {
     if(!IsConst(Type))
@@ -290,7 +342,7 @@ void AddVoidArg(int I, char *Result, int *CurrPos, int Type) {
 #endif
 }
 
-void AddTypeArray(int Type, char *Result, int *CurrPos) {
+void AddTypeArray(ValueInfo* Type, char *Result, int *CurrPos) {
   if(IsShort(Type))
     add_to_sig(Result,"short",CurrPos);
   if(IsLong(Type))
@@ -299,6 +351,8 @@ void AddTypeArray(int Type, char *Result, int *CurrPos) {
     add_to_sig(Result,"float",CurrPos);
   if(IsDouble(Type))
     add_to_sig(Result,"double",CurrPos);
+  if(IsChar(Type))
+    add_to_sig(Result,"char",CurrPos);
   add_to_sig(Result,"_array",CurrPos);
 }
 
@@ -315,8 +369,11 @@ int numberOfReadFunctions = 0;
 
 static int class_has_new = 0;
 
-void output_type(char* result, int *currPos, int i, int aType, char *Id)
+void output_type(char* result, int *currPos, int i, ValueInfo* aType, const char *Id)
 {
+  if (vtkWrap_IsConst(aType))
+    add_to_sig(result,"const ",currPos);
+    
   if(IsFloat(aType)) {
     if(IsArray(aType)) {
       add_to_sig(result,"float",currPos);
@@ -335,10 +392,12 @@ void output_type(char* result, int *currPos, int i, int aType, char *Id)
   
   if(IsShort(aType)) {
     if(IsArray(aType)) {
+      if (IsUnsigned(aType))
+        add_to_sig(result,"unsigned ",currPos);
       if(IsvtkIdType(aType)) {
-	add_to_sig(result,"vtkIdType",currPos);
+        add_to_sig(result,"vtkIdType",currPos);
       } else {
-	add_to_sig(result,"int",currPos);
+        add_to_sig(result,"int",currPos);
       }
     } else {
       add_to_sig(result,"CORBA::Short",currPos);
@@ -347,6 +406,8 @@ void output_type(char* result, int *currPos, int i, int aType, char *Id)
   
   if(IsLong(aType)) {
     if(IsArray(aType)) {
+      if (IsUnsigned(aType))
+        add_to_sig(result,"unsigned ",currPos);
       add_to_sig(result,"long",currPos);
     } else {
       add_to_sig(result,"CORBA::Long",currPos);
@@ -356,13 +417,13 @@ void output_type(char* result, int *currPos, int i, int aType, char *Id)
   if(IsChar(aType)) {
     if(IsString(aType)) {
       if(IsReturnArg(i))
-	add_to_sig(result,"const ",currPos);
+        add_to_sig(result,"const ",currPos);
       add_to_sig(result,"char",currPos);
     } else {
       add_to_sig(result,"CORBA::Char",currPos);	    
     }
   }
-
+  
   if(IsBoolean(aType)) {
     add_to_sig(result,"CORBA::Boolean",currPos);
   }
@@ -381,13 +442,13 @@ void output_type(char* result, int *currPos, int i, int aType, char *Id)
   }
 }
 
-void output_typedef(char* result, int *currPos, int i, int aType, char *Id)
+void output_typedef(char* result, int *currPos, int i, ValueInfo* aType, const char *Id)
 {
   add_to_sig(result,"  typedef ",currPos);
   output_type(result,currPos,i,aType,Id);
 }
 
-void output_temp(char* result, int *currPos, int i, int aType, char *Id, int aCount)
+void output_temp(char* result, int *currPos, int i, ValueInfo* aType, const char *Id, int aCount)
 {
   static char buf[bs];
 
@@ -456,7 +517,8 @@ void output_temp(char* result, int *currPos, int i, int aType, char *Id, int aCo
     } else {
       AddCharAtomArg(i,aType,result,currPos);
     }
-  }
+  } else if (IsString(aType)) //!!! VSV
+    AddStringArg(i,result,currPos);
 
   if(IsBoolean(aType)) {
     AddBooleanAtomArg(i,aType,result,currPos);
@@ -480,10 +542,10 @@ void output_temp(char* result, int *currPos, int i, int aType, char *Id, int aCo
     }
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
     if(IsString(aType) && !IsIn(aType) && !IsConst(aType) && !IsReturnArg(i)) {
-	add_to_sig(result,"*&",currPos);
+      add_to_sig(result,"*&",currPos);
     } else {
       if(IsString(aType) || (IsReturnArg(i) && IsVoidPtr(aType))) {
-	add_to_sig(result," *",currPos);
+        add_to_sig(result," *",currPos);
       }
     }
 #endif
@@ -501,10 +563,9 @@ void read_class_functions(const char* name, const char* classname, FILE* fp)
 {
   int len=0;
   int curlen=0;
-  int i;
-  int j;
+  int i, j;
   int flen=0;
-  int num=0;
+  //int num=0;
   int ret_str=0;
   FILE *fin;
   char buf[bs];
@@ -517,6 +578,7 @@ void read_class_functions(const char* name, const char* classname, FILE* fp)
 #else
   static int clen=7;
 #endif
+
 
 #if defined(IDL_I_HH)
   sprintf(buf,"PARAVIS_Gen_%s_i.hh",name);
@@ -532,10 +594,10 @@ void read_class_functions(const char* name, const char* classname, FILE* fp)
   while (fgets(sig,bs-1,fin) != 0) {
 #if defined(IDL_I_CC)
     if(strncmp("#include \"PARAVIS_Gen_vtk",sig,25)==0) {
-      fprintf(fp,sig);
+      fprintf(fp, "%s",sig);
     }
     if(strncmp("#include <vtk",sig,13)==0) {
-      fprintf(fp,sig);
+      fprintf(fp, "%s",sig);
     }
 #endif
 
@@ -553,8 +615,7 @@ void read_class_functions(const char* name, const char* classname, FILE* fp)
       }
 #endif
       len=strlen(sig);
-      fgets(buf,bs-1,fin);
-      if(strlen(buf) > 1) {
+      if(fgets(buf,bs-1,fin)!=NULL && strlen(buf) > 1) {
 	ret_str=0;
 #if defined(IDL_I_HH)
 	strcpy(sig+len,buf);
@@ -644,18 +705,23 @@ void read_class_functions(const char* name, const char* classname, FILE* fp)
   return;
 }
 
-void get_signature(const char* num, FileInfo *data)
+void get_signature(const char* num, ClassInfo *data)
 {
   static char result[bs];
   int currPos = 0;
   int currPos_sig = 0;
-  int argtype;
+  //int argtype;
   int i, j;
   static char buf[bs];
   static char buf1[bs];
   int ret = 0;
   int found = 0;
   int currPos_num = 0;
+  ValueInfo* aRetVal = NULL;
+  ValueInfo* aArgVal = NULL;
+  char *cp;
+
+  aRetVal = currentFunction->ReturnValue;
 
   add_to_sig(result,"\n",&currPos);
   if (currentFunction->Signature) {
@@ -666,136 +732,153 @@ void get_signature(const char* num, FileInfo *data)
     add_to_sig(result,currentFunction->Signature,&currPos);
     add_to_sig(result,"\n",&currPos);
   }
-
-  if(IsClass(currentFunction->ReturnType) && ret == 0) {
+  
+  if(IsClass(aRetVal) && ret == 0) {
     found = 0;
     for(i = 0; strcmp(wrapped_classes[i],"") != 0 && found == 0; i++) {
-      if(strcmp(wrapped_classes[i],currentFunction->ReturnClass) == 0)
-	found = 1;
+      if(strcmp(wrapped_classes[i],currentFunction->ReturnValue->Class) == 0)
+        found = 1;
     }
     if(!found)
       ret = 1;
   }
-
+  
   for (j = 0; j < currentFunction->NumberOfArguments; j++) {
-    if(IsFunction(currentFunction->ArgTypes[j]))
+    aArgVal = currentFunction->Arguments[j];
+    if(IsFunction(aArgVal))
       ret == 1;
-    if(IsClass(currentFunction->ArgTypes[j]) && ret == 0) {
+    if(IsClass(aArgVal) && ret == 0) {
       found = 0;
       for(i = 0; strcmp(wrapped_classes[i],"") != 0 && found == 0; i++) {
-	if(strcmp(wrapped_classes[i],currentFunction->ArgClasses[j]) == 0)
-	  found = 1;
+        if(strcmp(wrapped_classes[i],aArgVal->Class) == 0)
+          found = 1;
       }
       if(!found)
-	ret = 1;
+        ret = 1;
     }
   }
-
-  if (IsArray(currentFunction->ReturnType) && !IsClass(currentFunction->ReturnType) && !IsString(currentFunction->ReturnType) && currentFunction->HintSize == 0) {
+  
+  if (IsArray(aRetVal) && !IsClass(aRetVal) && !IsString(aRetVal) && currentFunction->HintSize == 0) {
     ret = 1;
   }
-
+  
   if(ret) {
     add_to_sig(result,"//\n",&currPos);
-    currentFunction->Signature = realloc(currentFunction->Signature,
-					 (size_t)(currPos+1));
-    strcpy(currentFunction->Signature,result);
-    
+    /*currentFunction->Signature = (const char*)realloc((void*)currentFunction->Signature,
+      (size_t)(currPos+1));*/
+    //strcpy((char*)currentFunction->Signature,result);
+    cp = (char *)malloc(currPos+1);
+    strcpy(cp, result);
+    currentFunction->Signature = cp;
     return;
   }
 
 #if defined(IDL_I_CC)
-    add_to_sig(result,"struct CreateEventName(",&currPos);
-    add_to_sig(result,currentFunction->Name,&currPos);
-    if( strlen(num)!=0 ) {
-      add_to_sig(result,num,&currPos);
-    }
-    add_to_sig(result,")",&currPos);
-    add_to_sig(result,": public SALOME_Event\n",&currPos);
-    add_to_sig(result,"{\n",&currPos);
-    if(!IsVoid(currentFunction->ReturnType)) {
-      output_typedef(result,&currPos,MAX_ARGS,currentFunction->ReturnType,
-		     currentFunction->ReturnClass);
-      add_to_sig(result," TResult;\n",&currPos);
-      add_to_sig(result,"  TResult myResult;\n",&currPos);
-    }
+  add_to_sig(result,"struct CreateEventName(",&currPos);
+  add_to_sig(result,currentFunction->Name,&currPos);
+  if( strlen(num)!=0 ) {
+    add_to_sig(result,num,&currPos);
+  }
+  add_to_sig(result,")",&currPos);
+  add_to_sig(result,": public SALOME_Event\n",&currPos);
+  add_to_sig(result,"{\n",&currPos);
+  if(!IsVoid(aRetVal)) {
+    //output_typedef(result,&currPos,MAX_ARGS,aRetVal, currentFunction->ReturnValue->Class);
+    add_to_sig(result,"  typedef ",&currPos);
+    if (vtkWrap_IsConst(aRetVal))
+      add_to_sig(result, " const ",&currPos);
+    if (vtkWrap_IsObject(aRetVal))
+      add_to_sig(result, " ::",&currPos);
+    add_to_sig(result, aRetVal->Class,&currPos);
+    if (vtkWrap_IsPointer(aRetVal) || vtkWrap_IsArray(aRetVal))
+      add_to_sig(result, "*",&currPos);
+    add_to_sig(result," TResult;\n",&currPos);
+    add_to_sig(result,"  TResult myResult;\n",&currPos);
+  }
+  
+  //output_typedef(result, &currPos, 0, 0x309, data->Name); //!!??
+  add_to_sig(result,"  typedef ::",&currPos);
+  add_to_sig(result,data->Name,&currPos);
+  add_to_sig(result,"* TObj;\n",&currPos);
+  add_to_sig(result,"  TObj myObj;\n",&currPos);
+  
+  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+    aArgVal = currentFunction->Arguments[i];
+    //output_typedef(result, &currPos, i, currentFunction->ArgTypes[i],
+    //               currentFunction->ArgClasses[i]);
+    output_typedef(result, &currPos, i, aArgVal, currentFunction->ArgClasses[i]);
+    sprintf(buf," TParam%d;\n",i);
+    add_to_sig(result,buf,&currPos);
+    sprintf(buf,"  TParam%d myParam%d;\n",i,i);
+    add_to_sig(result,buf,&currPos);
+  }
     
-    output_typedef(result, &currPos, 0, 0x309,
-		   data->ClassName);
-    add_to_sig(result," TObj;\n",&currPos);
-    add_to_sig(result,"  TObj myObj;\n",&currPos);
-    
-    for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-      output_typedef(result, &currPos, i, currentFunction->ArgTypes[i],
-		     currentFunction->ArgClasses[i]);
-      sprintf(buf," TParam%d;\n",i);
-      add_to_sig(result,buf,&currPos);
-      sprintf(buf,"  TParam%d myParam%d;\n",i,i);
-      add_to_sig(result,buf,&currPos);
+  add_to_sig(result,"\n",&currPos);  
+  add_to_sig(result,"  CreateEventName(",&currPos);  
+  add_to_sig(result,currentFunction->Name,&currPos);
+  if( strlen(num)!=0 ) {
+    add_to_sig(result,num,&currPos);
+  }
+  add_to_sig(result,")",&currPos);
+  add_to_sig(result,"(TObj theObj",&currPos);  
+  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+    sprintf(buf,", TParam%d theParam%d",i,i);
+    add_to_sig(result,buf,&currPos);
+  }
+  add_to_sig(result,"):\n",&currPos);  
+  add_to_sig(result,"  myObj(theObj)",&currPos);  
+  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+    sprintf(buf,", myParam%d(theParam%d)",i,i);
+    add_to_sig(result,buf,&currPos);
+  }
+  add_to_sig(result,"\n",&currPos);  
+  add_to_sig(result,"  { }\n",&currPos);  
+  add_to_sig(result,"\n",&currPos);  
+  add_to_sig(result,"  virtual void Execute()\n",&currPos);  
+  add_to_sig(result,"  {\n",&currPos);  
+  add_to_sig(result,"    ",&currPos);  
+  if(!IsVoid(aRetVal)/* && !IsString(aRetVal)*/) {
+    add_to_sig(result,"myResult = ",&currPos);  
+  }
+  //if(IsString(aRetVal)) {
+  //add_to_sig(result,"const char* ret = ",&currPos);  
+  //}
+  add_to_sig(result,"myObj->",&currPos);  
+  add_to_sig(result,currentFunction->Name,&currPos);  
+  add_to_sig(result,"(",&currPos);  
+  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+    aArgVal = currentFunction->Arguments[i];
+    if(i!=0)
+      add_to_sig(result,", ",&currPos);  
+    if(IsClass(aArgVal) && IsPtr(aArgVal)) {
+      add_to_sig(result,"*",&currPos);  
     }
-    
-    add_to_sig(result,"\n",&currPos);  
-    add_to_sig(result,"  CreateEventName(",&currPos);  
-    add_to_sig(result,currentFunction->Name,&currPos);
-    if( strlen(num)!=0 ) {
-      add_to_sig(result,num,&currPos);
-    }
-    add_to_sig(result,")",&currPos);
-    add_to_sig(result,"(TObj theObj",&currPos);  
-    for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-      sprintf(buf,", TParam%d theParam%d",i,i);
-      add_to_sig(result,buf,&currPos);
-    }
-    add_to_sig(result,"):\n",&currPos);  
-    add_to_sig(result,"  myObj(theObj)",&currPos);  
-    for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-      sprintf(buf,", myParam%d(theParam%d)",i,i);
-      add_to_sig(result,buf,&currPos);
-    }
-    add_to_sig(result,"\n",&currPos);  
-    add_to_sig(result,"  { }\n",&currPos);  
-    add_to_sig(result,"\n",&currPos);  
-    add_to_sig(result,"  virtual void Execute()\n",&currPos);  
-    add_to_sig(result,"  {\n",&currPos);  
-    add_to_sig(result,"    ",&currPos);  
-    if(!IsVoid(currentFunction->ReturnType)/* && !IsString(currentFunction->ReturnType)*/) {
-      add_to_sig(result,"myResult = ",&currPos);  
-    }
-    //if(IsString(currentFunction->ReturnType)) {
-    //add_to_sig(result,"const char* ret = ",&currPos);  
-    //}
-    add_to_sig(result,"myObj->",&currPos);  
-    add_to_sig(result,currentFunction->Name,&currPos);  
-    add_to_sig(result,"(",&currPos);  
-    for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-      if(i!=0)
-	add_to_sig(result,", ",&currPos);  
-      if(IsClass(currentFunction->ArgTypes[i]) && IsPtr(currentFunction->ArgTypes[i])) {
-	add_to_sig(result,"*",&currPos);  
-      }
+    if (IsString(aArgVal) && IsConst(aArgVal))
+      sprintf(buf,"checkNullStr(myParam%d)",i);
+    else
       sprintf(buf,"myParam%d",i);
-      add_to_sig(result,buf,&currPos);
-    }
-    add_to_sig(result,");\n",&currPos);  
-    //if(IsString(currentFunction->ReturnType)) {
-    //add_to_sig(result,"    myResult = (ret==NULL)?NULL:CORBA::string_dup(\"\");\n",&currPos);  
-    //}
-    add_to_sig(result,"  }\n",&currPos);  
-    
-    add_to_sig(result,"};\n",&currPos);  
-    add_to_sig(result,"//\n",&currPos);  
+    add_to_sig(result,buf,&currPos);
+  }
+  add_to_sig(result,");\n",&currPos);  
+  //if(IsString(aRetVal)) {
+  //add_to_sig(result,"    myResult = (ret==NULL)?NULL:CORBA::string_dup(\"\");\n",&currPos);  
+  //}
+  add_to_sig(result,"  }\n",&currPos);  
+  
+  add_to_sig(result,"};\n",&currPos);  
+  add_to_sig(result,"//\n",&currPos);  
 #endif
   currPos_sig=currPos;
-
+  
 #if ! defined(IDL_I_CC)
   add_to_sig(result,"        ",&currPos);
 #endif
 
-  output_temp(result,&currPos,MAX_ARGS,currentFunction->ReturnType,
-	      currentFunction->ReturnClass,0);
+  output_temp(result,&currPos,MAX_ARGS,aRetVal,
+              currentFunction->ReturnValue->Class,0);
 
 #if defined(IDL_I_CC)
-  add_to_sig(result,data->ClassName,&currPos);
+  add_to_sig(result,data->Name,&currPos);
   add_to_sig(result,"_i::",&currPos);
 #endif
 #if ! defined(IDL_I_HH) && ! defined(IDL_I_CC)
@@ -813,12 +896,14 @@ void get_signature(const char* num, FileInfo *data)
   add_to_sig(result,"(",&currPos);
 
   for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+    aArgVal = currentFunction->Arguments[i];
     if( i != 0 ) {
       add_to_sig(result,", ",&currPos);	  
     }
-    output_temp(result, &currPos, i, currentFunction->ArgTypes[i],
-		currentFunction->ArgClasses[i],
-		currentFunction->ArgCounts[i]);
+    /*    output_temp(result, &currPos, i, currentFunction->ArgTypes[i],
+                (char*)currentFunction->ArgClasses[i],
+                currentFunction->ArgCounts[i]);*/
+    output_temp(result, &currPos, i, aArgVal,  aArgVal->Class, currentFunction->NumberOfArguments);
   }
 
   add_to_sig(result,")",&currPos);
@@ -826,59 +911,68 @@ void get_signature(const char* num, FileInfo *data)
   add_to_sig(result," {\n",&currPos);
   add_to_sig(result,"  try {\n",&currPos);
   for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    if(IsClass(currentFunction->ArgTypes[i])) {
+    aArgVal = currentFunction->Arguments[i];
+    if(IsClass(aArgVal)) {
       sprintf(buf,"    PARAVIS_Base_i* i_temp%d = GET_SERVANT(temp%d);\n",i,i);
       add_to_sig(result,buf,&currPos);
     }
-      
-    if(
-       IsArray(currentFunction->ArgTypes[i])
-       && !IsString(currentFunction->ArgTypes[i])
-       && !IsClass(currentFunction->ArgTypes[i])
-       && !IsVoid(currentFunction->ArgTypes[i])
-       ) {
+    
+    if(IsArray(aArgVal) && !IsString(aArgVal) && !IsClass(aArgVal) && !IsVoid(aArgVal) ) {
       sprintf(buf,"    CORBA::ULong j_temp%d;\n",i);
       add_to_sig(result,buf,&currPos);
       sprintf(buf,"    CORBA::ULong l_temp%d = temp%d.length();\n",i,i);
       add_to_sig(result,buf,&currPos);
       add_to_sig(result,"    ",&currPos);	      
       
-      if(IsFloat(currentFunction->ArgTypes[i]))
-	add_to_sig(result,"float",&currPos);
+      if(IsFloat(aArgVal))
+        add_to_sig(result,"float",&currPos);
       
-      if(IsDouble(currentFunction->ArgTypes[i]))
-	add_to_sig(result,"double",&currPos);
+      if(IsDouble(aArgVal))
+        add_to_sig(result,"double",&currPos);
       
-      if(IsvtkIdType(currentFunction->ArgTypes[i])) {
-	add_to_sig(result,"vtkIdType",&currPos);
+      if(IsvtkIdType(aArgVal)) {
+        if (IsUnsigned(aArgVal))
+          add_to_sig(result,"unsigned ",&currPos);
+        add_to_sig(result,"vtkIdType",&currPos);
       } else {
-	  if(IsShort(currentFunction->ArgTypes[i])) {
-	    add_to_sig(result,"int",&currPos);
-	  }
+        if(IsShort(aArgVal)) {
+          if (IsUnsigned(aArgVal))
+            add_to_sig(result,"unsigned ",&currPos);
+          add_to_sig(result,"int",&currPos);
+        }
       }
       
-      if(IsLong(currentFunction->ArgTypes[i]))
-	add_to_sig(result,"long",&currPos);
-      
+      if(IsLong(aArgVal)) {
+        if (IsUnsigned(aArgVal))
+          add_to_sig(result,"unsigned ",&currPos);
+        add_to_sig(result,"long",&currPos);
+      }
       sprintf(buf,"* a_temp%d = new ",i);
       add_to_sig(result,buf,&currPos);
-
-      if(IsFloat(currentFunction->ArgTypes[i]))
-	add_to_sig(result,"float",&currPos);
       
-      if(IsDouble(currentFunction->ArgTypes[i]))
-	add_to_sig(result,"double",&currPos);
+      if(IsFloat(aArgVal))
+        add_to_sig(result,"float",&currPos);
       
-      if(IsvtkIdType(currentFunction->ArgTypes[i])) {
-	add_to_sig(result,"vtkIdType",&currPos);
+      if(IsDouble(aArgVal))
+        add_to_sig(result,"double",&currPos);
+      
+      if(IsvtkIdType(aArgVal)) {
+        if (IsUnsigned(aArgVal))
+          add_to_sig(result,"unsigned ",&currPos);
+        add_to_sig(result,"vtkIdType",&currPos);
       } else {
-	if(IsShort(currentFunction->ArgTypes[i])) {
-	  add_to_sig(result,"int",&currPos);
-	}
+        if(IsShort(aArgVal)) {
+          if (IsUnsigned(aArgVal))
+            add_to_sig(result,"unsigned ",&currPos);
+          add_to_sig(result,"int",&currPos);
+        }
       }
-
-      if(IsLong(currentFunction->ArgTypes[i]))
-	add_to_sig(result,"long",&currPos);
+      
+      if(IsLong(aArgVal)) {
+        if (IsUnsigned(aArgVal))
+          add_to_sig(result,"unsigned ",&currPos);
+        add_to_sig(result,"long",&currPos);
+      }
       
       sprintf(buf,"[l_temp%d];\n",i);
       add_to_sig(result,buf,&currPos);
@@ -892,12 +986,12 @@ void get_signature(const char* num, FileInfo *data)
       add_to_sig(result,"    }\n",&currPos);
     }
 
-    if(IsString(currentFunction->ArgTypes[i])) {
+    if(IsString(aArgVal)) {
       sprintf(buf,"    char *c_temp%d = CORBA::string_dup(temp%d);\n",i,i);
       add_to_sig(result,buf,&currPos);
     }
 
-    if(IsVoid(currentFunction->ArgTypes[i])) {
+    if(IsVoid(aArgVal)) {
       sprintf(buf,"    long v_temp%d;\n",i);
       add_to_sig(result,buf,&currPos);
       
@@ -907,40 +1001,40 @@ void get_signature(const char* num, FileInfo *data)
   }  
   add_to_sig(result,"    ",&currPos);
 
-  if(IsArray(currentFunction->ReturnType) && !IsClass(currentFunction->ReturnType) && !IsString(currentFunction->ReturnType)) {
+  if(IsArray(aRetVal) && !IsClass(aRetVal) && !IsString(aRetVal)) {
     add_to_sig(result,"CORBA::ULong i_ret;\n",&currPos); 
     add_to_sig(result,"    PARAVIS::",&currPos); 
-    AddTypeArray(currentFunction->ReturnType,result,&currPos);
+    AddTypeArray(aRetVal,result,&currPos);
     add_to_sig(result,"_var s_ret = new ",&currPos);
-    AddTypeArray(currentFunction->ReturnType,result,&currPos);
+    AddTypeArray(aRetVal,result,&currPos);
     add_to_sig(result,"();\n",&currPos);
     sprintf(buf,"    s_ret->length(%d);\n",currentFunction->HintSize);
     add_to_sig(result,buf,&currPos);
     add_to_sig(result,"    ",&currPos); 
   }
   
-  if(IsFloat(currentFunction->ReturnType)) {
-    if(IsArray(currentFunction->ReturnType)) {
+  if(IsFloat(aRetVal)) {
+    if(IsArray(aRetVal)) {
       add_to_sig(result,"float* a_ret = ",&currPos);
     } else {
       add_to_sig(result,"CORBA::Float ret = ",&currPos);
     }
   }
   
-  if(IsDouble(currentFunction->ReturnType)) {
-    if(IsArray(currentFunction->ReturnType)) {
+  if(IsDouble(aRetVal)) {
+    if(IsArray(aRetVal)) {
       add_to_sig(result,"double* a_ret = ",&currPos);
     } else {
       add_to_sig(result,"CORBA::Double ret = ",&currPos);
     }
   }
   
-  if(IsShort(currentFunction->ReturnType)) {
-    if(IsArray(currentFunction->ReturnType)) {
-      if(IsvtkIdType(currentFunction->ReturnType)) {
-	add_to_sig(result,"vtkIdType",&currPos);
+  if(IsShort(aRetVal)) {
+    if(IsArray(aRetVal)) {
+      if(IsvtkIdType(aRetVal)) {
+        add_to_sig(result,"vtkIdType",&currPos);
       } else {
-	add_to_sig(result,"int",&currPos);
+        add_to_sig(result,"int",&currPos);
       }
       add_to_sig(result,"* a_ret = ",&currPos);
     } else {
@@ -948,39 +1042,39 @@ void get_signature(const char* num, FileInfo *data)
     }
   }
   
-  if(IsLong(currentFunction->ReturnType)) {
-    if(IsArray(currentFunction->ReturnType)) {
+  if(IsLong(aRetVal)) {
+    if(IsArray(aRetVal)) {
       add_to_sig(result,"long* a_ret = ",&currPos);
     } else {
       add_to_sig(result,"CORBA::Long ret = ",&currPos);
     }
   }
   
-  if(IsChar(currentFunction->ReturnType)) {
-    if(IsString(currentFunction->ReturnType)) {
+  //if(IsChar(aRetVal)) {
+    if(IsString(aRetVal)) {
       add_to_sig(result,"char * ret = CORBA::string_dup(\"\");\n",&currPos);
       add_to_sig(result,"    const char * cret = ",&currPos);
-    } else {
+    } else if (IsChar(aRetVal)) { //!!! vsv
       add_to_sig(result,"CORBA::Char ret = ",&currPos);	    
     }
-  }
+    //}
 
-  if(IsBoolean(currentFunction->ReturnType)) {
+  if(IsBoolean(aRetVal)) {
     add_to_sig(result,"CORBA::Boolean ret = ",&currPos);
   }
   
-  if(IsVoidPtr(currentFunction->ReturnType)) {
+  if(IsVoidPtr(aRetVal)) {
     add_to_sig(result,"void * v_ret = ",&currPos);
   }
   
-  if(IsClass(currentFunction->ReturnType)) {
+  if(IsClass(aRetVal)) {
     add_to_sig(result,"::",&currPos);
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);
     add_to_sig(result,"* a",&currPos);
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);
     add_to_sig(result," = ",&currPos);
   }
-  if(IsVoid(currentFunction->ReturnType)) {
+  if(IsVoid(aRetVal)) {
     add_to_sig(result,"if(getVTKObject() != NULL) ProcessVoidEvent",&currPos);
   } else {
     add_to_sig(result,"(getVTKObject() != NULL) ? ProcessEvent",&currPos);
@@ -994,120 +1088,114 @@ void get_signature(const char* num, FileInfo *data)
   add_to_sig(result,")",&currPos);
   
   add_to_sig(result,"((::",&currPos);
-  add_to_sig(result,data->ClassName,&currPos);	      
+  add_to_sig(result,data->Name,&currPos);	      
   add_to_sig(result,"*)",&currPos);
   add_to_sig(result,"getVTKObject()\n",&currPos);
   
   for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+    aArgVal = currentFunction->Arguments[i];
     add_to_sig(result,"      , ",&currPos);
     
     //if(IsClass(currentFunction->ArgTypes[i]) && IsPtr(currentFunction->ArgTypes[i])) {
     //add_to_sig(result,"*(",&currPos);
     //}
     
-    if(IsClass(currentFunction->ArgTypes[i])) {
-      sprintf(buf,"(i_temp%d != NULL)?dynamic_cast< ::%s*>(i_temp%d->getVTKObject()):NULL",i,currentFunction->ArgClasses[i],i);
+    if(IsClass(aArgVal)) {
+      //sprintf(buf,"(i_temp%d != NULL)?dynamic_cast< ::%s*>(i_temp%d->getVTKObject()):NULL",i,currentFunction->ArgClasses[i],i);
+      sprintf(buf,"(i_temp%d != NULL)?dynamic_cast< ::%s*>(i_temp%d->getVTKObject()):NULL",i,aArgVal->Class,i);
     } else {
-      if(
-	 IsArray(currentFunction->ArgTypes[i])
-	 && !IsString(currentFunction->ArgTypes[i])
-	 && !IsVoid(currentFunction->ArgTypes[i])
-	 ) {
-	sprintf(buf,"a_temp%d",i);
+      if(IsArray(aArgVal) && !IsString(aArgVal) && !IsVoid(aArgVal)) {
+        sprintf(buf,"a_temp%d",i);
       } else {
-	if(IsVoidPtr(currentFunction->ArgTypes[i])) {
-	  sprintf(buf,"(void*)v_temp%d",i);
-	} else {
-	  if(IsString(currentFunction->ArgTypes[i])) {
-	    sprintf(buf,"c_temp%d",i);
-	  } else {
-	    sprintf(buf,"temp%d",i);
-	  }
-	}
+        if(IsVoidPtr(aArgVal)) {
+          sprintf(buf,"(void*)v_temp%d",i);
+        } else {
+          if(IsString(aArgVal)) {
+            sprintf(buf,"c_temp%d",i);
+          } else {
+            sprintf(buf,"temp%d",i);
+          }
+        }
       }
     }
-      
+    
     add_to_sig(result,buf,&currPos);
     //if(IsClass(currentFunction->ArgTypes[i]) && IsPtr(currentFunction->ArgTypes[i])) {
     //add_to_sig(result,")",&currPos);
     //}
     add_to_sig(result,"\n",&currPos);
   }
-
+  
   add_to_sig(result,"      )\n",&currPos);	      
   add_to_sig(result,"    )",&currPos);
-  if(!IsVoid(currentFunction->ReturnType)) {
+  if(!IsVoid(aRetVal)) {
     add_to_sig(result,":",&currPos);
-    if(IsClass(currentFunction->ReturnType) || IsString(currentFunction->ReturnType) || IsPtr(currentFunction->ReturnType) || IsArray(currentFunction->ReturnType))
+    if(IsClass(aRetVal) || IsString(aRetVal) || IsPtr(aRetVal) || IsArray(aRetVal))
       add_to_sig(result,"NULL",&currPos);
     else
       add_to_sig(result,"0",&currPos);
   }
   add_to_sig(result,";\n",&currPos);
-  if(IsString(currentFunction->ReturnType)) {
+  if(IsString(aRetVal)) {
     add_to_sig(result,"    if(cret!=NULL) ret=CORBA::string_dup(cret);\n",&currPos);
   }
   
-  if(IsClass(currentFunction->ReturnType)) {
+  if(IsClass(aRetVal)) {
     add_to_sig(result,"    if(a",&currPos);
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);	      
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);	      
     add_to_sig(result," == NULL) {\n",&currPos);
     add_to_sig(result,"      return PARAVIS::",&currPos);	      
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);	      
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);	      
     add_to_sig(result,"::_nil();\n",&currPos);	      
     add_to_sig(result,"    }\n",&currPos);	      
     add_to_sig(result,"    ",&currPos);	      
     add_to_sig(result,"PARAVIS_Base_i* aPtr = ::CreateInstance(a",&currPos);	      
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);	      
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);	      
     add_to_sig(result,", a",&currPos);	      
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);	      
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);	      
     add_to_sig(result,"->GetClassName());\n",&currPos);
     add_to_sig(result,"    aPtr->Init(a",&currPos);	      
-    add_to_sig(result,currentFunction->ReturnClass,&currPos);	      
+    add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);	      
     add_to_sig(result,");\n",&currPos);	      
   }
     
   for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    if(
-       IsArray(currentFunction->ArgTypes[i])
-       && !IsVoid(currentFunction->ArgTypes[i])
-       && !IsString(currentFunction->ArgTypes[i])
-       && !IsClass(currentFunction->ArgTypes[i])
-       ) {
-      if (!IsIn(currentFunction->ArgTypes[i])) {
-	sprintf(buf,"    for(j_temp%d=0;j_temp%d<l_temp%d;j_temp%d++) {\n",i,i,i,i);
-	add_to_sig(result,buf,&currPos);
-	
-	sprintf(buf,"      temp%d[j_temp%d]=a_temp%d[j_temp%d];\n",i,i,i,i);
-	add_to_sig(result,buf,&currPos);
-	
-	add_to_sig(result,"    }\n",&currPos);
+    aArgVal = currentFunction->Arguments[i];
+    if(IsArray(aArgVal) && !IsVoid(aArgVal) && !IsString(aArgVal) && !IsClass(aArgVal)) {
+      if (!IsIn(aArgVal)) {
+        sprintf(buf,"    for(j_temp%d=0;j_temp%d<l_temp%d;j_temp%d++) {\n",i,i,i,i);
+        add_to_sig(result,buf,&currPos);
+        
+        sprintf(buf,"      temp%d[j_temp%d]=a_temp%d[j_temp%d];\n",i,i,i,i);
+        add_to_sig(result,buf,&currPos);
+        
+        add_to_sig(result,"    }\n",&currPos);
       }
       sprintf(buf,"    delete [] a_temp%d;\n",i);
       add_to_sig(result,buf,&currPos);
     }
   }
 
-  if (IsVoid(currentFunction->ReturnType) && !IsVoidPtr(currentFunction->ReturnType)) {
+  if (IsVoid(aRetVal) && !IsVoidPtr(aRetVal)) {
     add_to_sig(result,"    return;\n",&currPos); 
   } else {
-    if(IsClass(currentFunction->ReturnType)) {
+    if(IsClass(aRetVal)) {
       add_to_sig(result,"    return aPtr->_this();\n",&currPos);
     } else {
-      if(IsVoid(currentFunction->ReturnType)) {
-	add_to_sig(result,"    CORBA::Any* ret = new CORBA::Any;\n",&currPos);
-	add_to_sig(result,"    (*ret) <<= v_ret;\n",&currPos);
-	add_to_sig(result,"    return ret;\n",&currPos); 
+      if(IsVoid(aRetVal)) {
+        add_to_sig(result,"    CORBA::Any* ret = new CORBA::Any;\n",&currPos);
+        add_to_sig(result,"    (*ret) <<= v_ret;\n",&currPos);
+        add_to_sig(result,"    return ret;\n",&currPos); 
       } else {
-	if(IsArray(currentFunction->ReturnType) && !IsString(currentFunction->ReturnType)) {
-	  sprintf(buf,"    for(i_ret=0; i_ret<%d; i_ret++) {\n",currentFunction->HintSize);
-	  add_to_sig(result,buf,&currPos); 
-	  add_to_sig(result,"      s_ret[i_ret]=a_ret[i_ret];\n",&currPos); 
-	  add_to_sig(result,"    }\n",&currPos); 
-	  add_to_sig(result,"    return s_ret._retn();\n",&currPos); 
-	} else {
-	  add_to_sig(result,"    return ret;\n",&currPos); 
-	}
+        if(IsArray(aRetVal) && !IsString(aRetVal)) {
+          sprintf(buf,"    for(i_ret=0; i_ret<%d; i_ret++) {\n",currentFunction->HintSize);
+          add_to_sig(result,buf,&currPos); 
+          add_to_sig(result,"      s_ret[i_ret]=a_ret[i_ret];\n",&currPos); 
+          add_to_sig(result,"    }\n",&currPos); 
+          add_to_sig(result,"    return s_ret._retn();\n",&currPos); 
+        } else {
+          add_to_sig(result,"    return ret;\n",&currPos); 
+        }
       }
     }
   }
@@ -1119,29 +1207,29 @@ void get_signature(const char* num, FileInfo *data)
   add_to_sig(result,currentFunction->Name,&currPos);	      
   add_to_sig(result," - Unknown exception was occured!!!\");\n",&currPos);
 
-  if (IsVoid(currentFunction->ReturnType)&& !IsVoidPtr(currentFunction->ReturnType)) {
+  if (IsVoid(aRetVal)&& !IsVoidPtr(aRetVal)) {
     add_to_sig(result,"    return;\n",&currPos);
   } else{
-    if(IsString(currentFunction->ReturnType)) {
+    if(IsString(aRetVal)) {
       add_to_sig(result,"    return CORBA::string_dup(\"\");\n",&currPos);
     } else {
-      if(IsClass(currentFunction->ReturnType)) {
-	add_to_sig(result,"    return PARAVIS::",&currPos);
-	add_to_sig(result,currentFunction->ReturnClass,&currPos);
-	add_to_sig(result,"::_nil();\n",&currPos);
+      if(IsClass(aRetVal)) {
+        add_to_sig(result,"    return PARAVIS::",&currPos);
+        add_to_sig(result,currentFunction->ReturnValue->Class,&currPos);
+        add_to_sig(result,"::_nil();\n",&currPos);
       } else {
-	if(IsArray(currentFunction->ReturnType) && !IsVoid(currentFunction->ReturnType)) {
-	  add_to_sig(result,"    PARAVIS::",&currPos);
-	  AddTypeArray(currentFunction->ReturnType,result,&currPos);
-	  add_to_sig(result,"_var s_ret = new ",&currPos);
-	  AddTypeArray(currentFunction->ReturnType,result,&currPos);
-	  add_to_sig(result,"();\n",&currPos);
-	  sprintf(buf,"    s_ret->length(%d);\n",currentFunction->HintSize);
-	  add_to_sig(result,buf,&currPos);
-	  add_to_sig(result,"    return s_ret._retn();\n",&currPos);
-	} else {
-	  add_to_sig(result,"    return 0;\n",&currPos);
-	}
+        if(IsArray(aRetVal) && !IsVoid(aRetVal)) {
+          add_to_sig(result,"    PARAVIS::",&currPos);
+          AddTypeArray(aRetVal,result,&currPos);
+          add_to_sig(result,"_var s_ret = new ",&currPos);
+          AddTypeArray(aRetVal,result,&currPos);
+          add_to_sig(result,"();\n",&currPos);
+          sprintf(buf,"    s_ret->length(%d);\n",currentFunction->HintSize);
+          add_to_sig(result,buf,&currPos);
+          add_to_sig(result,"    return s_ret._retn();\n",&currPos);
+        } else {
+          add_to_sig(result,"    return 0;\n",&currPos);
+        }
       }
     }
   }
@@ -1155,9 +1243,12 @@ void get_signature(const char* num, FileInfo *data)
   if(ret)
     {
       result[currPos_sig]='\0';
-      currentFunction->Signature = realloc(currentFunction->Signature,
-					   (size_t)(currPos_sig+1));
-      strcpy(currentFunction->Signature,result);
+      /*currentFunction->Signature = (const char*)realloc((void*)currentFunction->Signature,
+        (size_t)(currPos_sig+1));*/
+      cp = (char *)malloc(currPos_sig+1);
+      strcpy(cp, result);
+      currentFunction->Signature = cp;
+      //strcpy((char*)currentFunction->Signature,result);
 
       return;
     }
@@ -1175,34 +1266,39 @@ void get_signature(const char* num, FileInfo *data)
       buf[j]=0;
       buf1[j]=0;
       if(strcmp(buf,buf1) == 0) {
-	currentFunction->Signature[0]='\0';
-	return;
+        ((char*)currentFunction->Signature)[0]='\0';
+        return;
       }
     }
   }
-
-  currentFunction->Signature = realloc(currentFunction->Signature,
-                                       (size_t)(currPos+1));
-  strcpy(currentFunction->Signature,result);
+  /*currentFunction->Signature = (const char*)realloc((void*)currentFunction->Signature,
+    (size_t)(currPos+1));*/
+  //strcpy((char*)currentFunction->Signature, result);
+  cp = (char *)malloc(currPos+1);
+  strcpy(cp, result);
+  currentFunction->Signature = cp;
 }
 
-void outputFunction2(FILE *fp, FileInfo *data)
+void outputFunction2(FILE *fp, ClassInfo *data)
 {
-  int i, j, k, is_static, is_vtkobject, fnum, occ, backnum, goto_used;
-  int all_legacy;
+  int i, j, k, is_vtkobject, fnum, backnum;//, is_static, occ, goto_used;
+  //int all_legacy;
   FunctionInfo *theFunc;
   FunctionInfo *backFunc;
-  char *theName;
-  int theType;
-  char *backName;
+  const char *theName;
+  unsigned int theType;
+  const char *backName;
   int backType;
   char static num[8];
   //int isSMObject = 0;
   int found = 0;
+  ValueInfo* aArgVal = 0;
+  ValueInfo* aBackArgVal = 0;
+
 
 #if defined(IDL_I_HH)
   fprintf(fp,"#include \"SALOMEconfig.h\"\n");
-  fprintf(fp,"#include CORBA_SERVER_HEADER(PARAVIS_Gen_%s)\n",data->ClassName);
+  fprintf(fp,"#include CORBA_SERVER_HEADER(PARAVIS_Gen_%s)\n",data->Name);
   fprintf(fp,"\n");
   fprintf(fp,"#include \"SALOME_GenericObj_i.hh\"\n");
   fprintf(fp,"#include \"PARAVIS_Gen_i.hh\"\n");
@@ -1215,14 +1311,14 @@ void outputFunction2(FILE *fp, FileInfo *data)
     fprintf(fp,"#include \"PARAVIS_Gen_%s_i.hh\"\n",data->SuperClasses[i]);
   }
 
-  fprintf(fp,"\nclass %s;\n",data->ClassName);
+  fprintf(fp,"\nclass %s;\n",data->Name);
   fprintf(fp,"\nnamespace PARAVIS\n{\n\n");
 #elif defined(IDL_I_CC)
   fprintf(fp,"#include \"SALOME_GenericObj_i.hh\"\n");
-  fprintf(fp,"#include \"PARAVIS_Gen_%s_i.hh\"\n",data->ClassName);
+  fprintf(fp,"#include \"PARAVIS_Gen_%s_i.hh\"\n",data->Name);
   fprintf(fp,"#include \"PV_Tools.h\"\n");
   fprintf(fp,"#include \"SALOME_Event.h\"\n");
-  fprintf(fp,"#include <%s.h>\n",data->ClassName);
+  fprintf(fp,"#include <%s.h>\n",data->Name);
 #else
   fprintf(fp,"#include \"PARAVIS_Gen.idl\"\n");
   fprintf(fp,"#include \"PARAVIS_Gen_Types.idl\"\n");
@@ -1235,160 +1331,182 @@ void outputFunction2(FILE *fp, FileInfo *data)
   fprintf(fp,"\nmodule PARAVIS\n{\n\n");
 #endif
 
-  is_vtkobject = ((strcmp(data->ClassName,"vtkObjectBase") == 0) || 
+  is_vtkobject = ((strcmp(data->Name,"vtkObjectBase") == 0) || 
                   (data->NumberOfSuperClasses != 0));
 
   for(i = 0; i < data->NumberOfSuperClasses; i++) {
-    read_class_functions(data->SuperClasses[i],data->ClassName,fp);
+    read_class_functions(data->SuperClasses[i],data->Name,fp);
   }
 
   /* create a idl signature for each method */
   for (fnum = 0; fnum < numberOfWrappedFunctions; fnum++)
     {
-
-    theFunc = wrappedFunctions[fnum];
-    currentFunction = theFunc;
-
-    /* names of idl methods should be unique */
-    num[0]='\0';
-    j=-1;
-    for (i = 0; i < numberOfReadFunctions; i++) {
-      if(strcmp(currentFunction->Name,readFunctions[i].Name) == 0)
-	j++;
-    }
-
-    for (i = 0; i < fnum; i++)
-      {
-	if( strcmp(currentFunction->Name,wrappedFunctions[i]->Name) ==  0 )
-	  j++;
+      theFunc = wrappedFunctions[fnum];
+      currentFunction = theFunc;
+      //printf("#### %i)Function %s\n", fnum, theFunc->Name);
+      
+      /* names of idl methods should be unique */
+      num[0]='\0';
+      j=-1;
+      for (i = 0; i < numberOfReadFunctions; i++) {
+        if(strcmp(currentFunction->Name,readFunctions[i].Name) == 0)
+          j++;
       }
-
-    if(j<0) {
-      for (i = fnum+1; i < numberOfWrappedFunctions; i++) {
-	if( strcmp(currentFunction->Name,wrappedFunctions[i]->Name) ==  0 ) {
-	  j=0;
-	  break;
-	}
+      for (i = 0; i < fnum; i++)
+        {
+          if( strcmp(currentFunction->Name,wrappedFunctions[i]->Name) ==  0 )
+            j++;
+        }
+      
+      if(j<0) {
+        for (i = fnum+1; i < numberOfWrappedFunctions; i++) {
+          if( strcmp(currentFunction->Name,wrappedFunctions[i]->Name) ==  0 ) {
+            j=0;
+            break;
+          }
+        }
+      } else {
+        j++;
       }
-    } else {
-      j++;
+      
+      if(j>=0)
+        {
+          sprintf(num,"_%d",j);
+        }
+      
+      get_signature(num,data);
     }
-
-    if(j>=0)
-      {
-	sprintf(num,"_%d",j);
-      }
-
-    get_signature(num,data);
-    }
-
   /* create external type declarations for all object
      return types */
   for (fnum = 0; fnum < numberOfWrappedFunctions; fnum++)
     {
-    theFunc = wrappedFunctions[fnum];
-    currentFunction = theFunc;
-    theName = NULL;
-    theType = 0;
-
-    for (i = theFunc->NumberOfArguments; i >= 0; i--)
-      {
-	if (i==0)/* return type */
-	  {
-	    theType = theFunc->ReturnType;
-	    theName = theFunc->ReturnClass;
-	  }
-	else /* arg type */
-	  {
-	    theType = theFunc->ArgTypes[i-1];
-	    theName = theFunc->ArgClasses[i-1];
-	  }
-	/* check for object types */
-	if ((theType % 0x1000 == 0x309)||
-	    (theType % 0x1000 == 0x109))
-	  {
-	    /* check that we haven't done this type (no duplicate declarations) */
-	    for (backnum = fnum; backnum >= 0; backnum--) 
-	      {
-		backFunc = wrappedFunctions[backnum];
-		backName = NULL;
-		backType = 0;
-		if (backnum == fnum)
-		  k = i+1;
-		else
-		  k = 0;
-		for (j = backFunc->NumberOfArguments; j >= k; j--)
-		  {
-		    if (j==0) /* return type */
-		      {
-			backType = backFunc->ReturnType;
-			backName = backFunc->ReturnClass;
-		      }
-		    else /* arg type */
-		      {
-			backType = backFunc->ArgTypes[j-1];
-			backName = backFunc->ArgClasses[j-1];
-		      }
-		    if (((backType % 0x1000 == 0x309)||
-			 (backType % 0x1000 == 0x109)))
-		      {
-			if(strcmp(theName,backName) == 0)
-			  {
-			    break;
-			  }
-		      }
-		  }
-		if (j >= k)
-		  {
-		    break;
-		  }
-	      }
-	    if (backnum < 0 && strcmp(data->ClassName,theName) != 0)
-	      {
-		found = 0;
-		for(j = 0; strcmp(wrapped_classes[j],"") != 0 && found == 0; j++)
-		  {
-		    if(strcmp(wrapped_classes[j],theName) == 0)
-		      found = 1;
-		  }
-		if(found)
-		  {
+      theFunc = wrappedFunctions[fnum];
+      currentFunction = theFunc;
+      theName = NULL;
+      theType = 0;
+      
+      for (i = theFunc->NumberOfArguments; i >= 0; i--)
+        {
+          if (i==0)/* return type */
+            {
+              aArgVal = theFunc->ReturnValue;
+              //theType = theFunc->ReturnType;
+              //theName = (char*)theFunc->ReturnClass;
+            }
+          else /* arg type */
+            {
+              aArgVal = theFunc->Arguments[i-1];
+              //theType = theFunc->ArgTypes[i-1];
+              //theName = (char*)theFunc->ArgClasses[i-1];
+            }
+          theType = aArgVal->Type & VTK_PARSE_BASE_TYPE;
+          theName = aArgVal->Class;
+          /* check for object types */
+          /*if ((theType & VTK_PARSE_BASE_TYPE == 0x309)||
+            (theType & VTK_PARSE_BASE_TYPE == 0x109))*/
+          if ((theType == VTK_PARSE_OBJECT) || (theType == VTK_PARSE_OBJECT_REF))
+            {
+              /* check that we haven't done this type (no duplicate declarations) */
+              for (backnum = fnum; backnum >= 0; backnum--) 
+                {
+                  backFunc = wrappedFunctions[backnum];
+                  backName = NULL;
+                  backType = 0;
+                  if (backnum == fnum)
+                    k = i+1;
+                  else
+                    k = 0;
+                  for (j = backFunc->NumberOfArguments; j >= k; j--)
+                    {
+                      if (j==0) /* return type */
+                        {
+                          aBackArgVal = backFunc->ReturnValue;
+                          //backType = backFunc->ReturnType;
+                          //backName = (char*)backFunc->ReturnClass;
+                        }
+                      else /* arg type */
+                        {
+                          aBackArgVal = backFunc->Arguments[j-1];
+                          //backType = backFunc->ArgTypes[j-1];
+                          //backName = (char*)backFunc->ArgClasses[j-1];
+                        }
+                      backType = aBackArgVal->Type & VTK_PARSE_BASE_TYPE;
+                      backName = aBackArgVal->Class;
+                      /*if (((backType % VTK_PARSE_BASE_TYPE == 0x309)||
+                        (backType % VTK_PARSE_BASE_TYPE == 0x109)))*/
+                      if ((backType == VTK_PARSE_OBJECT) || (backType == VTK_PARSE_OBJECT_REF))
+                       {
+                          if(strcmp(theName,backName) == 0)
+                            {
+                              break;
+                            }
+                        }
+                    }
+                  if (j >= k)
+                    {
+                      break;
+                    }
+                }
+              if (backnum < 0 && strcmp(data->Name,theName) != 0)
+                {
+                  found = 0;
+                  for(j = 0; strcmp(wrapped_classes[j],"") != 0 && found == 0; j++)
+                    {
+                      if(strcmp(wrapped_classes[j],theName) == 0)
+                        found = 1;
+                    }
+                  if(found)
+                    {
 #if defined(IDL_I_HH)
-		    fprintf(fp,"    class %s_i;\n",theName);
+                      fprintf(fp,"    class %s_i;\n",theName);
 #elif defined(IDL_I_CC)
-		    fprintf(fp,"#include \"PARAVIS_Gen_%s_i.hh\"\n",theName);
-		    fprintf(fp,"#include <%s.h>\n",theName);
+                      fprintf(fp,"#include \"PARAVIS_Gen_%s_i.hh\"\n",theName);
+                      fprintf(fp,"#include <%s.h>\n",theName);
 #else
-		    //fprintf(fp,"#include \"PARAVIS_Gen_%s.idl\"\n",theName);
-		    fprintf(fp,"    interface %s;\n",theName);
+                      //fprintf(fp,"#include \"PARAVIS_Gen_%s.idl\"\n",theName);
+                      fprintf(fp,"    interface %s;\n",theName);
 #endif
-		  }
-	      }
-	  }
-      }
+                    }
+                }
+            }
+        }
     }
-
+  
   //fprintf(fp,"\nmodule PARAVIS\n{\n");
 #if defined(IDL_I_HH)
-  fprintf(fp,"\n    class %s_i : public virtual POA_PARAVIS::%s, public virtual PARAVIS::PARAVIS_Base_i",data->ClassName,data->ClassName);
+  fprintf(fp,"\n    class %s_i : public virtual POA_PARAVIS::%s, public virtual PARAVIS::PARAVIS_Base_i",data->Name,data->Name);
   //for(i = 0; i < data->NumberOfSuperClasses; i++) {
   //  fprintf(fp,", public virtual %s_i",data->SuperClasses[i]);
   //}
   //fprintf(fp,", public virtual SALOME::GenericObj_i");
   fprintf(fp," {");
   fprintf(fp,"\n    public:\n");
-  fprintf(fp,"\n        %s_i();\n",data->ClassName);
+  fprintf(fp,"\n        %s_i();\n",data->Name);
+  if(strcmp(data->Name,"vtkSMSessionProxyManager") != 0) {
+    fprintf(fp,"\n        ::vtkObjectBase* GetNew();\n");
+  }
+
 #elif defined(IDL_I_CC)
   fprintf(fp,"extern PARAVIS::PARAVIS_Base_i* CreateInstance(::vtkObjectBase* Inst, const QString&);\n");
   fprintf(fp,"\nnamespace PARAVIS\n{\n");
-  fprintf(fp,"typedef %s_i current_inderface;\n",data->ClassName);
-  fprintf(fp,"#define CreateEventName(Function) Event%s ##Function\n",data->ClassName);
-  fprintf(fp,"%s_i::%s_i() {\n",data->ClassName,data->ClassName);
-  fprintf(fp,"    Init(::%s::New());\n",data->ClassName);
+  fprintf(fp,"typedef %s_i current_interface;\n",data->Name);
+  fprintf(fp,"#define CreateEventName(Function) Event%s ##Function\n",data->Name);
+  fprintf(fp,"%s_i::%s_i() {\n",data->Name,data->Name);
+  //fprintf(fp,"    Init(::%s::New());\n",data->Name);
   fprintf(fp,"}\n");
   fprintf(fp,"\n");
+  
+  if(strcmp(data->Name,"vtkSMSessionProxyManager") != 0) {
+    fprintf(fp,"::vtkObjectBase* %s_i::GetNew() {\n", data->Name);
+    if(strcmp(data->Name,"vtkSMProxyManager") == 0) {
+      fprintf(fp,"  return ::%s::GetProxyManager();\n",data->Name);
+    } else {
+      fprintf(fp,"  return ::%s::New();\n",data->Name);
+    }
+    fprintf(fp,"}\n");
+  }
 #else
-  fprintf(fp,"\n    interface %s : PARAVIS_Base",data->ClassName);
+  fprintf(fp,"\n    interface %s : PARAVIS_Base",data->Name);
   fprintf(fp,"\n    {\n");
 #endif
 
@@ -1413,11 +1531,15 @@ void outputFunction2(FILE *fp, FileInfo *data)
   return;
 }
 
-void outputFunction(FILE *fp, FileInfo *data)
+void outputFunction(FILE *fp, ClassInfo *data)
 {
   int i;
-  int args_ok = 1;
- 
+  //int args_ok = 1;
+  ValueInfo* aRetVal = NULL;//currentFunction->ReturnValue;
+  ValueInfo* aArgVal = NULL;
+  unsigned int aType;
+  unsigned int argtype;
+
   fp = fp;
   /* some functions will not get wrapped no matter what else,
      and some really common functions will appear only in vtkObjectPython */
@@ -1428,133 +1550,217 @@ void outputFunction(FILE *fp, FileInfo *data)
     {
       return;
     }
-  
+  //printf("#### Check %s\n", currentFunction->Name);
+ 
   /* check to see if we can handle the args */
   for (i = 0; i < currentFunction->NumberOfArguments; i++)
     {
-    if (currentFunction->ArgTypes[i] % 0x1000 == 9) args_ok = 0;
-    if ((currentFunction->ArgTypes[i] % 0x10) == 8) args_ok = 0;
-    if (((currentFunction->ArgTypes[i] % 0x1000)/0x100 != 0x3)&&
-        (currentFunction->ArgTypes[i] % 0x1000 != 0x109)&&
-        ((currentFunction->ArgTypes[i] % 0x1000)/0x100)) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x313) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x314) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x31A) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x31B) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x31C) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x315) args_ok = 0;
-    if (currentFunction->ArgTypes[i] % 0x1000 == 0x316) args_ok = 0;
+      aArgVal = currentFunction->Arguments[i];
+      /*printf("  Argument: %s ", vtkWrap_GetTypeName(aArgVal));
+      if (vtkWrap_IsArray(aArgVal)) {
+        printf("!!!! Argument %i is array\n", i);
+        return;
+        }*/
+      if (vtkWrap_IsStream(aArgVal)) {
+        //printf("!!!! Argument %i is stream\n", i);
+        return;
+      }
+      if (IsPtr(aArgVal)) {
+        //printf("!!!! Argument %i is pointer value\n", i);
+        return;
+      }
+      if (IsUnknown(aArgVal)) {
+        //printf("!!!! Argument %i is unknown value\n", i);
+       return;
+      }
+      if (vtkWrap_IsVoidPointer(aArgVal)) {
+        //printf("!!!! Argument %i is void pointer\n", i);
+        return;
+      }
+      if (vtkWrap_IsVoidFunction(aArgVal)) {
+        //printf("!!!! Argument %i is void function\n", i);
+        return;
+      }
+      argtype = (aArgVal->Type & VTK_PARSE_INDIRECT);
+      if (argtype == VTK_PARSE_POINTER_POINTER){
+        //printf("!!!! Argument %i is pointer to pointer\n", i);
+        return;
+      }
+      if (vtkWrap_IsNonConstRef(aArgVal)) {
+        //printf("!!!! Argument %i is non const ref\n", i);
+        return;
+      }
+      if (vtkWrap_IsSpecialObject(aArgVal)) {
+        //printf("!!!! Argument %i is special object\n", i);
+        return;
+      }
+      /*if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 9) args_ok = 0;
+      if ((currentFunction->ArgTypes[i] % 0x10) == 8) args_ok = 0;
+      if (((currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE)/0x100 != 0x3)&&
+          (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE != 0x109)&&
+          ((currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE)/0x100)) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x313) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x314) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x31A) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x31B) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x31C) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x315) args_ok = 0;
+      if (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE == 0x316) args_ok = 0;*/
     }
-  if ((currentFunction->ReturnType % 0x10) == 0x8) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x9) args_ok = 0;
-  if (((currentFunction->ReturnType % 0x1000)/0x100 != 0x3)&&
-      (currentFunction->ReturnType % 0x1000 != 0x109)&&
-      ((currentFunction->ReturnType % 0x1000)/0x100)) args_ok = 0;
+  aRetVal = currentFunction->ReturnValue;
+  if (aRetVal) {
+    //printf("#### Return type: %s\n", vtkWrap_GetTypeName(aRetVal));
+    aType = aRetVal->Type & VTK_PARSE_BASE_TYPE;
+    if (IsPtr(aRetVal)) {
+      //printf("!!!! Return Value is pointer\n");
+      return;
+    }
+    /* eliminate unsigned char * and unsigned short * */
+    argtype = (aRetVal->Type & VTK_PARSE_UNQUALIFIED_TYPE);
+    if ((argtype == VTK_PARSE_UNSIGNED_CHAR_PTR) || (argtype == VTK_PARSE_UNSIGNED_SHORT)) { 
+      //printf("!!!! Return Value is unsigned char or short\n");
+      return;
+    }
 
+    if ((aType == VTK_PARSE_UNKNOWN)) {
+      //printf("!!!! Return Value is unknown\n");
+      return;
+    }
+    argtype = (aRetVal->Type & VTK_PARSE_INDIRECT);
+    if (argtype == VTK_PARSE_POINTER_POINTER){
+      //printf("!!!! Return value is pointer to pointer\n", i);
+      return;
+    }
+    if (vtkWrap_IsSpecialObject(aRetVal)) {
+      //printf("!!!! Return is special object\n", i);
+      return;
+    }
+  }
+  /*if ((aRetVal % 0x10) == 0x8) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x9) args_ok = 0;
+  if (((aRetVal % VTK_PARSE_BASE_TYPE)/0x100 != 0x3)&&
+      (aRetVal % VTK_PARSE_BASE_TYPE != 0x109)&&
+      ((aRetVal % VTK_PARSE_BASE_TYPE)/0x100)) args_ok = 0;
+  */
 
-  /* eliminate unsigned char * and unsigned short * */
-  if (currentFunction->ReturnType % 0x1000 == 0x313) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x314) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x31A) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x31B) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x31C) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x315) args_ok = 0;
-  if (currentFunction->ReturnType % 0x1000 == 0x316) args_ok = 0;
+  /*if (aRetVal % VTK_PARSE_BASE_TYPE == 0x313) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x314) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x31A) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x31B) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x31C) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x315) args_ok = 0;
+  if (aRetVal % VTK_PARSE_BASE_TYPE == 0x316) args_ok = 0;
+  
 
   if (currentFunction->NumberOfArguments && 
       (currentFunction->ArgTypes[0] == 0x5000)
-      &&(currentFunction->NumberOfArguments != 0x1)) args_ok = 0;
+      &&(currentFunction->NumberOfArguments != 0x1)) args_ok = 0;*/
 
   /* make sure we have all the info we need for array arguments in */
-  for (i = 0; i < currentFunction->NumberOfArguments; i++)
+  /*for (i = 0; i < currentFunction->NumberOfArguments; i++)
     {
-    if (((currentFunction->ArgTypes[i] % 0x1000)/0x100 == 0x3)&&
+    if (((currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE)/0x100 == 0x3)&&
         (currentFunction->ArgCounts[i] <= 0)&&
-        (currentFunction->ArgTypes[i] % 0x1000 != 0x309)&&
-        (currentFunction->ArgTypes[i] % 0x1000 != 0x303)&&
-        (currentFunction->ArgTypes[i] % 0x1000 != 0x302)) args_ok = 0;
-    }
+        (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE != 0x309)&&
+        (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE != 0x303)&&
+        (currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE != 0x302)) args_ok = 0;
+        }*/
 
   /* if we need a return type hint make sure we have one */
-  switch (currentFunction->ReturnType % 0x1000)
+  //switch (aRetVal % VTK_PARSE_BASE_TYPE)
+  /*switch (aRetVal->Type % VTK_PARSE_BASE_TYPE)
     {
     case 0x301: case 0x307: case 0x30A: case 0x30B: case 0x30C: case 0x30D: case 0x30E:
     case 0x304: case 0x305: case 0x306:
       args_ok = currentFunction->HaveHint;
       break;
-    }
+      }*/
   
   /* make sure it isn't a Delete or New function */
   if (!strcmp("Delete",currentFunction->Name) ||
       !strcmp("New",currentFunction->Name))
     {
-    args_ok = 0;
+      return;
     }
+
+  if (vtkWrap_IsDestructor(data, currentFunction) || vtkWrap_IsConstructor(data, currentFunction)) {
+    //printf("!!!! Return Value is constructor or destructor\n");
+    return;
+  }
   
   /* check for New() function */
-  if (!strcmp("New",currentFunction->Name) &&
-      currentFunction->NumberOfArguments == 0)
+  if (!strcmp("New",currentFunction->Name) && currentFunction->NumberOfArguments == 0)
     {
-    class_has_new = 1;
+      class_has_new = 1;
     }
 
-  if (currentFunction->IsPublic && args_ok && 
-      strcmp(data->ClassName,currentFunction->Name) &&
-      strcmp(data->ClassName, currentFunction->Name + 1))
+  if (currentFunction->IsPublic && //args_ok && 
+      strcmp(data->Name,currentFunction->Name) &&
+      strcmp(data->Name, currentFunction->Name + 1))
     {
-    wrappedFunctions[numberOfWrappedFunctions] = currentFunction;
-    numberOfWrappedFunctions++;
+      //printf("#### %i Function %s\n", numberOfWrappedFunctions, currentFunction->Name);
+      wrappedFunctions[numberOfWrappedFunctions] = currentFunction;
+      numberOfWrappedFunctions++;
     }
-
+  
   return;
 }
 
 /* print the parsed structures */
-void vtkParseOutput(FILE *fp, FileInfo *data)
+void vtkParseOutput(FILE *fp, FileInfo *file_info)
 {
   int i;
+  ClassInfo *data;
+
+  /* get the main class */
+  data = file_info->MainClass;
+
+  // Do not wrap this class
+  //  if (strcmp(data->Name, "vtkVariant") == 0)
+  //  return;
 
 #if defined(IDL_I_HH)
-  fprintf(fp, "// idl wrapper interface for %s object implementation\n//\n", data->ClassName);
+  fprintf(fp, "// idl wrapper interface for %s object implementation\n//\n", data->Name);
 #elif defined(IDL_I_CC)
-  fprintf(fp, "// idl wrapper implementation for %s object\n//\n", data->ClassName);
+  fprintf(fp, "// idl wrapper implementation for %s object\n//\n", data->Name);
 #else
-  fprintf(fp, "// idl wrapper for %s object\n//\n", data->ClassName);
+  fprintf(fp, "// idl wrapper for %s object\n//\n", data->Name);
 #endif
   for (i = 0;1;i++)
     {
       if(strlen(Copyright[i]) != 0)
-	{
-	  fprintf(fp,"%s\n",Copyright[i]);
-	}
+        {
+          fprintf(fp,"%s\n",Copyright[i]);
+        }
       else
-	{
-	  break;
-	}
+        {
+          break;
+        }
     }
   fprintf(fp,"\n");
 #if defined(IDL_I_HH)
-  fprintf(fp,"#ifndef PARAVIS_Gen_%s_i_HeaderFile\n",data->ClassName);
-  fprintf(fp,"#define PARAVIS_Gen_%s_i_HeaderFile\n",data->ClassName);
+  fprintf(fp,"#ifndef PARAVIS_Gen_%s_i_HeaderFile\n",data->Name);
+  fprintf(fp,"#define PARAVIS_Gen_%s_i_HeaderFile\n",data->Name);
   fprintf(fp,"\n");
 #elif defined(IDL_I_CC)
 #else
-  fprintf(fp,"#ifndef __PARAVIS_Gen_%s__\n",data->ClassName);
-  fprintf(fp,"#define __PARAVIS_Gen_%s__\n",data->ClassName);
+  fprintf(fp,"#ifndef __PARAVIS_Gen_%s__\n",data->Name);
+  fprintf(fp,"#define __PARAVIS_Gen_%s__\n",data->Name);
   fprintf(fp,"\n");
 #endif
 
   /* insert function handling code here */
   for (i = 0; i < data->NumberOfFunctions; i++)
     {
-      currentFunction = data->Functions + i;
+      currentFunction = data->Functions[i];
       outputFunction(fp, data);
     }
-
-  if (data->NumberOfSuperClasses || !data->IsAbstract)
-    {
-    outputFunction2(fp, data);
-    }
+  //printf("#### NbFunctions %i\n", numberOfWrappedFunctions);
+  //if (data->NumberOfSuperClasses || (!data->IsAbstract))
+  //if (numberOfWrappedFunctions)
+  // {
+      outputFunction2(fp, data);
+      // }
 
 #if defined(IDL_I_HH)
   fprintf(fp,"\n#endif\n");

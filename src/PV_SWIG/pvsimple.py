@@ -1,3 +1,22 @@
+# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 r"""simple is a module for using paraview server manager in Python. It 
 provides a simple convenience layer to functionality provided by the
 C++ classes wrapped to Python as well as the servermanager module.
@@ -24,12 +43,13 @@ import paravisSM
 servermanager = paravisSM
 
 def _disconnect():
-    servermanager.ProxyManager().UnRegisterProxies()
-    active_objects.view = None
-    active_objects.source = None
-    import gc
-    gc.collect()
-    servermanager.Disconnect()
+    if servermanager.ActiveConnection:
+        servermanager.ProxyManager().UnRegisterProxies()
+        active_objects.view = None
+        active_objects.source = None
+        import gc
+        gc.collect()
+        servermanager.Disconnect()
 
 def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=11111):
     """Creates a connection to a server. Example usage:
@@ -37,17 +57,26 @@ def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=11111):
     > Connect("amber", 12345) # Connect to a single server at port 12345
     > Connect("amber", 11111, "vis_cluster", 11111) # connect to data server, render server pair"""
     _disconnect()
-    cid = servermanager.Connect(ds_host, ds_port, rs_host, rs_port)
-    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", servermanager.misc.TimeKeeper())
-    return cid
+    session = servermanager.Connect(ds_host, ds_port, rs_host, rs_port)
+    _add_functions(globals())
+
+    tk =  servermanager.misc.TimeKeeper()
+    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", tk)
+    scene = AnimationScene()
+    scene.TimeKeeper = tk
+    return session
 
 def ReverseConnect(port=11111):
     """Create a reverse connection to a server.  Listens on port and waits for
     an incoming connection from the server."""
     _disconnect()
-    cid = servermanager.ReverseConnect(port)
-    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", servermanager.misc.TimeKeeper())
-    return cid
+    session = servermanager.ReverseConnect(port)
+    _add_functions(globals())
+    tk =  servermanager.misc.TimeKeeper()
+    servermanager.ProxyManager().RegisterProxy("timekeeper", "tk", tk)
+    scene = AnimationScene()
+    scene.TimeKeeper = tk
+    return session
 
 def _create_view(view_xml_name):
     "Creates and returns a 3D render view."
@@ -61,30 +90,97 @@ def _create_view(view_xml_name):
     views = tk.Views
     if not view in views:
         views.append(view)
-
+    try:
+        scene = GetAnimationScene()
+        if not view in scene.ViewModules:
+            scene.ViewModules.append(view)
+    except servermanager.MissingProxy:
+        pass
     return view
 
 def CreateRenderView():
     return _create_view("RenderView")
 
 def CreateXYPlotView():
-    return _create_view("XYPlotView")
+    return _create_view("XYChartView")
 
 def CreateBarChartView():
-    return _create_view("BarChart")
+    return _create_view("XYBarChartView")
+
+def CreateComparativeRenderView():
+    return _create_view("ComparativeRenderView")
+
+def CreateComparativeXYPlotView():
+    return _create_view("ComparativeXYPlotView")
+ 
+def CreateComparativeBarChartView():
+    return _create_view("ComparativeBarChartView")
+
+def CreateParallelCoordinatesChartView():
+    return _create_view("ParallelCoordinatesChartView")
+
+def Create2DRenderView():
+    return _create_view("2DRenderView")
+
+def OpenDataFile(filename, **extraArgs):
+    """Creates a reader to read the give file, if possible.
+       This uses extension matching to determine the best reader possible.
+       If a reader cannot be identified, then this returns None."""
+    reader_factor = servermanager.ProxyManager().GetReaderFactory()
+    if  reader_factor.GetNumberOfRegisteredPrototypes() == 0:
+      reader_factor.RegisterPrototypes("sources")
+    session = servermanager.ActiveConnection.Session
+    first_file = filename
+    if type(filename) == list:
+        first_file = filename[0]
+    if not reader_factor.TestFileReadability(first_file, session):
+        raise RuntimeError, "File not readable: %s " % first_file
+    if not reader_factor.CanReadFile(first_file, session):
+        raise RuntimeError, "File not readable. No reader found for '%s' " % first_file
+    prototype = servermanager.ProxyManager().GetPrototypeProxy(
+      reader_factor.GetReaderGroup(), reader_factor.GetReaderName())
+    xml_name = paraview.make_name_valid(prototype.GetXMLLabel())
+    reader_func = _create_func(xml_name, servermanager.sources)
+    if prototype.GetProperty("FileNames"):
+      reader = reader_func(FileNames=filename, **extraArgs)
+    else :
+      reader = reader_func(FileName=filename, **extraArgs)
+    return reader
+
+def CreateWriter(filename, proxy=None, **extraArgs):
+    """Creates a writer that can write the data produced by the source proxy in
+       the given file format (identified by the extension). If no source is
+       provided, then the active source is used. This doesn't actually write the
+       data, it simply creates the writer and returns it."""
+    if not filename:
+       raise RuntimeError, "filename must be specified"
+    writer_factory = servermanager.ProxyManager().GetWriterFactory()
+    if writer_factory.GetNumberOfRegisteredPrototypes() == 0:
+        writer_factory.RegisterPrototypes("writers")
+    if not proxy:
+        proxy = GetActiveSource()
+    if not proxy:
+        raise RuntimeError, "Could not locate source to write"
+    writer_proxy = writer_factory.CreateWriter(filename, proxy.SMProxy, proxy.Port)
+    return servermanager._getPyProxy(writer_proxy)
 
 def GetRenderView():
-    "Returns the active view if there is one. Else creates and returns a new view."
+    """Returns the active view if there is one. Else creates and returns a new view."""
     view = active_objects.view
-    if not view: view = CreateRenderView()
+    if not view:
+        # it's possible that there's no active view, but a render view exists.
+        # If so, locate that and return it (before trying to create a new one).
+        view = servermanager.GetRenderView()
+    if not view:
+        view = CreateRenderView()
     return view
 
 def GetRenderViews():
-    "Returns all render views as a list."
+    """Returns all render views as a list."""
     return servermanager.GetRenderViews()
 
 def GetRepresentation(proxy=None, view=None):
-    """"Given a pipeline object and view, returns the corresponding representation object.
+    """Given a pipeline object and view, returns the corresponding representation object.
     If pipeline object and view are not specified, active objects are used."""
     if not view:
         view = active_objects.view
@@ -99,7 +195,7 @@ def GetRepresentation(proxy=None, view=None):
     return rep
     
 def GetDisplayProperties(proxy=None, view=None):
-    """"Given a pipeline object and view, returns the corresponding representation object.
+    """Given a pipeline object and view, returns the corresponding representation object.
     If pipeline object and/or view are not specified, active objects are used."""
     return GetRepresentation(proxy, view)
     
@@ -146,8 +242,17 @@ def ResetCamera(view=None):
     used."""
     if not view:
         view = active_objects.view
-    view.ResetCamera()
+    if hasattr(view, "ResetCamera"):
+        view.ResetCamera()
+    if hasattr(view, "ResetDisplay"):
+        view.ResetDisplay()
     Render(view)
+
+def _DisableFirstRenderCameraReset():
+    """Disable the first render camera reset.  Normally a ResetCamera is called
+    automatically when Render is called for the first time after importing
+    this module."""
+    _funcs_internals.first_render = False
 
 def SetProperties(proxy=None, **params):
     """Sets one or more properties of the given pipeline object. If an argument
@@ -161,6 +266,40 @@ def SetProperties(proxy=None, **params):
         if not hasattr(proxy, param):
             raise AttributeError("object has no property %s" % param)
         setattr(proxy, param, params[param])
+
+def GetProperty(*arguments, **keywords):
+    """Get one property of the given pipeline object. If keywords are used,
+       you can set the proxy and the name of the property that you want to get
+       like in the following example :
+            GetProperty({proxy=sphere, name="Radius"})
+       If it's arguments that are used, then you have two case:
+         - if only one argument is used that argument will be
+           the property name.
+         - if two arguments are used then the first one will be
+           the proxy and the second one the property name.
+       Several example are given below:
+           GetProperty({name="Radius"})
+           GetProperty({proxy=sphereProxy, name="Radius"})
+           GetProperty( sphereProxy, "Radius" )
+           GetProperty( "Radius" )
+    """
+    name = None
+    proxy = None
+    for key in keywords:
+        if key == "name":
+            name = keywords[key]
+        if key == "proxy":
+            proxy = keywords[key]
+    if len(arguments) == 1 :
+        name = arguments[0]
+    if len(arguments) == 2 :
+        proxy = arguments[0]
+        name  = arguments[1]
+    if not name:
+        raise RuntimeError, "Expecting at least a property name as input. Otherwise keyword could be used to set 'proxy' and property 'name'"
+    if not proxy:
+        proxy = active_objects.source
+    return proxy.GetProperty(name)
 
 def SetDisplayProperties(proxy=None, view=None, **params):
     """Sets one or more display properties of the given pipeline object. If an argument
@@ -226,7 +365,7 @@ def Delete(proxy=None):
         if listdomain:
             if listdomain.GetClassName() != 'vtkSMProxyListDomain':
                 continue
-            group = "pq_helper_proxies." + proxy.GetSelfIDAsString()
+            group = "pq_helper_proxies." + proxy.GetGlobalIDAsString()
             for i in xrange(listdomain.GetNumberOfProxies()):
                 pm = servermanager.ProxyManager()
                 iproxy = listdomain.GetProxy(i)
@@ -251,7 +390,8 @@ def Delete(proxy=None):
     servermanager.UnRegister(proxy)
     
     # If this is a representation, remove it from all views.
-    if proxy.SMProxy.IsA("vtkSMRepresentationProxy"):
+    if proxy.SMProxy.IsA("vtkSMRepresentationProxy") or \
+        proxy.SMProxy.IsA("vtkSMNewWidgetRepresentationProxy"):
         for view in GetRenderViews():
             view.Representations.remove(proxy)
     # If this is a source, remove the representation iff it has no consumers
@@ -301,6 +441,24 @@ def CreatePiecewiseFunction(**params):
     SetProperties(pfunc, **params)
     return pfunc
 
+def GetLookupTableForArray(arrayname, num_components, **params):
+    """Used to get an existing lookuptable for a array or to create one if none
+    exists. Keyword arguments can be passed in to initialize the LUT if a new
+    one is created."""
+    proxyName = "%d.%s.PVLookupTable" % (int(num_components), arrayname)
+    lut = servermanager.ProxyManager().GetProxy("lookup_tables", proxyName)
+    if lut:
+        return lut
+    # No LUT exists for this array, create a new one.
+    # TODO: Change this to go a LookupTableManager that is shared with the GUI,
+    # so that the GUI and python end up create same type of LUTs. For now,
+    # python will create a Blue-Red LUT, unless overridden by params.
+    lut = servermanager.rendering.PVLookupTable(
+            ColorSpace="HSV", RGBPoints=[0, 0, 0, 1, 1, 1, 0, 0])
+    SetProperties(lut, **params)
+    servermanager.Register(lut, registrationName=proxyName)
+    return lut
+
 def CreateScalarBar(**params):
     """Create and return a scalar bar widget.  The returned widget may
     be added to a render view by appending it to the view's representations
@@ -332,7 +490,7 @@ def MakeBlueToRedLT(min, max):
     return CreateLookupTable(RGBPoints=rgbPoints, ColorSpace="HSV")
     
 def _find_writer(filename):
-    "Internal function."
+    """Internal function."""
     extension = None
     parts = filename.split('.')
     if len(parts) > 1:
@@ -408,7 +566,7 @@ def AnimateReader(reader=None, view=None, filename=None):
 
 
 def _create_func(key, module):
-    "Internal function."
+    """Internal function."""
 
     def CreateObject(*input, **params):
         """This function creates a new proxy. For pipeline objects that accept inputs,
@@ -475,7 +633,7 @@ def _create_func(key, module):
     return CreateObject
 
 def _create_doc(new, old):
-    "Internal function."
+    """Internal function."""
     import string
     res = ""
     for doc in (new, old):
@@ -488,7 +646,7 @@ def _create_doc(new, old):
     return res
     
 def _func_name_valid(name):
-    "Internal function."
+    """Internal function."""
     valid = True
     for c in name:
         if c == '(' or c ==')':
@@ -497,7 +655,8 @@ def _func_name_valid(name):
     return valid
 
 def _add_functions(g):
-    for m in [servermanager.filters, servermanager.sources, servermanager.writers]:
+    for m in [servermanager.filters, servermanager.sources,
+              servermanager.writers, servermanager.animation]:
         dt = m.__dict__
         for key in dt.keys():
             cl = dt[key]
@@ -507,25 +666,185 @@ def _add_functions(g):
                     exec "g[key].__doc__ = _create_doc(m.%s.__doc__, g[key].__doc__)" % key
 
 def GetActiveView():
-    "Returns the active view."
+    """Returns the active view."""
     return active_objects.view
     
 def SetActiveView(view):
-    "Sets the active view."
+    """Sets the active view."""
     active_objects.view = view
     
 def GetActiveSource():
-    "Returns the active source."
+    """Returns the active source."""
     return active_objects.source
     
 def SetActiveSource(source):
-    "Sets the active source."
+    """Sets the active source."""
     active_objects.source = source
     
 def GetActiveCamera():
     """Returns the active camera for the active view. The returned object
     is an instance of vtkCamera."""
     return GetActiveView().GetActiveCamera()
+
+def GetAnimationScene():
+    """Returns the application-wide animation scene. ParaView has only one
+    global animation scene. This method provides access to that. Users are
+    free to create additional animation scenes directly, but those scenes
+    won't be shown in the ParaView GUI."""
+    animation_proxies = servermanager.ProxyManager().GetProxiesInGroup("animation")
+    scene = None
+    for aProxy in animation_proxies.values():
+        if aProxy.GetXMLName() == "AnimationScene":
+            scene = aProxy
+            break
+    if not scene:
+        raise servermanager.MissingProxy, "Could not locate global AnimationScene."
+    return scene
+
+def WriteAnimation(filename, **params):
+    """Writes the current animation as a file. Optionally one can specify
+    arguments that qualify the saved animation files as keyword arguments.
+    Accepted options are as follows:
+    * Magnification (integer) : set the maginification factor for the saved
+      animation.
+    * Quality (0 [worst] or 1 or 2 [best]) : set the quality of the generated
+      movie (if applicable).
+    * Subsampling (integer) : setting whether the movie encoder should use
+      subsampling of the chrome planes or not, if applicable. Since the human
+      eye is more sensitive to brightness than color variations, subsampling
+      can be useful to reduce the bitrate. Default value is 0.
+    * BackgroundColor (3-tuple of doubles) : set the RGB background color to
+      use to fill empty spaces in the image.
+    * FrameRate (double): set the frame rate (if applicable)."""
+    scene = GetAnimationScene()
+    # ensures that the TimeKeeper track is created.
+    GetTimeTrack()
+    iw = servermanager.vtkSMAnimationSceneImageWriter()
+    iw.SetAnimationScene(scene.SMProxy)
+    iw.SetFileName(filename)
+    if params.has_key("Magnification"):
+        iw.SetMagnification(int(params["Magnification"]))
+    if params.has_key("Quality"):
+        iw.SetQuality(int(params["Quality"]))
+    if params.has_key("Subsampling"):
+        iw.SetSubsampling(int(params["Subsampling"]))
+    if params.has_key("BackgroundColor"):
+        iw.SetBackgroundColor(params["BackgroundColor"])
+    if params.has_key("FrameRate"):
+        iw.SetFrameRate(float(params["FrameRate"]))
+    iw.Save()
+
+def _GetRepresentationAnimationHelper(sourceproxy):
+    """Internal method that returns the representation animation helper for a
+       source proxy. It creates a new one if none exists."""
+    # ascertain that proxy is a source proxy
+    if not sourceproxy in GetSources().values():
+        return None
+    for proxy in servermanager.ProxyManager():
+        if proxy.GetXMLName() == "RepresentationAnimationHelper" and\
+           proxy.GetProperty("Source").IsProxyAdded(sourceproxy.SMProxy):
+             return proxy
+    # create a new helper
+    proxy = servermanager.misc.RepresentationAnimationHelper(
+      Source=sourceproxy)
+    servermanager.ProxyManager().RegisterProxy(
+      "pq_helper_proxies.%s" % sourceproxy.GetGlobalIDAsString(),
+      "RepresentationAnimationHelper", proxy)
+    return proxy
+
+def GetAnimationTrack(propertyname_or_property, index=None, proxy=None):
+    """Returns an animation cue for the property. If one doesn't exist then a
+    new one will be created.
+    Typical usage:
+        track = GetAnimationTrack("Center", 0, sphere) or
+        track = GetAnimationTrack(sphere.GetProperty("Radius")) or
+
+        # this returns the track to animate visibility of the active source in
+        # all views.
+        track = GetAnimationTrack("Visibility")
+
+     For animating properties on implicit planes etc., use the following
+     signatures:
+        track = GetAnimationTrack(slice.SliceType.GetProperty("Origin"), 0) or
+        track = GetAnimationTrack("Origin", 0, slice.SliceType)
+
+    """
+    if not proxy:
+        proxy = GetActiveSource()
+    if not isinstance(proxy, servermanager.Proxy):
+        raise TypeError, "proxy must be a servermanager.Proxy instance"
+    if isinstance(propertyname_or_property, str):
+        propertyname = propertyname_or_property
+    elif isinstance(propertyname_or_property, servermanager.Property):
+        prop = propertyname_or_property
+        propertyname = prop.Name
+        proxy = prop.Proxy
+    else:
+        raise TypeError, "propertyname_or_property must be a string or servermanager.Property"
+
+    # To handle the case where the property is actually a "display" property, in
+    # which case we are actually animating the "RepresentationAnimationHelper"
+    # associated with the source.
+    if propertyname in ["Visibility", "Opacity"]:
+        proxy = _GetRepresentationAnimationHelper(proxy)
+    if not proxy or not proxy.GetProperty(propertyname):
+        raise AttributeError, "Failed to locate property %s" % propertyname
+
+    scene = GetAnimationScene()
+    for cue in scene.Cues:
+        try:
+            if cue.AnimatedProxy.IsSame(proxy) and\
+               cue.AnimatedPropertyName == propertyname:
+                if index == None or index.IsSame(cue.AnimatedElement): ##index == cue.AnimatedElement:
+                    return cue
+        except AttributeError:
+            pass
+
+    # matching animation track wasn't found, create a new one.
+    cue = KeyFrameAnimationCue()
+    cue.AnimatedProxy = proxy
+    cue.AnimatedPropertyName = propertyname
+    if index != None:
+        cue.AnimatedElement = index
+    scene.Cues.append(cue)
+    return cue
+
+def GetCameraTrack(view=None):
+    """Returns the camera animation track for the given view. If no view is
+    specified, active view will be used. If no exisiting camera animation track
+    is found, a new one will be created."""
+    if not view:
+        view = GetActiveView()
+    if not view:
+        raise ValueError, "No view specified"
+    scene = GetAnimationScene()
+    for cue in scene.Cues:
+        if cue.AnimatedProxy.IsSame(view) and\
+           cue.GetXMLName() == "CameraAnimationCue":
+            return cue
+    # no cue was found, create a new one.
+    cue = CameraAnimationCue()
+    cue.AnimatedProxy = view
+    scene.Cues.append(cue)
+    return cue
+
+def GetTimeTrack():
+    """Returns the animation track used to control the time requested from all
+    readers/filters during playback.
+    This is the "TimeKeeper - Time" track shown in ParaView's 'Animation View'.
+    If none exists, a new one will be created."""
+    scene = GetAnimationScene()
+    tk = scene.TimeKeeper
+    for cue in scene.Cues:
+        if cue.GetXMLName() == "TimeAnimationCue" and cue.AnimatedProxy.IsSame(tk)\
+            and cue.AnimatedPropertyName == "Time":
+            return cue
+    # no cue was found, create a new one.
+    cue = TimeAnimationCue()
+    cue.AnimatedProxy = tk
+    cue.AnimatedPropertyName = "Time"
+    scene.Cues.append(cue)
+    return cue
 
 def LoadXML(xmlstring, ns=None):
     """Given a server manager XML as a string, parse and process it.
@@ -553,6 +872,22 @@ def LoadPlugin(filename, remote=True, ns=None):
         ns = globals()
     servermanager.LoadPlugin(filename, remote)
     _add_functions(ns)
+
+def LoadDistributedPlugin(pluginname, remote=True, ns=None):
+    """Loads a plugin that's distributed with the executable. This uses the
+    information known about plugins distributed with ParaView to locate the
+    shared library for the plugin to load. Raises a RuntimeError if the plugin
+    was not found."""
+    plm = servermanager.ProxyManager().GetSession().GetPluginManager()
+    if remote:
+        info = plm.GetRemoteInformation()
+    else:
+        info = plm.GetLocalInformation()
+    for cc in range(0, info.GetNumberOfPlugins()):
+        if info.GetPluginName(cc) == pluginname:
+            return LoadPlugin(info.GetPluginFileName(cc), remote, ns)
+    raise RuntimeError, "Plugin '%s' not found" % pluginname
+
 
 class ActiveObjects(object):
     """This class manages the active objects (source and view). The active
@@ -618,7 +953,7 @@ class ActiveObjects(object):
     source = property(get_source, set_source)
 
 class _funcs_internals:
-    "Internal class."
+    """Internal class."""
     first_render = True
     view_counter = 0
     rep_counter = 0
@@ -703,12 +1038,12 @@ def SaveTrace(fileName):
 
 
 _add_functions(globals())
-active_objects = ActiveObjects()
-## Initialisation for SALOME GUI
-active_objects.view = servermanager.GetRenderView()
 
 if not servermanager.ActiveConnection:
     Connect()
 
 def ImportFile(theFileName):
     paravisSM.ImportFile(theFileName)
+
+active_objects = ActiveObjects()
+active_objects.view = GetRenderView()

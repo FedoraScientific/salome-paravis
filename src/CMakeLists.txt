@@ -1,62 +1,36 @@
-
-        SET(VERSION_INFO 0.0.0)
-        SET(SOVERSION_INFO 0)
-        SET(SUBDIRS)
-        SET(AM_CPPFLAGS)
-        SET(AM_CXXFLAGS)
-        SET(LDADD)
-        
-
-                SET(AM_CPPFLAGS ${AM_CPPFLAGS} -DHAVE_SALOME_CONFIG -I${KERNEL_ROOT_DIR}/include/salome -include SALOMEconfig.h)
-                SET(AM_CXXFLAGS ${AM_CXXFLAGS} -DHAVE_SALOME_CONFIG -I${KERNEL_ROOT_DIR}/include/salome -include SALOMEconfig.h)
-                
-#  Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-#  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS 
-# 
-#  This library is free software; you can redistribute it and/or 
-#  modify it under the terms of the GNU Lesser General Public 
-#  License as published by the Free Software Foundation; either 
-#  version 2.1 of the License. 
-# 
-#  This library is distributed in the hope that it will be useful, 
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of 
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-#  Lesser General Public License for more details. 
-# 
-#  You should have received a copy of the GNU Lesser General Public 
-#  License along with this library; if not, write to the Free Software 
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA 
-# 
+# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-#
-#
-#  File   : Makefile.in
-#  Author : (CEA)
-#  Modified by : Alexander BORODIN (OCN) - autotools usage
 
-# include $(top_srcdir)/adm_local/unix/make_common_starter.am
+SET(SUBDIRS
+  ENGINE
+  PVGUI
+  PV_SWIG
+  Macro
+  )
 
 IF(BUILD_PLUGINS)
   SET(SUBDIRS
-      ENGINE
-      PVGUI
-      PV_SWIG
-      Plugins
-  )
-ELSE(BUILD_PLUGINS)
-  SET(SUBDIRS
-      ENGINE
-      PVGUI
-      PV_SWIG
-  )
+    ${SUBDIRS}
+    Plugins
+    )
 ENDIF(BUILD_PLUGINS)
 
-
-
-            FOREACH(dir ${SUBDIRS})
-            IF(NOT dir STREQUAL .)
-            ADD_SUBDIRECTORY(${dir})
-            ENDIF(NOT dir STREQUAL .)
-            ENDFOREACH(dir ${SUBDIRS})
-            
+FOREACH(dir ${SUBDIRS})
+  ADD_SUBDIRECTORY(${dir})
+ENDFOREACH(dir ${SUBDIRS})

@@ -1,3 +1,22 @@
+# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 import paraview, os, sys
 import string
 import re
@@ -5,12 +24,10 @@ import re
 classeslistsm = []
 classeslistvtk = []
 
-if os.name == "posix":
-    from libvtkPVServerCommonPython import *
-    from libvtkPVServerManagerPython import *
-else:
-    from vtkPVServerCommonPython import *
-    from vtkPVServerManagerPython import *
+from vtkPVClientServerCorePython import *
+from vtkPVServerImplementationPython import *
+from vtkPVServerManagerPython import *
+from vtkPVCommonPython import *
 
 l1 = dir()
 for a in l1:
@@ -24,12 +41,18 @@ for a in l2:
     if (a not in l1) and a.startswith("vtk"):
         classeslistvtk.append(a)
 
-dic=dict();
+dic=dict()
+
+non_wrap_list = ["vtkVariant", "vtkTimeStamp"]
+
 pv_classes_new=classeslistsm
 while len(pv_classes_new):
     pv_classes_cur=pv_classes_new
     pv_classes_new=[]
     for c in pv_classes_cur:
+        ## ignore non wrappable classes
+        if c in non_wrap_list:
+            continue
         filename=sys.argv[1]+"/"+c+".h"
         if os.path.isfile(filename):
             c_new=[]
@@ -64,6 +87,9 @@ while len(pv_classes_new):
                     if len(cm) == 0:
                         continue
                     for cn in cm:
+                        ## do not extract Call Back classes
+                        if cn.count('vtkClassMemberCallback'):
+                            continue
                         if cn not in dic.keys() and cn not in pv_classes_new:
                             pv_classes_new.append(cn)
                         if cn not in c_new:
@@ -71,11 +97,14 @@ while len(pv_classes_new):
             f.close()
             dic[c]=[0, c_new]
 
+
 pv_classes_sort=[]
 
 def collect_dic(cc):
     ret=[]
     for c in cc:
+        if c not in dic.keys():
+            continue
         if len(dic[c][1]) and dic[c][0] == 0:
              ret+=collect_dic(dic[c][1])
         if dic[c][0] == 0:

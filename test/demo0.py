@@ -1,3 +1,22 @@
+# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 """ This module can be used to run a simple rendering benchmark test. This
 test renders a sphere with various rendering settings and reports the rendering
 rate achieved in triangles/sec. """
@@ -53,29 +72,29 @@ def run(filesour, impth, nframes):
   results = []
 
   # Start with these defaults
-  v.UseImmediateMode = 0
-  v.UseTriangleStrips = 0
+  #v.UseImmediateMode = 0
+  #v.UseTriangleStrips = 0
   
   # Test different configurations
   title = 'display lists, no triangle strips, solid color'
-  v.UseImmediateMode = 0
-  v.UseTriangleStrips = 0
+  #v.UseImmediateMode = 0
+  #v.UseTriangleStrips = 0
   results.append(render(ss, v, title, nframes))
   WriteImage(filename = (impth + "demo0_1.png"), view=v, Magnification=2)
 
   title = 'display lists, triangle strips, solid color'
-  v.UseTriangleStrips = 1
+  #v.UseTriangleStrips = 1
   results.append(render(ss, v, title, nframes))
   #WriteImage(filename = (impth + "demo0_2.png"), view=v, Magnification=2)
 
   title = 'no display lists, no triangle strips, solid color'
-  v.UseImmediateMode = 1
-  v.UseTriangleStrips = 0
+  #v.UseImmediateMode = 1
+  #v.UseTriangleStrips = 0
   results.append(render(ss, v, title, nframes))
   #WriteImage(filename = (impth + "demo0_3.png"), view=v, Magnification=2)
 
   title = 'no display lists, triangle strips, solid color'
-  v.UseTriangleStrips = 1
+  #v.UseTriangleStrips = 1
   results.append(render(ss, v, title, nframes))
   #WriteImage(filename = (impth + "demo0_4.png"), view=v, Magnification=2)
 
@@ -89,25 +108,25 @@ def run(filesour, impth, nframes):
   lt.VectorComponent = 0
   
   title = 'display lists, no triangle strips, color by array'
-  v.UseImmediateMode = 0
-  v.UseTriangleStrips = 0
+  #v.UseImmediateMode = 0
+  #v.UseTriangleStrips = 0
   results.append(render(ss, v, title, nframes))
   #WriteImage(filename = (impth + "demo0_5.png"), view=v, Magnification=2)
 
   title = 'display lists, triangle strips, color by array'
-  v.UseTriangleStrips = 1
+  #v.UseTriangleStrips = 1
   results.append(render(ss, v, title, nframes))
-  v.UseImmediateMode = 1
+  #v.UseImmediateMode = 1
   #WriteImage(filename = (impth + "demo0_6.png"), view=v, Magnification=2)
 
   title = 'no display lists, no triangle strips, color by array'
-  v.UseImmediateMode = 1
-  v.UseTriangleStrips = 0
+  #v.UseOCImmediateMode = 1
+  #v.UseTriangleStrips = 0
   results.append(render(ss, v, title, nframes))
   #WriteImage(filename = (impth + "demo0_7.png"), view=v, Magnification=2)
 
   title = 'no display lists, triangle strips, color by array'
-  v.UseTriangleStrips = 1
+  #v.UseTriangleStrips = 1
   results.append(render(ss, v, title, nframes))
   WriteImage(filename = (impth + "demo0_8.png"), view=v, Magnification=2)
 

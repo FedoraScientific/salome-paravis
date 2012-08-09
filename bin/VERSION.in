@@ -1,1 +1,3 @@
-THIS IS PARAVIS MODULE : VERSION: @VERSION@
+[SALOME PARAVIS] : @VERSION@
+[DEVELOPMENT]    : @VERSION_DEV@
+[DESCRIPTION]    : SALOME ParaVis (Paraview-based post-processing) module

@@ -1,27 +1,23 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-//
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 //  File   : PARAVIS_Gen.idl
 //  Author : Vitaly Smetannikov
-//
 
 /*! \file PARAVIS_Gen.idl This file conatins a set of interfaces of the %PARAVIS module.
  *     This module provides access to PARAVIEW functionality integrated to %SALOME application.
@@ -58,7 +54,7 @@ module PARAVIS {
    * \brief The main interface class for PARAVIS server. 
    * Instantiation of this class has to be done before access to any other PARAVIS interfaces
    */
-  interface PARAVIS_Gen : Engines::Component, SALOMEDS::Driver
+  interface PARAVIS_Gen : Engines::EngineComponent, SALOMEDS::Driver
   {
     /*!
      * \brief Returns IOR of the current object.
@@ -71,6 +67,8 @@ module PARAVIS {
      */
     void ImportFile(in string theFileName);
 
+
+    void ExecuteScript(in string script);
 
     /*!
      * Returns trace string if trace is activated for current session. 
@@ -112,6 +110,15 @@ module PARAVIS {
      * This function is called on activation paravis python module.
      */
     void ActivateModule();
+
+
+    /*! Sets a definite study to be current.
+     */
+    void SetCurrentStudy(in SALOMEDS::Study theStudy);
+
+    /*! Gets the current study.
+     */
+    SALOMEDS::Study GetCurrentStudy();
 
   };
 

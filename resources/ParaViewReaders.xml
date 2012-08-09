@@ -1,8 +1,8 @@
 <ParaViewReaders>
-  <!-- 
+  <!--
     NOTE: Readers are tried in reverse order that they are present in this
-    list i.e. if two readers can read the same extension, then the reader 
-    apperaring later will be tried first when reading the file. 
+    list i.e. if two readers can read the same extension, then the reader
+    apperaring later will be tried first when reading the file.
   -->
   <Proxy group="sources" name="LSDynaReader" />
   <Proxy group="sources" name="PVDReader" />
@@ -25,12 +25,15 @@
   <Proxy group="sources" name="TecplotReader" />
   <Proxy group="sources" name="netCDFReader" />
   <Proxy group="sources" name="byureader" />
-  <Proxy group="sources" name="XdmfReader2" />
+  <Proxy group="sources" name="objreader" />
+  <Proxy group="sources" name="ProStarReader" />
+  <Proxy group="sources" name="XdmfReader" />
   <Proxy group="sources" name="pdbreader" />
   <Proxy group="sources" name="xyzreader" />
   <Proxy group="sources" name="P3DReader" />
   <Proxy group="sources" name="spcthreader" />
   <Proxy group="sources" name="SPCTHRestartReader" />
+  <Proxy group="sources" name="spcthhistoryreader" />
   <Proxy group="sources" name="DEMReader" />
   <Proxy group="sources" name="vrmlreader" />
   <Proxy group="sources" name="plyreader" />
@@ -40,10 +43,14 @@
   <Proxy group="sources" name="popreader"/>
   <Proxy group="sources" name="AVSucdSeriesReader" />
   <Proxy group="sources" name="MetaImageReader" />
+  <Proxy group="sources" name="NrrdReader" />
   <Proxy group="sources" name="Facet Proxy" />
-  <Proxy group="sources" name="PNGReader" />
-  <Proxy group="sources" name="TIFFReader" />
+  <Proxy group="sources" name="PNGSeriesReader" />
+  <Proxy group="sources" name="JPEGSeriesReader" />
+  <Proxy group="sources" name="TIFFSeriesReader" />
   <Proxy group="sources" name="PhastaReader" />
+  <Proxy group="sources" name="EnzoReader" />
+  <Proxy group="sources" name="FlashReader" />
   <Proxy group="sources" name="SESAMEReader" />
   <Proxy group="sources" name="CSVReader" />
   <Proxy group="sources" name="MFIXReader" />
@@ -56,4 +63,8 @@
   <Proxy group="sources" name="SLACReader" />
   <Proxy group="sources" name="SLACParticleReader" />
   <Proxy group="sources" name="ParticleReader" />
+  <Proxy group="sources" name="VPICReader" />
+  <Proxy group="sources" name="WindBladeReader" />
+  <Proxy group="sources" name="NetCDFPOPReader" />
+  <Proxy group="sources" name="MPASReader" />
 </ParaViewReaders>

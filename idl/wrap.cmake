@@ -1,17 +1,31 @@
+# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 ADD_CUSTOM_COMMAND(
  OUTPUT vtkWrapIDL.h
- COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/create_header.sh ${CMAKE_BINARY_DIR}
+ COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/create_header.py ${CMAKE_BINARY_DIR}
  DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt
 )
 
 ADD_CUSTOM_COMMAND(
- OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/vtkWrapIDL.c
- DEPENDS vtkWrapIDL.h
-)
-
-ADD_CUSTOM_COMMAND(
  OUTPUT hints
- COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/create_hints.sh ${PARAVIEW_LIBRARY_DIRS}
+ COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/create_hints.py ${PARAVIEW_LIBRARY_DIRS}
  DEPENDS ${PARAVIEW_LIBRARY_DIRS}/hints ${CMAKE_CURRENT_SOURCE_DIR}/hints_paravis
 )
 
@@ -20,7 +34,7 @@ SET(WRAP_SK_FILES)
 
 IF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
  EXECUTE_PROCESS(
-  COMMAND cat ${CMAKE_BINARY_DIR}/wrapfiles.txt
+  COMMAND ${PYTHON_EXECUTABLE} -c "f = open('${CMAKE_BINARY_DIR}/wrapfiles.txt') ; print f.read(), ; f.close()"
   OUTPUT_VARIABLE WRAP_LIST_FULL
  )
 
@@ -45,13 +59,22 @@ IF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
 
   SET(WRAP_IDL ${WRAP_IDL} PARAVIS_Gen_${VAL}.idl)
   SET(WRAP_SK_FILES ${WRAP_SK_FILES} PARAVIS_Gen_${VAL}SK.cc)
+  SET(vtkWrapIDL_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL)
+  IF(WINDOWS)
+    IF(CMAKE_BUILD_TOOL STREQUAL nmake)
+      SET(vtkWrapIDL_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL.exe)
+    ELSE(CMAKE_BUILD_TOOL STREQUAL nmake)
+      SET(vtkWrapIDL_EXEFILE ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/vtkWrapIDL.exe)
+    ENDIF(CMAKE_BUILD_TOOL STREQUAL nmake)
+  ENDIF(WINDOWS)
   ADD_CUSTOM_COMMAND(
    OUTPUT PARAVIS_Gen_${VAL}.idl
-   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_exe ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h hints 0 PARAVIS_Gen_${VAL}.idl
-   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/vtkWrapIDL_exe ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h hints ${DEP}
+   COMMAND ${vtkWrapIDL_EXEFILE} ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h hints 0 PARAVIS_Gen_${VAL}.idl
+   DEPENDS vtkWrapIDL ${PARAVIEW_INCLUDE_DIRS}/${VAL}.h hints ${DEP}
   )
 
  ENDFOREACH(STR ${WRAP_LIST_REG})
 ENDIF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
 
-ADD_CUSTOM_TARGET(generate_idl ALL DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt vtkWrapIDL.h ${CMAKE_CURRENT_SOURCE_DIR}/vtkWrapIDL.c hints ${WRAP_IDL})
+ADD_CUSTOM_TARGET(generate_txt DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt vtkWrapIDL.h hints)
+ADD_CUSTOM_TARGET(generate_idl ALL DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt vtkWrapIDL.h hints ${WRAP_IDL})

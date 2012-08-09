@@ -1,7 +1,6 @@
 // PARAVIS : ParaView wrapper SALOME module
 //
-// Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -30,6 +29,7 @@
 #include <SalomeApp_Module.h>
 
 #include <ostream>
+#include <vtkType.h>
 
 class QMenu;
 class QDockWidget;
@@ -37,8 +37,12 @@ class QToolBar;
 class vtkPVMain;
 class pqOptions;
 class pqServer;
-class pqViewManager;
+class pqTabbedMultiViewWidget;
 class pqMainWindowCore;
+class vtkEventQtSlotConnect;
+class pqPythonScriptEditor;
+class pqPVApplicationCore;
+
 
 class PVGUI_Module : public SalomeApp_Module
 {
@@ -68,53 +72,17 @@ class PVGUI_Module : public SalomeApp_Module
 	 CameraUndoId,
 	 CameraRedoId,
 
+   FindDataId,   
 	 ChangeInputId,
    IgnoreTimeId, 
 	 DeleteId,
 	 DeleteAllId,
-
-	 //InteractId,
-	 //SelectCellsOnId,
-	 //SelectPointsOnId,
-	 //SelectCellsThroughId,
-	 //SelectPointsThroughId,
-	 //SelectBlockId,
 
 	 SettingsId,
 	 ViewSettingsId,
 
 	 // Menu "View"
    FullScreenId, 
-// 	 ResetCameraId,
-// 	 PositiveXId,
-// 	 NegativeXId,
-// 	 PositiveYId,
-// 	 NegativeYId,
-// 	 PositiveZId,
-// 	 NegativeZId,
-// 
-// 	 ShowCenterId,
-// 	 ResetCenterId,
-// 	 PickCenterId,
-// 	 ShowColorLegendId,
-// 	 EditColorMapId,
-// 	 ResetRangeId,
-// 
-// 	 AnimationInspectorId,
-// 	 AnimationViewId,
-// 	 ComparativeViewInspectorId,
-// 	 SelectionInspectorId,
-// 	 LookmarkBrowserId,
-// 	 LookmarkInspectorId,
-// 	 ObjectInspectorId,
-// 	 PipelineBrowserId,
-// 	 StatisticsViewId,
-
-	 // Menu "Sources"
-	 // TODO...
-
-	 // Menu "Filters"
-	 // TODO...
 
 	 // Menu "Animation"
 	 FirstFrameId,
@@ -136,14 +104,30 @@ class PVGUI_Module : public SalomeApp_Module
 	 RecordTestScreenshotId,
 	 PlayTestId,
 	 MaxWindowSizeId,
+	 CustomWindowSizeId,
 	 TimerLogId,
 	 OutputWindowId,
 	 PythonShellId,
+	 ShowTraceId,
 
 	 // Menu "Help" 
 	 AboutParaViewId,
 	 ParaViewHelpId,
-	 EnableTooltipsId
+	 EnableTooltipsId,
+
+	 // Menu "Window" - "New Window"
+	 ParaViewNewWindowId,
+
+	 // "Save state" ParaVis module root object popup
+	 SaveStatePopupId,
+
+	 // "Add state" and "Reload state" popups
+	 AddStatePopupId,
+	 CleanAndAddStatePopupId,
+
+	 // "Rename" and "Delete" popups (Object Browser)
+	 ParaVisRenameId,
+	 ParaVisDeleteId
   };
 
 public:
@@ -153,19 +137,15 @@ public:
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
 
-  pqViewManager*         getMultiViewManager() const;
+  pqTabbedMultiViewWidget*         getMultiViewManager() const;
 
   virtual QString engineIOR() const;
 
-  /*! Compares the contents of the window with the given reference image,
-   * returns true if they "match" within some tolerance
-   */
-  /*bool                   compareView( const QString& ReferenceImage, double Threshold,
-    std::ostream& Output, const QString& TempDirectory );*/
-
   void openFile(const char* theName);
+  void executeScript(const char *script);
   void saveParaviewState(const char* theFileName);
   void loadParaviewState(const char* theFileName);
+  void clearParaviewState();
 
   QString getTraceString();
   void saveTrace(const char* theName);
@@ -173,6 +153,8 @@ public:
   pqServer* getActiveServer();
 
   virtual void createPreferences();
+
+  virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
 public slots:
   void onImportFromVisu(QString theEntry);
@@ -204,30 +186,65 @@ private:
 
   //! Returns QMenu object for a given menu id
   QMenu*                 getMenu( const int );
+  
+  //! Discover help project files from the resources.
+  QString getHelpFileName();
 
   void                   deleteTemporaryFiles();
   
-  QList<QToolBar*>       getParaViewToolbars();
+  //QList<QToolBar*>       getParaViewToolbars();
+
+  //! Create actions for ParaViS
+  void createActions();
+
+  //! Create menus for ParaViS
+  void createMenus();
+
+  //! Load selected state
+  void loadSelectedState(bool toClear);
+
+  //! update macros state
+  void updateMacros();
 
 private slots:
 
-  void showHelpForProxy( const QString& proxy );
+  void showHelpForProxy( const QString&, const QString& );
   
   void onPreAccept();
   void onPostAccept();
   void endWaitCursor();
 
-  void activateTrace();
+  //  void buildToolbarsMenu();
 
-  void buildToolbarsMenu();
+  //void showParaViewHelp();
+  //void showHelp(const QString& url);
 
-  void showParaViewHelp();
-  void showHelp(const QString& url);
+  void onFinishedAddingServer(pqServer*);
+
+  void onStartProgress();
+  void onEndProgress();
+  void onShowTrace();
+
+  void onNewParaViewWindow();
+
+  void onSaveMultiState();
+  void onAddState();
+  void onCleanAddState();
+
+  void onRename();
+  void onDelete();
 
 public slots:
   virtual bool           activateModule( SUIT_Study* );
   virtual bool           deactivateModule( SUIT_Study* );
   virtual void           onApplicationClosed( SUIT_Application* );
+  virtual void           studyClosed( SUIT_Study* );
+
+protected slots:
+  virtual void           onModelOpened();
+
+protected:
+  void timerEvent(QTimerEvent *event);
 
 private:
   class pqImplementation;
@@ -238,14 +255,24 @@ private:
   int                    myFiltersMenuId;
   int                    myToolbarsMenuId;
   int                    myMacrosMenuId;
-
-  QList<QDockWidget*>    myDockWidgets;
+  int                    myRecentMenuId;
+  
+  typedef QMap<QWidget*, bool> WgMap;
+  WgMap                  myDockWidgets;
+  WgMap                  myToolbars;
+  WgMap                  myToolbarBreaks;
 
   QStringList            myTemporaryFiles;
 
-  QMap<QToolBar*, bool>  myToolbarState;
-
   QtMsgHandler           myOldMsgHandler;
+
+  vtkEventQtSlotConnect *VTKConnect;
+
+  pqPythonScriptEditor* myTraceWindow;
+
+  int myStateCounter;
+
+  static pqPVApplicationCore* MyCoreApp;
 };
 
 #endif // PVGUI_Module_H

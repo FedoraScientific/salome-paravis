@@ -1,0 +1,67 @@
+<ServerManagerConfiguration>
+
+  <ProxyGroup name="sources">
+
+    <SourceProxy name="ParaMEDCorbaSource" 
+                 class="vtkParaMEDCorbaSource"
+                 label="Para MED Corba Plugin Source">
+      <Documentation
+        short_help="Fetch Parallel Data from CORBA." 
+        long_help="Fetch Parallel Data from CORBA.">
+        Source of a remote ParaMED Corba reference.
+      </Documentation>
+      <StringVectorProperty
+	 name="IORCorba"
+	 animateable="0"
+	 command="SetIORCorba"
+	 number_of_elements="1"
+	 default_values="">
+        <Documentation>
+          This property specifies the IOR of a ParaFIELD MED in memory.
+        </Documentation>
+     </StringVectorProperty>
+     <IntVectorProperty
+        name="BufferingPolicy"
+        command="SetBufferingPolicy"
+        number_of_elements="1"
+	default_values="10">
+       <IntRangeDomain name="range" min="0" max="10"/>
+       <Documentation>
+	 This property specifies the buffering policy.
+	 0 means no buffering, that is to say Corba fetching is done
+	 every times needed to get field at a time step. Remote Corba
+	 object is NOT Released.
+	 10 means full buffering, that is to say a full Corba fetching
+	 is performed on begin and remote Corba object is
+	 released. But memory consumtion could be huge.
+	 Between 0,and 10 a partial buffering is done.
+       </Documentation>
+     </IntVectorProperty>
+
+     <DoubleVectorProperty
+        name="TimestepValues"
+        repeatable="1"
+        information_only="1">
+        <TimeStepsInformationHelper />
+        <Documentation>
+          Available timestep values.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="TimeRange"
+        repeatable="1"
+        information_only="1">
+        <TimeRangeInformationHelper />
+        <Documentation>
+          Available time range.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <!-- End ParaMEDCorbaSource -->
+    </SourceProxy>
+
+  </ProxyGroup>
+
+</ServerManagerConfiguration>
+

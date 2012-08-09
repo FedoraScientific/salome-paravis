@@ -1,4 +1,6 @@
-<!DOCTYPE TS><TS>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="en">
 <context>
     <name>@default</name>
     <message>
@@ -157,12 +159,24 @@
         <source>MEN_EDIT_LINE</source>
         <translation>Edit selected line</translation>
     </message>
+    <message>
+        <source>MEN_SHOW_TRACE</source>
+        <translation>Show Trace...</translation>
+    </message>
+    <message>
+        <source>TOP_SHOW_TRACE</source>
+        <translation>Show Trace</translation>
+    </message>
+    <message>
+        <source>STB_SHOW_TRACE</source>
+        <translation>Show Trace</translation>
+    </message>
 </context>
 <context>
     <name>PVGUI_ViewManager</name>
     <message>
-	<source>PARAVIEW_VIEW_TITLE</source>
-	<translation>ParaView scene:%M - viewer:%V</translation>
+        <source>PARAVIEW_VIEW_TITLE</source>
+        <translation>ParaView scene:%M - viewer:%V</translation>
     </message>
 </context>
 <context>
@@ -173,7 +187,15 @@
     </message>
     <message>
         <source>TTL_OBJECT_INSPECTOR</source>
-        <translation>Object Inspector</translation>
+        <translation>Properties</translation>
+    </message>
+    <message>
+        <source>TTL_DISPLAY</source>
+        <translation>Display</translation>
+    </message>
+    <message>
+        <source>TTL_INFORMATION</source>
+        <translation>Information</translation>
     </message>
     <message>
         <source>TTL_STATISTICS_VIEW</source>
@@ -203,9 +225,17 @@
         <source>TTL_SELECTION_INSPECTOR</source>
         <translation>Selection Inspector</translation>
     </message>
-    <message>
+     <message>
+        <source>TTL_COLLABORATIVE_DOCK</source>
+        <translation>Collaboration Panel</translation>
+    </message>
+     <message>
+        <source>TTL_MEMORY_INSPECTOR</source>
+        <translation>Memory Inspector</translation>
+    </message>
+   <message>
         <source>TOP_OPEN_FILE</source>
-        <translation>Import File</translation>
+        <translation>Open Paraview File</translation>
     </message>
     <message>
         <source>MEN_OPEN</source>
@@ -213,11 +243,11 @@
     </message>
     <message>
         <source>MEN_OPEN_FILE</source>
-        <translation>&amp;Import ParaView File...</translation>
+        <translation>Open ParaView File...</translation>
     </message>
     <message>
         <source>STB_OPEN_FILE</source>
-        <translation>Import File</translation>
+        <translation>Open Paraview File</translation>
     </message>
     <message>
         <source>MEN_RECENT_FILES</source>
@@ -341,7 +371,7 @@
     </message>
     <message>
         <source>MEN_CANTUNDO</source>
-        <translation>Can't Undo</translation>
+        <translation>Can&apos;t Undo</translation>
     </message>
     <message>
         <source>MEN_UNDO_ACTION</source>
@@ -369,7 +399,7 @@
     </message>
     <message>
         <source>MEN_CANTREDO</source>
-        <translation>Can't Redo</translation>
+        <translation>Can&apos;t Redo</translation>
     </message>
     <message>
         <source>MEN_REDO_ACTION</source>
@@ -397,7 +427,7 @@
     </message>
     <message>
         <source>MEN_CANT_CAMERA_UNDO</source>
-        <translation>Can't Undo Camera</translation>
+        <translation>Can&apos;t Undo Camera</translation>
     </message>
     <message>
         <source>MEN_CAMERA_UNDO_ACTION</source>
@@ -425,7 +455,7 @@
     </message>
     <message>
         <source>MEN_CANT_CAMERA_REDO</source>
-        <translation>Can't Redo Camera</translation>
+        <translation>Can&apos;t Redo Camera</translation>
     </message>
     <message>
         <source>MEN_CAMERA_REDO_ACTION</source>
@@ -448,16 +478,20 @@
         <translation>Change Input...</translation>
     </message>
     <message>
+        <source>MEN_FIND_DATA</source>
+        <translation>Find Data...</translation>
+    </message>
+    <message>
         <source>MEN_CHANGE_INPUT</source>
         <translation>Change &amp;Input...</translation>
     </message>
     <message>
         <source>STB_CHANGE_INPUT</source>
-        <translation>Change a Filter's Input</translation>
+        <translation>Change a Filter&apos;s Input</translation>
     </message>
     <message>
         <source>INF_APP_CHANGE_INPUTACTIONS</source>
-        <translation>Change a Filter's Input</translation>
+        <translation>Change a Filter&apos;s Input</translation>
     </message>
     <message>
         <source>MEN_IGNORE_TIME</source>
@@ -469,7 +503,7 @@
     </message>
     <message>
         <source>STB_IGNORE_TIME</source>
-        <translation>Disregard this source/filter's time from animation</translation>
+        <translation>Disregard this source/filter&apos;s time from animation</translation>
     </message>
     <message>
         <source>TOP_DELETE</source>
@@ -972,6 +1006,10 @@
         <translation>Lock View Size</translation>
     </message>
     <message>
+        <source>MEN_CUSTOM_WINDOW_SIZE</source>
+        <translation>Lock View Size Custom...</translation>
+    </message>
+    <message>
         <source>PRP_APP_MAX_WINDOW_SIZE</source>
         <translation>Lock View Size</translation>
     </message>
@@ -1018,6 +1056,10 @@
     <message>
         <source>MEN_ABOUT</source>
         <translation>About ParaView...</translation>
+    </message>
+    <message>
+        <source>MEN_PVHELP</source>
+        <translation>ParaView help</translation>
     </message>
     <message>
         <source>STB_ABOUT</source>
@@ -1104,8 +1146,12 @@
         <translation>Deactivate Trace (for next session only)</translation>
     </message>
     <message>
-        <source>TIT_TRACE</source>
-        <translation>Trace</translation>
+        <source>TIT_PVISSETTINGS</source>
+        <translation>ParaVis Settings</translation>
+    </message>
+    <message>
+        <source>TIT_PVIEWSETTINGS</source>
+        <translation>ParaView Settings</translation>
     </message>
     <message>
         <source>MEN_MACROS</source>
@@ -1117,7 +1163,7 @@
     </message>
     <message>
         <source>PREF_SAVE_TYPE_0</source>
-        <translation>Save referenced files only for builin server</translation>
+        <translation>Save referenced files only for builtin server</translation>
     </message>
     <message>
         <source>PREF_SAVE_TYPE_1</source>
@@ -1126,6 +1172,42 @@
     <message>
         <source>PREF_SAVE_TYPE_2</source>
         <translation>Never save referenced files</translation>
+    </message>
+    <message>
+        <source>MEN_NEW_PV_VIEW</source>
+        <translation>ParaView view</translation>
+    </message>
+    <message>
+        <source>MEN_SAVE_MULTI_STATE</source>
+        <translation>Save state</translation>
+    </message>
+    <message>
+        <source>MEN_ADD_STATE</source>
+        <translation>Add state</translation>
+    </message>
+    <message>
+        <source>MEN_CLEAN_ADD_STATE</source>
+        <translation>Clean and add state</translation>
+    </message>
+    <message>
+        <source>MEN_PARAVIS_RENAME</source>
+        <translation>Rename</translation>
+    </message>
+    <message>
+        <source>MEN_PARAVIS_DELETE</source>
+        <translation>Delete</translation>
+    </message>
+    <message>
+        <source>SAVED_PARAVIEW_STATE_NAME</source>
+        <translation>Paraview state:</translation>
+    </message>
+    <message>
+        <source>ERR_ERROR</source>
+        <translation>Error</translation>
+    </message>
+    <message>
+        <source>ERR_STATE_CANNOT_BE_RESTORED</source>
+        <translation>The state can&apos;t be restored.</translation>
     </message>
 </context>
 </TS>

@@ -1,0 +1,78 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+    <SourceProxy 
+      name="TableTo3D" 
+      class="vtkTableTo3D" 
+      label="Table To 3D">
+      <Documentation short_help="Converts table to 3D presentation."
+        long_help="Converts table to 3D presentation (ported from Post-Pro)." >
+      </Documentation>
+
+      <InputProperty
+        name="Input"
+        command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkTable"/>
+        </DataTypeDomain>
+	<Documentation>
+          This property specifies the input..
+        </Documentation>
+      </InputProperty>
+
+      <DoubleVectorProperty
+        name="ScaleFactor"
+        command="SetScaleFactor"
+        number_of_elements="1"
+        animateable="1"
+        default_values="1.0" >
+       <DoubleRangeDomain name="range"/>
+       <Documentation>
+         Specify value to scale displacement.
+       </Documentation>
+     </DoubleVectorProperty>
+
+      <IntVectorProperty 
+        name="UseOptimusScale"
+        command="SetUseOptimusScale"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          When set to true, the filter will compute optimus scale factor,
+	  the value entered by user will be ignored.
+        </Documentation>
+      </IntVectorProperty>
+
+     <IntVectorProperty 
+        name="PresentationType" 
+        command="SetPresentationType" 
+        number_of_elements="1"
+        default_values="0"> 
+       <EnumerationDomain name="enum">
+         <Entry value="0" text="Surface"/>
+         <Entry value="1" text="Contour"/>
+       </EnumerationDomain>
+       <Documentation>
+         This property determines type of presentation: surface of contour.
+       </Documentation>
+     </IntVectorProperty>
+
+     <IntVectorProperty 
+        name="NumberOfContours" 
+        command="SetNumberOfContours" 
+        number_of_elements="1"
+        default_values="32"
+        label="Number Of Contours">
+       <IntRangeDomain name="range" min="1" max="999"/>
+       <Documentation>
+          Specify number of contours for contour presentation type.
+       </Documentation>
+     </IntVectorProperty>
+
+   </SourceProxy>
+ </ProxyGroup>
+</ServerManagerConfiguration>
