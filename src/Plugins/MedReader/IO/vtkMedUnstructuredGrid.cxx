@@ -246,6 +246,7 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
     if (controller->GetNumberOfProcesses() > 1)
     valid = 1;
 
+  array->LoadConnectivity();
   for (vtkIdType pindex = 0; pindex<maxId && valid; pindex++)
     {
     vtkIdType realIndex = (pids!=NULL?
@@ -254,8 +255,6 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
 
     if (!foep->KeepCell(realIndex))
       continue;
-
-    array->GetCellVertices(realIndex, pts);
 
     for(int sid = 0; sid < nsupportcell; sid++)
       {
@@ -288,6 +287,7 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
       }
     else
       {
+      array->GetCellVertices(realIndex, pts);
       vtkpts->Initialize();
       vtkpts->SetNumberOfIds(pts->GetNumberOfIds());
 

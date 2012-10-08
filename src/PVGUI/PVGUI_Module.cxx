@@ -99,7 +99,7 @@
 #include <pqVCRController.h>
 #include <pqTabbedMultiViewWidget.h>
 #include <pqPipelineSource.h>
-//#include <vtkPVMain.h>
+#include <pqActiveObjects.h>
 #include <vtkProcessModule.h>
 #include <pqParaViewBehaviors.h>
 #include <pqHelpReaction.h>
@@ -117,10 +117,16 @@
 #include <pqPythonScriptEditor.h>
 #include <pqStandardSummaryPanelImplementation.h>
 #include <pqCollaborationBehavior.h>
+#include <pqDataRepresentation.h>
+#include <pqPipelineRepresentation.h>
+#include <pqLookupTableManager.h>
+#include <pqDisplayColorWidget.h>
 
 #include <PARAVIS_version.h>
 
 #include <vtkPVConfig.h>
+
+#include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 
 /*
  * Make sure all the kits register their classes with vtkInstantiator.
@@ -162,6 +168,8 @@
 #include <pqUndoRedoBehavior.h>
 #include <pqViewFrameActionsBehavior.h>
 #include <pqServerManagerObserver.h>
+
+#include <vtkClientServerInterpreterInitializer.h>
 
 
 //----------------------------------------------------------------------------
@@ -237,6 +245,66 @@ PVGUI_Module* ParavisModule = 0;
   \brief Implementation 
          SALOME module wrapping ParaView GUI.
 */
+
+
+/*
+  Fix for the issue 21730: [CEA 596] Slice of polyhedron in PARAVIS returns no cell.
+  Wrap vtkEDFCutter filter.
+*/
+
+extern "C" void vtkEDFCutterCS_Initialize(vtkClientServerInterpreter*);
+static void vtkEDFHelperInit();
+
+void vtkEDFHelperInit(vtkClientServerInterpreter* interp){
+    vtkEDFCutterCS_Initialize(interp);
+}
+
+void vtkEDFHelperInit() {
+    vtkClientServerInterpreterInitializer::GetInitializer()->
+        RegisterCallback(&vtkEDFHelperInit);
+}
+
+
+  _PTR(SComponent)
+  ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
+  {
+    _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
+    if (!aSComponent) {
+      _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
+      aStudyBuilder->NewCommand();
+      int aLocked = theStudyDocument->GetProperties()->IsLocked();
+      if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
+      aSComponent = aStudyBuilder->NewComponent("PARAVIS");
+      _PTR(GenericAttribute) anAttr =
+        aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
+      _PTR(AttributeName) aName (anAttr);
+
+      CORBA::ORB_var anORB = PARAVIS::PARAVIS_Gen_i::GetORB();
+      SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
+      CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
+      SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
+        SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
+      SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
+      if (!Comp->_is_nil()) {
+        aName->SetValue(Comp->componentusername());
+      }
+
+      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
+      _PTR(AttributePixMap) aPixmap (anAttr);
+      aPixmap->SetPixMap( "pqAppIcon16.png" );
+
+      // Create Attribute parameters for future using
+      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
+
+
+      PARAVIS::PARAVIS_Gen_var aPARAVIS = PARAVIS::PARAVIS_Gen_i::GetParavisGenImpl()->_this();
+
+      aStudyBuilder->DefineComponentInstance(aSComponent, aPARAVIS->GetIOR());
+      if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
+      aStudyBuilder->CommitCommand();
+    }
+    return aSComponent;
+  }
 
 /*!
   \brief Constructor. Sets the default name for the module.
@@ -404,6 +472,10 @@ void PVGUI_Module::initialize( CAM_Application* app )
   connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(finishedAddingServer(pqServer*)), 
 	  this, SLOT(onFinishedAddingServer(pqServer*)));
 
+  connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(dataRepresentationCreated(pqDataRepresentation*)), 
+          this, SLOT(onDataRepresentationCreated(pqDataRepresentation*)));
+
+
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
   bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
   // start timer to activate trace in a proper moment
@@ -417,6 +489,10 @@ void PVGUI_Module::initialize( CAM_Application* app )
     this, SLOT(onStartProgress()));
   this->VTKConnect->Connect(pm, vtkCommand::EndEvent,
     this, SLOT(onEndProgress()));
+
+  connect(&pqActiveObjects::instance(),
+	  SIGNAL(representationChanged(pqRepresentation*)),
+	  this, SLOT(onRepresentationChanged(pqRepresentation*)));
 }
 
 void PVGUI_Module::onStartProgress()
@@ -436,6 +512,58 @@ void PVGUI_Module::onFinishedAddingServer(pqServer* /*server*/)
   if(!isStop) 
     startTimer( 50 );
 }
+
+void PVGUI_Module::onDataRepresentationCreated(pqDataRepresentation* data) {
+  if(!data)
+    return;
+  
+  if(!data->getLookupTable())
+    return;
+  
+  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
+  if(!aResourceMgr)
+    return;
+
+  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
+  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
+  
+  if(lut_mgr) {
+    lut_mgr->setScalarBarVisibility(data,visible);
+  }
+}
+
+void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
+  
+  pqDisplayColorWidget* colorWidget = qobject_cast<pqDisplayColorWidget*>(sender());
+  if( !colorWidget )
+    return;
+
+  if( t == VARIABLE_TYPE_NONE )
+    return;
+
+  pqDataRepresentation* data  = colorWidget->getRepresentation();
+
+  if( !data->getLookupTable() )
+    return;
+
+  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
+  
+  if(!aResourceMgr)
+    return;
+
+  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
+  
+  if(!visible)
+    return;
+  
+  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
+
+  if(lut_mgr) {
+    lut_mgr->setScalarBarVisibility(data,visible);
+  }
+  
+}
+
 
 /*!
   \brief Launches a tracing of current server
@@ -683,6 +811,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
     }
 
   if ( myRecentMenuId != -1 ) menuMgr()->show(myRecentMenuId);
+
+  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
 
   return isDone;
 }
@@ -1026,6 +1156,10 @@ void PVGUI_Module::createPreferences()
   aStrings<<tr("PREF_SAVE_TYPE_2");
   setPreferenceProperty(aSaveType, "strings", aStrings);
   setPreferenceProperty(aSaveType, "indexes", aIndices);
+
+  //rnv: imp 21712: [CEA 581] Preference to display legend by default 
+  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
+					 LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
 }
 
 /*!
@@ -1371,6 +1505,24 @@ void PVGUI_Module::loadSelectedState(bool toClear)
   }
 }
 
+void PVGUI_Module::onRepresentationChanged(pqRepresentation*) {
+
+
+  //rnv: to fix the issue "21712: [CEA 581] Preference to display legend by default"
+  //     find the pqDisplayColorWidget instances and connect the variableChanged SIGNAL on the 
+  //     onVariableChanged slot of this class. This connection needs to change visibility 
+  //     of the "Colored Legend" after change the "Color By" array.
+  QList<pqDisplayColorWidget*> aWidget = getApp()->desktop()->findChildren<pqDisplayColorWidget*>();
+  
+  for (int i = 0; i < aWidget.size() ; i++ ) {
+    if( aWidget[i] ) {
+      connect( aWidget[i], SIGNAL ( variableChanged ( pqVariableType, const QString ) ), 
+	       this, SLOT(onVariableChanged( pqVariableType, const QString) ), Qt::UniqueConnection );
+    }    
+  }
+}
+
+
 /*!
   \fn CAM_Module* createModule();
   \brief Export module instance (factory function).
@@ -1384,7 +1536,13 @@ void PVGUI_Module::loadSelectedState(bool toClear)
 #endif  // WNT
 
 extern "C" {
+
+  bool flag = false;
   PVGUI_EXPORT CAM_Module* createModule() {
+    if(!flag) {
+        vtkEDFHelperInit();
+        flag = true;
+    }      
     return new PVGUI_Module();
   }
   

@@ -31,6 +31,8 @@
 #include <ostream>
 #include <vtkType.h>
 
+#include <pqVariableType.h>
+
 class QMenu;
 class QDockWidget;
 class QToolBar;
@@ -42,6 +44,8 @@ class pqMainWindowCore;
 class vtkEventQtSlotConnect;
 class pqPythonScriptEditor;
 class pqPVApplicationCore;
+class pqDataRepresentation;
+class pqRepresentation;
 
 
 class PVGUI_Module : public SalomeApp_Module
@@ -220,6 +224,9 @@ private slots:
   //void showHelp(const QString& url);
 
   void onFinishedAddingServer(pqServer*);
+  void onDataRepresentationCreated(pqDataRepresentation*);
+  void onVariableChanged(pqVariableType, const QString);
+  void onRepresentationChanged(pqRepresentation*);
 
   void onStartProgress();
   void onEndProgress();

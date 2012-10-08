@@ -28,6 +28,7 @@
     <parameter name="singleton" value="true"/>
     <!-- Lists all additional popup items separated by ':' -->
     <parameter name="popupitems" value="importmed"/>
+    <parameter name="show_color_legend" value="0"/>
   </section>
   <section name="resources">
     <!-- Module resources -->

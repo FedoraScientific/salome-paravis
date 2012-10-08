@@ -181,6 +181,7 @@ void  vtkMedField::ExtractFieldType(vtkMedField* otherfield, int type)
     vtkMedFieldStep* otherstep = otherfield->GetFieldStep(stepid);
     vtkMedFieldStep* step = vtkMedFieldStep::New();
     step->SetComputeStep(otherstep->GetComputeStep());
+    step->SetMedIterator(otherstep->GetMedIterator());
     this->AddFieldStep(step);
     step->Delete();
 

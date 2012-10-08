@@ -28,6 +28,7 @@
 #include <LightApp_Application.h>
 #include <SUIT_Desktop.h>
 
+#include <QApplication>
 #include <QAction>
 #include <QDockWidget>
 #include <QToolBar>
@@ -35,8 +36,10 @@
 #include <QShortcut>
 #include <QScrollArea>
 #include <QVBoxLayout>
+#include <QShowEvent>
 
 #include <pqAnimationViewWidget.h> 
+#include <pqAnimationWidget.h> 
 
 #include <pqApplicationCore.h>
 #include <pqComparativeVisPanel.h>
@@ -72,6 +75,32 @@
 #include <pqParaViewMenuBuilders.h>
 #include <pqCollaborationPanel.h>
 #include <pqMemoryInspector.h>
+
+class ResizeHelper : public pqPVAnimationWidget
+{
+  // TEMPORARILY WORKAROUND AROUND PARAVIEW 3.14 BUG:
+  // WHEN ANIMATION VIEW IS RESIZED, ITS CONTENTS IS NOT PREPERLY RE-ARRANGED
+  // CAUSING SOME CONTROLS TO STAY NON-VISIBLE
+  // THIS BUG IS NATURALLY FIXED BY ADDING 
+  //      this->updateGeometries();
+  // TO THE
+  //     void pqAnimationWidget::resizeEvent(QResizeEvent* e);
+  // BUT THIS CANNOT BE DONE DIRECTLY, SINCE CORRESPONDING API IS NOT PUBLIC
+  // THE ONLY WAY TO DO THIS BY SENDING SHOW EVENT TO THE WIDGET
+
+public:
+  ResizeHelper( QWidget* parent ) : pqPVAnimationWidget( parent ) {}
+protected:
+  void resizeEvent(QResizeEvent* e)
+  {
+    pqAnimationWidget* w = findChild<pqAnimationWidget*>( "pqAnimationWidget" );
+    if ( w ) { 
+      QShowEvent e;
+      QApplication::sendEvent( w, &e );
+    }
+    pqPVAnimationWidget::resizeEvent( e );
+  }
+};
 
 /*!
   \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
@@ -176,7 +205,7 @@ void PVGUI_Module::setupDockWidgets()
   QDockWidget* animationViewDock     = new QDockWidget( tr( "TTL_ANIMATION_VIEW" ), desk );
   animationViewDock->setObjectName("animationViewDock");
   desk->addDockWidget( Qt::BottomDockWidgetArea, animationViewDock );
-  pqPVAnimationWidget* animation_panel = new pqPVAnimationWidget(animationViewDock);
+  pqPVAnimationWidget* animation_panel = new ResizeHelper(animationViewDock); //pqPVAnimationWidget
   animationViewDock->setWidget(animation_panel);
   myDockWidgets[animationViewDock] = false; // hidden by default
 

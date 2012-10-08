@@ -47,6 +47,9 @@ SET(vtkWrapIDL_CC_CPPFLAGS
 
 INCLUDE(wrap.cmake)
 
+INCLUDE(${ParaView_CMAKE_DIR}/vtkClientServer.cmake)
+VTK_WRAP_ClientServer(vtkEDFCutterCS vtkEDFCutter_SRCS ${GUI_ROOT_DIR}/include/salome/vtkEDFCutter.h)
+
 # Library sources
 SET(dist_libPARAVIS_la_SOURCES
   PVGUI_Module.h
@@ -74,6 +77,7 @@ SET(dist_libPARAVIS_la_SOURCES
   ${WRAP_IDL_I_HH}
   ${WRAP_IDL_I_CC}
   PARAVIS_CreateClass.cxx
+  ${vtkEDFCutter_SRCS}
   )
 
 # Check ParaView documentation file existence
@@ -160,7 +164,7 @@ TARGET_LINK_LIBRARIES(PARAVIS
   ${VTK_LIBS}
   ${PYTHON_LIBS}
   ${KERNEL_LDFLAGS} ${SalomeDS} ${SALOMELocalTrace} ${SalomeIDLKernel} ${SalomeNS} ${SalomeLifeCycleCORBA} ${SalomeContainer} ${TOOLSDS}
-  ${GUI_LDFLAGS} ${SalomeApp} ${LightApp} ${CAM} ${qtx} ${suit} ${Event} ${PyInterp} ${SalomeObject}
+  ${GUI_LDFLAGS} ${SalomeApp} ${LightApp} ${CAM} ${qtx} ${suit} ${Event} ${PyInterp} ${SalomeObject} ${vtkTools}
   ${MED_LDFLAGS} ${SalomeIDLMED}
   ${VISU_LDFLAGS}
   ${VISU_PARAVIS_LIBS}

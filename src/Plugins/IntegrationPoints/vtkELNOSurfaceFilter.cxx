@@ -84,6 +84,18 @@ int vtkELNOSurfaceFilter::RequestData(vtkInformation *request,
   vtkIdTypeArray* originalPointIds=vtkIdTypeArray::SafeDownCast(
       surface->GetPointData()->GetArray("vtkOriginalPointIds"));
 
+  if( originalCellIds == NULL )
+  {
+    vtkErrorMacro("vtkPVGeometryFilter return NULL 'vtkOriginalCellIds' array");
+    return 0;
+  }
+
+  if(originalPointIds==NULL)
+  {
+    vtkErrorMacro("vtkPVGeometryFilter return NULL 'vtkOriginalPointIds' array");
+    return 0;
+  }
+
   vtkSmartPointer<vtkShrinkFilter> shrink=
       vtkSmartPointer<vtkShrinkFilter>::New();
   shrink->SetInput(surface);

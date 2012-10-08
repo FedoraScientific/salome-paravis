@@ -1146,6 +1146,10 @@
         <translation>Deactivate Trace (for next session only)</translation>
     </message>
     <message>
+        <source>PREF_SHOW_COLOR_LEGEND</source>
+        <translation>Show Color Legend</translation>
+    </message>
+    <message>
         <source>TIT_PVISSETTINGS</source>
         <translation>ParaVis Settings</translation>
     </message>
