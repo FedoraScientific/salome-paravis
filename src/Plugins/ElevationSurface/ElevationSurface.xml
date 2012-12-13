@@ -30,7 +30,7 @@
         <DataTypeDomain
           name="input_type">
           <DataType
-            value="vtkPointSet" />
+            value="vtkPolyData" />
         </DataTypeDomain>
         <InputArrayDomain
           name="input_array"

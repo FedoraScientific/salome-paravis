@@ -116,6 +116,8 @@ namespace PARAVIS
 
     virtual void SetCurrentStudy(SALOMEDS::Study_ptr theStudy);
     virtual SALOMEDS::Study_ptr GetCurrentStudy();
+
+    virtual char* getVersion();
   };
 };
 #endif

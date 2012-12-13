@@ -213,6 +213,8 @@ const char* vtkMedUtilities::GeometryName(med_geometry_type geometry)
       return "MED_POLYGON";
     case MED_POLYHEDRON:
       return "MED_POLYHEDRON";
+    case MED_STRUCT_GEO_INTERNAL:
+      return "MED_STRUCT_GEO_INTERNAL";
     case MED_NO_GEOTYPE:
       return "MED_NO_GEOTYPE";
     default:

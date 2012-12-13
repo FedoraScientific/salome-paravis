@@ -23,6 +23,7 @@
 
 
 #include "PARAVIS_Gen_i.hh"
+#include "PARAVIS_version.h"
 
 // IDL Headers
 #include <omnithread.h>
@@ -725,4 +726,13 @@ namespace PARAVIS
     return SALOMEDS::Study::_duplicate(myStudyDocument);
   }
 
+  // Version information
+  char* PARAVIS_Gen_i::getVersion()
+  {
+#if PARAVIS_DEVELOPMENT
+    return CORBA::string_dup( PARAVIS_VERSION_STR"dev" );
+#else
+    return CORBA::string_dup( PARAVIS_VERSION_STR );
+#endif
+  }
 }

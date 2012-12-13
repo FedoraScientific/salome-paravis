@@ -52,6 +52,7 @@
 #include <SUIT_ResourceMgr.h>
 #include <SUIT_Session.h>
 #include <SUIT_OverrideCursor.h>
+#include <SUIT_ExceptionHandler.h>
 
 // SALOME Includes
 #include "SALOME_LifeCycleCORBA.hxx"
@@ -101,6 +102,8 @@
 #include <pqPipelineSource.h>
 #include <pqActiveObjects.h>
 #include <vtkProcessModule.h>
+#include <vtkSMSession.h>
+#include <vtkPVProgressHandler.h>
 #include <pqParaViewBehaviors.h>
 #include <pqHelpReaction.h>
 #include <vtkOutputWindow.h>
@@ -305,6 +308,18 @@ void vtkEDFHelperInit() {
     }
     return aSComponent;
   }
+
+/*!
+  Clean up function; used to stop ParaView progress events when
+  exception is caught by global exception handler.
+*/
+void paravisCleanUp()
+{
+  if ( pqApplicationCore::instance() ) {
+    pqServer* s = pqApplicationCore::instance()->getActiveServer();
+    if ( s ) s->session()->GetProgressHandler()->CleanupPendingProgress();
+  }
+}
 
 /*!
   \brief Constructor. Sets the default name for the module.
@@ -786,6 +801,8 @@ static void ParavisMessageOutput(QtMsgType type, const char *msg)
 bool PVGUI_Module::activateModule( SUIT_Study* study )
 {
   myOldMsgHandler = qInstallMsgHandler(ParavisMessageOutput);
+  
+  SUIT_ExceptionHandler::addCleanUpRoutine( paravisCleanUp );
 
   bool isDone = SalomeApp_Module::activateModule( study );
   if ( !isDone ) return false;
@@ -857,6 +874,8 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 
 
   saveDockWidgetsState();
+
+  SUIT_ExceptionHandler::removeCleanUpRoutine( paravisCleanUp );
 
   if (myOldMsgHandler)
     qInstallMsgHandler(myOldMsgHandler);

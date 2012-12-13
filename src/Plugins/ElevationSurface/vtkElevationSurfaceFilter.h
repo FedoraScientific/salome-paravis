@@ -22,7 +22,7 @@
 
 #include "vtkAlgorithm.h"
 
-class vtkPointSet;
+class vtkPolyData;
 
 class VTK_EXPORT vtkElevationSurfaceFilter: public vtkAlgorithm
 {
@@ -79,7 +79,7 @@ protected:
                           vtkInformationVector**,
                           vtkInformationVector*);
 
-  virtual void  ComputeDirection(vtkPointSet*, double *outDir);
+  virtual void  ComputeDirection(vtkPolyData*, double *outDir);
 
   double ScaleFactor;
   double Direction[3];

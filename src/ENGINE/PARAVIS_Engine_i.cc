@@ -294,4 +294,8 @@ namespace PARAVIS {
   SALOMEDS::Study_ptr PARAVIS_Gen_i::GetCurrentStudy(){
     return myParaVisGen->GetCurrentStudy();
   }
+  char* PARAVIS_Gen_i::getVersion()
+  {
+    return myParaVisGen->getVersion();
+  }
 }

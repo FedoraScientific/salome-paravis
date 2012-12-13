@@ -179,6 +179,9 @@ namespace PARAVIS
     virtual SALOMEDS::SObject_ptr PasteInto(const SALOMEDS::TMPFile& theStream,
                                             CORBA::Long theObjectID, SALOMEDS::SObject_ptr theObject);
 
+    //! inherited methods from Engines::EngineComponent. Returns module version.
+    virtual char* getVersion();
+
     //! Implementation of PARAVIS_Gen interface
     virtual PARAVIS::string_array* GetClassesList();
 

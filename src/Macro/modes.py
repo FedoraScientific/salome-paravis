@@ -21,11 +21,16 @@ try: paraview.simple
 except: from paraview.simple import *
 paraview.simple._DisableFirstRenderCameraReset()
 
+import sys
+
 source = GetActiveSource()
 representation = GetDisplayProperties(source)
 representation.Visibility = 0
 
+oldmode = None
+
 if source.SMProxy.GetVTKClassName() == 'vtkMedReader' :
+  oldmode = source.AnimationMode
   source.AnimationMode = 'Modes'
 
 ExtractSurface1 = ExtractSurface()
@@ -51,6 +56,10 @@ for arrayid in range(0, pinfo.GetNumberOfArrays()) :
     ScaleVector1.VectorField = ['POINTS', vectorname]
     WarpByVector1.Vectors = ['POINTS', rootname]
     break
+
+if vectorname == None :
+  source.AnimationMode = oldmode
+  sys.exit(0)
 
 ScaleVector1.ScaleFactor = 0
 ScaleVector1.UpdatePipeline()
