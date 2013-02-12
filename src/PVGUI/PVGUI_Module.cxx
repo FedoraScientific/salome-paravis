@@ -326,7 +326,6 @@ void paravisCleanUp()
 */
 PVGUI_Module::PVGUI_Module()
   : SalomeApp_Module( "PARAVIS" ),
-    LightApp_Module( "PARAVIS" ),
     //    Implementation( 0 ),
     mySelectionControlsTb( -1 ),
     mySourcesMenuId( -1 ),

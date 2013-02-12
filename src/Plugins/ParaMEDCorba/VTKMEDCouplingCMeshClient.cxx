@@ -33,19 +33,24 @@ void ParaMEDMEM2VTK::FillMEDCouplingCMeshInstanceFrom(SALOME_MED::MEDCouplingCMe
   SALOME_TYPES::ListOfLong *tinyI;
   SALOME_TYPES::ListOfString *tinyS;
   meshPtr->getTinyInfo(tinyD,tinyI,tinyS);
-  int sizePerAxe[3];
-  sizePerAxe[0]=(*tinyI)[0];
-  sizePerAxe[1]=(*tinyI)[1];
-  sizePerAxe[2]=(*tinyI)[2];
+  int sizePerAxe[3]={1,1,1};
+  bool isOK[3]={false,false,false};
+  if((*tinyI)[0]>0)
+    { sizePerAxe[0]=(*tinyI)[0]; isOK[0]=true; }
+  if((*tinyI)[1]>0)
+    { sizePerAxe[1]=(*tinyI)[1]; isOK[1]=true; }
+  if((*tinyI)[2]>0)
+    { sizePerAxe[2]=(*tinyI)[2]; isOK[2]=true; }
   ret->SetDimensions(sizePerAxe[0],sizePerAxe[1],sizePerAxe[2]);
   delete tinyI;
   delete tinyS;
+  delete tinyD;
   SALOME_TYPES::ListOfDouble *bigD;
   meshPtr->getSerialisationData(tinyI,bigD);
   delete tinyI;
   int offset=0;
   vtkDoubleArray *da=0;
-  if(sizePerAxe[0]>0)
+  if(isOK[0])
     {
       da=vtkDoubleArray::New();
       da->SetNumberOfTuples(sizePerAxe[0]);
@@ -57,7 +62,7 @@ void ParaMEDMEM2VTK::FillMEDCouplingCMeshInstanceFrom(SALOME_MED::MEDCouplingCMe
       da->Delete();
       offset+=sizePerAxe[0];
     }
-  if(sizePerAxe[1]>0)
+  if(isOK[1])
     {
       da=vtkDoubleArray::New();
       da->SetNumberOfTuples(sizePerAxe[1]);
@@ -69,7 +74,12 @@ void ParaMEDMEM2VTK::FillMEDCouplingCMeshInstanceFrom(SALOME_MED::MEDCouplingCMe
       da->Delete();
       offset+=sizePerAxe[1];
     }
-  if(sizePerAxe[2]>0)
+  else
+    {
+      da=vtkDoubleArray::New(); da->SetNumberOfTuples(1); da->SetNumberOfComponents(1);
+      double *pt=da->GetPointer(0); *pt=0.; ret->SetYCoordinates(da); da->Delete();
+    }
+  if(isOK[2])
     {
       da=vtkDoubleArray::New();
       da->SetNumberOfTuples(sizePerAxe[2]);
@@ -79,6 +89,11 @@ void ParaMEDMEM2VTK::FillMEDCouplingCMeshInstanceFrom(SALOME_MED::MEDCouplingCMe
         pt[i]=(*bigD)[offset+i];
       ret->SetZCoordinates(da);
       da->Delete();
+    }
+  else
+    {
+      da=vtkDoubleArray::New(); da->SetNumberOfTuples(1); da->SetNumberOfComponents(1);
+      double *pt=da->GetPointer(0); *pt=0.; ret->SetZCoordinates(da); da->Delete();
     }
   delete bigD;
   meshPtr->UnRegister();

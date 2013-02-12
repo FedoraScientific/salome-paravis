@@ -20,10 +20,12 @@
 #include "VTKMEDCouplingMeshClient.hxx"
 #include "VTKMEDCouplingUMeshClient.hxx"
 #include "VTKMEDCouplingCMeshClient.hxx"
+#include "VTKMEDCouplingCurveLinearMeshClient.hxx"
 
 #include "vtkErrorCode.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkRectilinearGrid.h"
+#include "vtkStructuredGrid.h"
 
 #include <vector>
 #include <string>
@@ -56,6 +58,18 @@ void ParaMEDMEM2VTK::FillMEDCouplingMeshInstanceFrom(SALOME_MED::MEDCouplingMesh
       ParaMEDMEM2VTK::FillMEDCouplingCMeshInstanceFrom(cmeshPtr,ret1);
       return ;
     }
+  SALOME_MED::MEDCouplingCurveLinearMeshCorbaInterface_var clmeshPtr=SALOME_MED::MEDCouplingCurveLinearMeshCorbaInterface::_narrow(meshPtr);
+  if(!CORBA::is_nil(clmeshPtr))
+    {
+      vtkStructuredGrid *ret1=vtkStructuredGrid::SafeDownCast(ret);
+      if(!ret1)
+        {
+          vtkErrorWithObjectMacro(ret,"Internal error in ParaMEDCorba plugin : mismatch between VTK type and CORBA type CurveLinearMesh !");
+          return ;
+        }
+      ParaMEDMEM2VTK::FillMEDCouplingCurveLinearMeshInstanceFrom(clmeshPtr,ret1);
+      return ;
+    }
   vtkErrorWithObjectMacro(ret,"Error : CORBA mesh type ! Mesh type not managed !");
 }
 
@@ -73,6 +87,13 @@ vtkDataSet *ParaMEDMEM2VTK::BuildFromMEDCouplingMeshInstance(SALOME_MED::MEDCoup
     {
       vtkRectilinearGrid *ret1=vtkRectilinearGrid::New();
       ParaMEDMEM2VTK::FillMEDCouplingCMeshInstanceFrom(cmeshPtr,ret1);
+      return ret1;
+    }
+  SALOME_MED::MEDCouplingCurveLinearMeshCorbaInterface_var clmeshPtr=SALOME_MED::MEDCouplingCurveLinearMeshCorbaInterface::_narrow(meshPtr);
+  if(!CORBA::is_nil(clmeshPtr))
+    {
+      vtkStructuredGrid *ret1=vtkStructuredGrid::New();
+      ParaMEDMEM2VTK::FillMEDCouplingCurveLinearMeshInstanceFrom(clmeshPtr,ret1);
       return ret1;
     }
   vtkOutputWindowDisplayErrorText("Error : CORBA mesh type ! Mesh type not managed #2 !");

@@ -39,7 +39,7 @@ PROJECT( ParaMEDCorba )
       )
 
     ADD_LIBRARY (ParaMEDMEM2VTK SHARED VTKMEDCouplingMeshClient.cxx VTKMEDCouplingUMeshClient.cxx VTKMEDCouplingCMeshClient.cxx
-      VTKMEDCouplingFieldClient.cxx VTKParaMEDFieldClient.cxx VTKMEDCouplingMultiFieldsClient.cxx )
+      VTKMEDCouplingFieldClient.cxx VTKParaMEDFieldClient.cxx VTKMEDCouplingMultiFieldsClient.cxx VTKMEDCouplingCurveLinearMeshClient.cxx)
     
     ADD_PARAVIEW_PLUGIN( ParaMEDCorbaPlugin "1.0"
       SERVER_MANAGER_XML ParaMEDCorbaServerManager.xml
@@ -47,14 +47,9 @@ PROJECT( ParaMEDCorba )
       ParaMEDCorbaUserInterfaceSources.xml
       SERVER_MANAGER_SOURCES ${PARACORBAPLUG_SRCS} )
     
-    SET(flags)
-    FOREACH(f ${CORBA_INCLUDES} ${CORBA_CXXFLAGS})
-      SET(flags "${flags} ${f}")
-    ENDFOREACH(f ${CORBA_INCLUDES} ${CORBA_CXXFLAGS})
-    
-    INCLUDE_DIRECTORIES(${MED_ROOT_DIR}/include/salome ${KERNEL_ROOT_DIR}/include/salome)
-    SET_TARGET_PROPERTIES(ParaMEDMEM2VTK PROPERTIES COMPILE_FLAGS "${flags}")
-    SET_TARGET_PROPERTIES(ParaMEDCorbaPlugin PROPERTIES COMPILE_FLAGS "${flags}")
+    INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR} ${MED_ROOT_DIR}/include/salome ${KERNEL_ROOT_DIR}/include/salome)
+    SET_TARGET_PROPERTIES(ParaMEDMEM2VTK PROPERTIES COMPILE_FLAGS "${OMNIORB_DEFINITIONS}")
+    SET_TARGET_PROPERTIES(ParaMEDCorbaPlugin PROPERTIES COMPILE_FLAGS "${OMNIORB_DEFINITIONS}")
 
     TARGET_LINK_LIBRARIES(ParaMEDMEM2VTK
       vtkCommon
@@ -62,11 +57,10 @@ PROJECT( ParaMEDCorba )
       vtkGraphics
       vtkClientServer
       pqCore
-      ${CORBA_LIBS}
+      ${OMNIORB_LIBRARIES}
       ${SalomeIDLMED}
       ${SalomeIDLKernel}
       ${QT_LIBS}
-      ${CORBA_LIBS}
       )
     TARGET_LINK_LIBRARIES(ParaMEDCorbaPlugin
       ParaMEDMEM2VTK
@@ -79,7 +73,7 @@ PROJECT( ParaMEDCorba )
     ADD_EXECUTABLE( testParaMEDCorba
       ${ParaMEDCorba_SOURCE_DIR}/testParaMEDCorba.cxx
       )
-    # SET_TARGET_PROPERTIES(testCorbaPlugin PROPERTIES COMPILE_FLAGS "${flags}")
+    # SET_TARGET_PROPERTIES(testCorbaPlugin PROPERTIES COMPILE_FLAGS "${OMNIORB_DEFINITIONS}")
     
     TARGET_LINK_LIBRARIES( testParaMEDCorba
       ParaMEDCorbaPlugin
