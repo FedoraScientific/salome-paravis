@@ -225,6 +225,7 @@ private slots:
 
   void onFinishedAddingServer(pqServer*);
   void onDataRepresentationCreated(pqDataRepresentation*);
+  void onDataRepresentationUpdated();
   void onVariableChanged(pqVariableType, const QString);
   void onRepresentationChanged(pqRepresentation*);
 

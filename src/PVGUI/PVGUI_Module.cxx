@@ -544,6 +544,15 @@ void PVGUI_Module::onDataRepresentationCreated(pqDataRepresentation* data) {
   if(lut_mgr) {
     lut_mgr->setScalarBarVisibility(data,visible);
   }
+
+  connect(data, SIGNAL(dataUpdated()), this, SLOT(onDataRepresentationUpdated()));
+}
+
+void PVGUI_Module::onDataRepresentationUpdated() {
+  SalomeApp_Study* activeStudy = dynamic_cast<SalomeApp_Study*>(application()->activeStudy());
+  if(!activeStudy) return;
+  
+  activeStudy->Modified();
 }
 
 void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {

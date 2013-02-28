@@ -59,44 +59,43 @@ for arrayid in range(0, pinfo.GetNumberOfArrays()) :
 
 if vectorname == None :
   source.AnimationMode = oldmode
-  sys.exit(0)
+else :
+  ScaleVector1.ScaleFactor = 0
+  ScaleVector1.UpdatePipeline()
+  bounds = info.DataInformation.GetBounds()
+  side = [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+  length = side[0]
+  if side[1] > length : length = side[1] 
+  if side[2] > length : length = side[2] 
 
-ScaleVector1.ScaleFactor = 0
-ScaleVector1.UpdatePipeline()
-bounds = info.DataInformation.GetBounds()
-side = [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
-length = side[0]
-if side[1] > length : length = side[1] 
-if side[2] > length : length = side[2] 
+  scale = length / 20
+  if vectorname != None :
+    arrayrange = arrayinfo.GetComponentRange(-1)
+    if arrayrange[1] > 0 :
+      scale = scale / arrayrange[1]
+  
+  WarpByVector1.ScaleFactor = scale
+  
+  AnimationScene1 = GetAnimationScene()
 
-scale = length / 20
-if vectorname != None :
-  arrayrange = arrayinfo.GetComponentRange(-1)
-  if arrayrange[1] > 0 :
-    scale = scale / arrayrange[1]
+  TimeAnimationCue1 = GetTimeTrack()
+  TimeAnimationCue1.Enabled = 0
 
-WarpByVector1.ScaleFactor = scale
+  KeyFrameAnimationCue1 = GetAnimationTrack( ScaleVector1.GetProperty('ScaleFactor'))
+  KeyFrame0 = CompositeKeyFrame( KeyValues=[1.0], Interpolation='Sinusoid' )
+  KeyFrame1 = CompositeKeyFrame( KeyTime=1.000000001, KeyValues=[1.0] )
 
-AnimationScene1 = GetAnimationScene()
+  KeyFrameAnimationCue1.KeyFrames = [ KeyFrame0, KeyFrame1 ]
 
-TimeAnimationCue1 = GetTimeTrack()
-TimeAnimationCue1.Enabled = 0
-
-KeyFrameAnimationCue1 = GetAnimationTrack( ScaleVector1.GetProperty('ScaleFactor'))
-KeyFrame0 = CompositeKeyFrame( KeyValues=[1.0], Interpolation='Sinusoid' )
-KeyFrame1 = CompositeKeyFrame( KeyTime=1.000000001, KeyValues=[1.0] )
-
-KeyFrameAnimationCue1.KeyFrames = [ KeyFrame0, KeyFrame1 ]
-
-AnimationScene1.Cues.append(KeyFrameAnimationCue1)
-AnimationScene1.Loop = 1
-AnimationScene1.PlayMode = 'Sequence'
-AnimationScene1.NumberOfFrames = 21
-
-WarpByVectorDataRepresentation = Show(WarpByVector1)
-if rootname != None :
-  pvLookupTable = GetLookupTableForArray( rootname, 3, VectorMode='Magnitude' )
-  WarpByVectorDataRepresentation.ColorArrayName = rootname
-  WarpByVectorDataRepresentation.LookupTable = pvLookupTable
-
-AnimationScene1.Play()
+  AnimationScene1.Cues.append(KeyFrameAnimationCue1)
+  AnimationScene1.Loop = 1
+  AnimationScene1.PlayMode = 'Sequence'
+  AnimationScene1.NumberOfFrames = 21
+  
+  WarpByVectorDataRepresentation = Show(WarpByVector1)
+  if rootname != None :
+    pvLookupTable = GetLookupTableForArray( rootname, 3, VectorMode='Magnitude' )
+    WarpByVectorDataRepresentation.ColorArrayName = rootname
+    WarpByVectorDataRepresentation.LookupTable = pvLookupTable
+  
+  AnimationScene1.Play()
