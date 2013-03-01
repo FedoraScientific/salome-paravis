@@ -706,9 +706,9 @@ def get_add_component_calc(proxy, array_entity, array_name):
     nb_components = get_nb_components(proxy, array_entity, array_name)
     if nb_components == 2:
         calculator = pv.Calculator(proxy)
-        attribute_mode = "point_data"
+        attribute_mode = "Point Data"
         if array_entity != EntityType.NODE:
-            attribute_mode = "cell_data"
+            attribute_mode = "Cell Data"
         calculator.AttributeMode = attribute_mode
         expression = "iHat * " + array_name + "_X + jHat * " + array_name + "_Y + kHat * 0"
         calculator.Function = expression

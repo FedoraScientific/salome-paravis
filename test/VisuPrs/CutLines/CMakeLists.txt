@@ -43,7 +43,6 @@ IF (PYTHON_EXECUTABLE)
       E7
       E8
       E9
-      F0
       F1
       F2
       F3
@@ -57,7 +56,7 @@ IF (PYTHON_EXECUTABLE)
       G1
       G2      
       )
-    SET(TIMEOUT 1500)
+    SET(TIMEOUT 10000)
     ADD_TEST(CUTLINES_${tfile} ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py ${PARAVIS_TEST_OUTPUT_DIR})
     SET_TESTS_PROPERTIES(CUTLINES_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
   ENDFOREACH( tfile )
