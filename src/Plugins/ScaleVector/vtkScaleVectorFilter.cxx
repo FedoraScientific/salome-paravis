@@ -29,7 +29,7 @@
 
 using namespace std;
 
-vtkCxxRevisionMacro(vtkScaleVectorFilter, "$Revision$");
+//vtkCxxRevisionMacro(vtkScaleVectorFilter, "$Revision$");
 vtkStandardNewMacro(vtkScaleVectorFilter);
 
 vtkScaleVectorFilter::vtkScaleVectorFilter()

@@ -36,12 +36,15 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkDemandDrivenPipeline.h"
-#include "vtkCompositeDataIterator.h"
+//#include "vtkCompositeDataIterator.h"
+#include "vtkDataObjectTreeIterator.h"
 
-#include <vtkstd/map>
-#include <vtkstd/deque>
+#include <map>
+#include <deque>
+//#include <vtkstd/map>
+//#include <vtkstd/deque>
 
-vtkCxxRevisionMacro(vtkExtractGroup, "$Revision$");
+// vtkCxxRevisionMacro(vtkExtractGroup, "$Revision$");
 vtkStandardNewMacro(vtkExtractGroup);
 
 vtkCxxSetObjectMacro(vtkExtractGroup, SIL, vtkMutableDirectedGraph);
@@ -132,7 +135,7 @@ void vtkExtractGroup::BuildDefaultSIL(vtkMutableDirectedGraph* sil)
   crossEdgesArray->SetName("CrossEdges");
   sil->GetEdgeData()->AddArray(crossEdgesArray);
   crossEdgesArray->Delete();
-  vtkstd::deque<vtkstd::string> names;
+  std::deque<std::string> names;
 
   // Now build the hierarchy.
   vtkIdType rootId=sil->AddVertex();
@@ -168,7 +171,7 @@ void vtkExtractGroup::BuildDefaultSIL(vtkMutableDirectedGraph* sil)
   namesArray->SetNumberOfTuples(sil->GetNumberOfVertices());
   sil->GetVertexData()->AddArray(namesArray);
   namesArray->Delete();
-  vtkstd::deque<vtkstd::string>::iterator iter;
+  std::deque<std::string>::iterator iter;
   vtkIdType cc;
   for(cc=0, iter=names.begin(); iter!=names.end(); ++iter, ++cc)
     {
@@ -192,7 +195,8 @@ int vtkExtractGroup::RequestData(vtkInformation *request,
 
   outmb->CopyStructure(inmb);
 
-  vtkCompositeDataIterator* iterator = inmb->NewIterator();
+  //vtkCompositeDataIterator* iterator = inmb->NewIterator();
+  vtkDataObjectTreeIterator* iterator = vtkDataObjectTreeIterator::SafeDownCast( inmb->NewIterator() );
   iterator->SetVisitOnlyLeaves(true);
   iterator->InitTraversal();
   while(!iterator->IsDoneWithTraversal())

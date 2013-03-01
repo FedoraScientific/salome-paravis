@@ -33,5 +33,5 @@ SUBDIRS(Util
 	GaussPoints
 	StreamLines
 	SWIG_scripts
-	Tables)
-
+	Tables
+)

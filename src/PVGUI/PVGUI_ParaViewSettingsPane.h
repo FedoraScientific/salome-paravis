@@ -30,7 +30,7 @@
 
 #include <QWidget>
 
-#include "pqComponentsExport.h"
+#include "vtkPVConfig.h"
 
 class pqOptionsContainer;
 class OptionsDialogForm;

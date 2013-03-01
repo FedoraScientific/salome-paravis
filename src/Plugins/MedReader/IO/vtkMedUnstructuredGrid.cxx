@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -45,7 +45,7 @@
 
 vtkCxxSetObjectMacro(vtkMedUnstructuredGrid,Coordinates,vtkDataArray);
 
-vtkCxxRevisionMacro(vtkMedUnstructuredGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedUnstructuredGrid, "$Revision$")
 vtkStandardNewMacro(vtkMedUnstructuredGrid)
 
 vtkMedUnstructuredGrid::vtkMedUnstructuredGrid()
@@ -216,6 +216,7 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
         }
 
       vtkugrid->GetInformation()->Set(vtkMedUtilities::STRUCT_ELEMENT(), structelem);
+      std::cout << "structelem->GetNumberOfVariableAttribute() = " << structelem->GetNumberOfVariableAttribute() << std::endl;
       for(int varattid = 0; varattid<structelem->GetNumberOfVariableAttribute(); varattid++)
         {
         vtkMedVariableAttribute* varatt = structelem->GetVariableAttribute(varattid);
@@ -246,7 +247,6 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
     if (controller->GetNumberOfProcesses() > 1)
     valid = 1;
 
-  array->LoadConnectivity();
   for (vtkIdType pindex = 0; pindex<maxId && valid; pindex++)
     {
     vtkIdType realIndex = (pids!=NULL?
@@ -255,6 +255,8 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
 
     if (!foep->KeepCell(realIndex))
       continue;
+
+    array->GetCellVertices(realIndex, pts);
 
     for(int sid = 0; sid < nsupportcell; sid++)
       {
@@ -287,7 +289,6 @@ vtkDataSet* vtkMedUnstructuredGrid::CreateVTKDataSet(
       }
     else
       {
-      array->GetCellVertices(realIndex, pts);
       vtkpts->Initialize();
       vtkpts->SetNumberOfIds(pts->GetNumberOfIds());
 

@@ -17,12 +17,6 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-#test if we have not yet included ParaView and/or VTK configuration files
-IF(NOT VTK_FOUND)
-    FIND_PACKAGE(VTK REQUIRED)
-    INCLUDE(${VTK_USE_FILE})
-ENDIF(NOT VTK_FOUND)
-
 set(MedReader_CLASSES
     vtkMedReader
     vtkMedDriver
@@ -84,25 +78,21 @@ set_source_files_properties(
   PROPERTIES WRAP_EXCLUDE 1
 )
 
-add_library(vtkMedReader ${MedReader_SRCS})
-
-set(VTK_LIBS vtkIO)
-if(${HDF5_IS_PARALLEL})
-  set(VTK_LIBS ${VTK_LIBS} vtkParallel)
-endif(${HDF5_IS_PARALLEL})
+# this adds target_link_libraries dependencies on all modules listed under
+# DEPENDS in module.cmake
+vtk_module_library(vtkMedReader ${MedReader_SRCS})
 
 # Introducing selection for parallel compilation
+# CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/IO/config.h.cmake ${CMAKE_SOURCE_DIR}/IO/config.h )
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h )
 
-add_definitions( -I${CMAKE_CURRENT_BINARY_DIR} )
+target_link_libraries(vtkMedReader ${MED_LIBRARIES})
 
-target_link_libraries(vtkMedReader ${MED_LIBRARIES} ${VTK_LIBS} ${VTK_PARALLEL} ${vtkPVServerManager})
+#set(MedReader_BUILD_Testing ${VTK_BUILD_TESTING} CACHE BOOL "Build tests for the MedReader filter")
 
-set(MedReader_BUILD_Testing ${VTK_BUILD_TESTING} CACHE BOOL "Build tests for the MedReader filter")
-
-if(MedReader_BUILD_Testing)
-    add_subdirectory(Testing)
-endif(MedReader_BUILD_Testing)
+#if(MedReader_BUILD_Testing)
+#    add_subdirectory(Testing)
+#endif(MedReader_BUILD_Testing)
 
 install(
     TARGETS vtkMedReader
@@ -110,7 +100,7 @@ install(
     LIBRARY DESTINATION lib/salome
     ARCHIVE DESTINATION lib/salome
     )
-    
+
 install(FILES ${MedReader_HDRS} DESTINATION include)
         
 # -----------------------------------------------------------------------------
@@ -118,14 +108,18 @@ install(FILES ${MedReader_HDRS} DESTINATION include)
 # kit.
 # -----------------------------------------------------------------------------
 # needed by vtkExportKit.cmake
-include(${VTK_CMAKE_DIR}/vtkExportKit.cmake)
-IF(NOT VTK_INSTALL_NO_DEVELOPMENT)
-  STRING(REGEX REPLACE "^/" "" VTK_INSTALL_PACKAGE_DIR_CM24 "${VTK_INSTALL_PACKAGE_DIR}")
-ENDIF(NOT VTK_INSTALL_NO_DEVELOPMENT)
 
-vtk_export_kit2(
-  "MedReader_IO" 
-  "MEDREADER_IO" 
-  ${CMAKE_CURRENT_BINARY_DIR} 
-  "${MedReader_SRCS}"
-)
+#include(${ParaView_CMAKE_DIR}/VTKMono/vtkExportKit.cmake)
+
+#  #include(${VTK_CMAKE_DIR}/vtkExportKit.cmake)
+#IF(NOT VTK_INSTALL_NO_DEVELOPMENT)
+#  STRING(REGEX REPLACE "^/" "" VTK_INSTALL_PACKAGE_DIR_CM24 "${VTK_INSTALL_PACKAGE_DIR}")
+#ENDIF(NOT VTK_INSTALL_NO_DEVELOPMENT)
+
+#set(VTK_INSTALL_PACKAGE_DIR_CM24 ${VTK_MODULES_DIR})
+#vtk_export_kit2(
+#  "MedReader_IO" 
+#  "MEDREADER_IO" 
+#  ${CMAKE_CURRENT_BINARY_DIR} 
+#  "${MedReader_SRCS}"
+#)

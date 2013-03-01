@@ -26,7 +26,7 @@ class vtkMySampleFilter : public vtkExtractEdges
 {
 public:
   static vtkMySampleFilter* New();
-  vtkTypeRevisionMacro(vtkMySampleFilter, vtkExtractEdges);
+  vtkTypeMacro(vtkMySampleFilter, vtkExtractEdges);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:

@@ -21,7 +21,7 @@
 
 #include <vtkObjectFactory.h>
 
-vtkCxxRevisionMacro(vtkMySampleFilter, "$Revision$");
+//vtkCxxRevisionMacro(vtkMySampleFilter, "$Revision$");
 vtkStandardNewMacro(vtkMySampleFilter);
 
 //----------------------------------------------------------------------------

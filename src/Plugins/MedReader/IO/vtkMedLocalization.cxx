@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -372,7 +372,7 @@ static const char* PYRA13_functions[PYRA13_nnode] =
 vtkCxxSetObjectMacro(vtkMedLocalization, ParentFile, vtkMedFile);
 vtkCxxSetObjectMacro(vtkMedLocalization, Interpolation, vtkMedInterpolation);
 
-vtkCxxRevisionMacro(vtkMedLocalization, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedLocalization, "$Revision$")
 vtkStandardNewMacro(vtkMedLocalization)
 
 vtkMedLocalization::vtkMedLocalization()

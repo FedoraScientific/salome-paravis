@@ -19,6 +19,7 @@
 
 SET(dist_testscript_DATA
   paravistest.py
+  paravistesthelper.py
   )
 
 FOREACH(f ${dist_testscript_DATA})

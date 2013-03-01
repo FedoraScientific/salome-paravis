@@ -35,9 +35,9 @@
 #include "vtkObjectFactory.h"
 #include "vtkInformation.h"
 //
-#include "vtkstd/string"
+#include "vtksys/stl/string"
 #include "vtksys/ios/fstream"
-#include "vtkstd/algorithm"
+#include "vtksys/stl/algorithm"
 
 #include "VTKMEDCouplingMeshClient.hxx"
 #include "VTKMEDCouplingFieldClient.hxx"
@@ -49,7 +49,7 @@
 //
 
 vtkStandardNewMacro(vtkParaMEDCorbaSource);
-vtkCxxRevisionMacro(vtkParaMEDCorbaSource,"$Revision$");
+//vtkCxxRevisionMacro(vtkParaMEDCorbaSource,"$Revision$");
 
 void *vtkParaMEDCorbaSource::Orb=0;
 
@@ -85,7 +85,7 @@ void vtkParaMEDCorbaSource::SetIORCorba(char *ior)
     return;
   int length=strlen(ior);
   IOR.resize(length+1);
-  vtkstd::copy(ior,ior+length+1,&IOR[0]);
+  vtksys_stl::copy(ior,ior+length+1,&IOR[0]);
   this->Modified();
 }
 
@@ -187,15 +187,15 @@ int vtkParaMEDCorbaSource::RequestData(vtkInformation* request, vtkInformationVe
 {
   vtkInformation *outInfo=outputVector->GetInformationObject(0);
   //
-  this->UpdatePiece = this->GetOutputDataObject(0)->GetUpdatePiece();//emulation vtkUnstructuredGrid::GetUpdateExtent(int&,int&,int&)
-  this->NumberOfPieces = this->GetOutputDataObject(0)->GetUpdateNumberOfPieces();//emulation vtkUnstructuredGrid::GetUpdateExtent(int&,int&,int&)
-  this->GhostLevel = this->GetOutputDataObject(0)->GetUpdateGhostLevel();//emulation vtkUnstructuredGrid::GetUpdateExtent(int&,int&,int&)
+  this->UpdatePiece = vtkStreamingDemandDrivenPipeline::GetUpdatePiece(outInfo);
+  this->NumberOfPieces = vtkStreamingDemandDrivenPipeline::GetUpdateNumberOfPieces(outInfo);
+  this->GhostLevel = vtkStreamingDemandDrivenPipeline::GetUpdateGhostLevel(outInfo);
   this->StartPiece=((this->UpdatePiece*this->TotalNumberOfPieces)/this->NumberOfPieces);
   this->EndPiece=(((this->UpdatePiece+1)*this->TotalNumberOfPieces)/this->NumberOfPieces);
   vtkMultiBlockDataSet *ret0=vtkMultiBlockDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
-  double *reqTS = 0;
-  if(outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-    reqTS = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
+  double reqTS = 0;
+  if(outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
+    reqTS = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
   //Client request on ORB.
   CORBA::ORB_var *OrbC=(CORBA::ORB_var *)this->Orb;
   CORBA::Object_var obj=(*OrbC)->string_to_object(&IOR[0]);
@@ -232,13 +232,13 @@ int vtkParaMEDCorbaSource::RequestData(vtkInformation* request, vtkInformationVe
            timeRange[1]=ret2[0];
            outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),&ret2[0],1);
            outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(),timeRange,2);
-           ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEPS(), &ret2[0], 1);
+           ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(),ret2[0]);
            return 1;
          }
        SALOME_MED::MEDCouplingMultiFieldsCorbaInterface_var multiPtr=SALOME_MED::MEDCouplingMultiFieldsCorbaInterface::_narrow(obj);
        if(!CORBA::is_nil(multiPtr))
          {
-           vtkDataSet *ret=mfieldsFetcher->buildDataSetOnTime(reqTS[0]);
+           vtkDataSet *ret=mfieldsFetcher->buildDataSetOnTime(reqTS);
            if(!ret)
              {
                vtkErrorMacro("On multi fields CORBA fetching an error occurs !");
@@ -246,7 +246,7 @@ int vtkParaMEDCorbaSource::RequestData(vtkInformation* request, vtkInformationVe
              }
            ret0->SetBlock(0,ret);
            ret->Delete();
-           ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEPS(),reqTS, 1);
+           ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(),reqTS);
            return 1;
          }
        vtkErrorMacro("Unrecognized sequential CORBA reference !");

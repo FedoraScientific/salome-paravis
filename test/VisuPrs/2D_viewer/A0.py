@@ -36,20 +36,24 @@ aXYPlot.ChartTitle = '   '
 aXYPlot.ChartTitle = 'title of XY plot'
 print "Chart title for xyplot ...", aXYPlot.ChartTitle
 
-# Show left and bottom axis
-aXYPlot.ShowAxis = [1, 1, 0, 0]
+error = 0
+try:
+    aXYPlot.ShowAxis = [1, 1, 0, 0]
+except:
+    print "Error: ShowAxis property is not avaliable for XYPlotView"
+    error = error + 1
+
+aXYPlot.AxisUseCustomRange = [1, 1, 0, 0]
 
 # Show grids
 aXYPlot.ShowAxisGrid = [1, 1, 0, 0]
-
-# Set axis range for left and bottom axis
-aXYPlot.AxisBehavior = [1, 1, 0, 0]
 
 aMinX = 0
 aMaxX = 100
 aMinY = 0
 aMaxY = 10
-aXYPlot.AxisRange = [aMinX, aMaxX, aMinY, aMaxY, 0.0, 1.0, 0.0, 1.0]
+aXYPlot.BottomAxisRange = [aMinX, aMaxX]
+aXYPlot.LeftAxisRange = [aMinY, aMaxY]
 
 # Set horizontal scaling for left and bottom axis
 print "Default logarithmic scaling  ...", aXYPlot.AxisLogScale
@@ -73,3 +77,6 @@ print "Title of the bottom axis          ...", aXYPlot.AxisTitle[1]
 # Show/hide legend
 aXYPlot.ShowLegend = 1
 aXYPlot.ShowLegend = 0
+
+if error > 0:
+    raise RuntimeError, "There is(are) some error(s) was(were) found... For more info see ERRORs above..."

@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -213,8 +213,6 @@ const char* vtkMedUtilities::GeometryName(med_geometry_type geometry)
       return "MED_POLYGON";
     case MED_POLYHEDRON:
       return "MED_POLYHEDRON";
-    case MED_STRUCT_GEO_INTERNAL:
-      return "MED_STRUCT_GEO_INTERNAL";
     case MED_NO_GEOTYPE:
       return "MED_NO_GEOTYPE";
     default:
@@ -631,7 +629,7 @@ int vtkMedUtilities::FormatPolyhedronForVTK(
 
   if (array->GetConnectivity()==MED_NODAL)
     {
-    ids->InsertNextId(end-start);
+    ids->InsertNextId(end-start-1);
     for (int ff = start; ff<end; ff++)
       {
       med_int fstart = nodeIndex->GetValue(ff)-1;
@@ -686,21 +684,21 @@ int vtkMedUtilities::FormatPolyhedronForVTK(
   return 1;
 }
 
-void vtkMedUtilities::SplitGroupKey(const char* name, vtkstd::string& mesh,
-    vtkstd::string& entity, vtkstd::string& group)
+void vtkMedUtilities::SplitGroupKey(const char* name, std::string& mesh,
+    std::string& entity, std::string& group)
 {
-  vtkstd::string remain;
+  std::string remain;
   remain=name;
   mesh="*";
   entity="*";
   group="*";
-  vtkstd::string header="*";
+  std::string header="*";
 
   if(remain=="*")
     {
     return;
     }
-  vtkstd::string::size_type pos;
+  std::string::size_type pos;
   // First get the header, which must be "GROUP"
   pos=remain.find_first_of(vtkMedUtilities::Separator);
   header=remain.substr(0, pos);

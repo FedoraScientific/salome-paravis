@@ -17,7 +17,8 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-include_directories(../..)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../..)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 set(TestMedReader_SRCS
     TestMedReader.cxx
@@ -57,21 +58,20 @@ add_executable(TestMedReadPolyhedron ${TestMedReadPolyhedron_SRCS})
 add_executable(TestMedDescendingPolyhedron ${TestMedDescendingPolyhedron_SRCS})
 add_executable(TestMedReadDescendingPolyhedron ${TestMedReadDescendingPolyhedron_SRCS})
 add_executable(TestMedWriteOcta12 ${TestMedWriteOcta12_SRCS})
-add_executable(TestMedParallelRead ${TestMedParallelRead_SRCS})
-add_executable(TestMedParallelWrite ${TestMedParallelWrite_SRCS})
 
-#set(VTK_LIBS vtkMedReader vtkRendering)
-#if(${HDF5_IS_PARALLEL})
-#  set(VTK_LIBS ${VTK_LIBS} vtkParallel)
-#endif(${HDF5_IS_PARALLEL})
-SET(VTK_LIBS ${VTK_LIBRARIES} vtkMedReader)
+if(${HDF5_IS_PARALLEL})
+  add_executable(TestMedParallelRead ${TestMedParallelRead_SRCS})
+  add_executable(TestMedParallelWrite ${TestMedParallelWrite_SRCS})
+  target_link_libraries(TestMedParallelRead vtkParallelCore ${MED_LIBRARIES})
+  target_link_libraries(TestMedParallelWrite vtkParallelCore ${MED_LIBRARIES})
+endif(${HDF5_IS_PARALLEL})
 
-target_link_libraries(TestMedReader ${VTK_LIBS} ${MED_LIBRARIES})
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../module.cmake)
+
+target_link_libraries(TestMedReader ${${vtk-module-test}_DEPENDS} ${MED_LIBRARIES})
 target_link_libraries(TestMedPolyhedron ${MED_LIBRARIES})
 target_link_libraries(TestMedReadPolyhedron ${MED_LIBRARIES})
 target_link_libraries(TestMedDescendingPolyhedron ${MED_LIBRARIES})
 target_link_libraries(TestMedReadDescendingPolyhedron ${MED_LIBRARIES})
 target_link_libraries(TestMedWriteOcta12 ${MED_LIBRARIES})
-target_link_libraries(TestMedParallelRead ${MED_LIBRARIES})
-target_link_libraries(TestMedParallelWrite ${MED_LIBRARIES})
 

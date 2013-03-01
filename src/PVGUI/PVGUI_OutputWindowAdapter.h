@@ -34,7 +34,7 @@ class PVGUI_OutputWindowAdapter : public vtkOutputWindow
 {
 public:
   static PVGUI_OutputWindowAdapter *New();
-  vtkTypeRevisionMacro(PVGUI_OutputWindowAdapter, vtkOutputWindow);
+  vtkTypeMacro(PVGUI_OutputWindowAdapter, vtkOutputWindow);
 
   //! Returns the number of text messages received
   const unsigned int getTextCount();

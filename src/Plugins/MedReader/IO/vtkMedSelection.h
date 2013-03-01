@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ class VTK_EXPORT vtkMedSelection : public vtkObject
 {
 public :
   static vtkMedSelection* New();
-  vtkTypeRevisionMacro(vtkMedSelection, vtkObject)
+  vtkTypeMacro(vtkMedSelection, vtkObject)
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void  Initialize();

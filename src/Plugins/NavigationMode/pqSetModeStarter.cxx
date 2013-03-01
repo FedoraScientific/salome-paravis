@@ -53,7 +53,7 @@ void pqSetModeStarter::setStandardMode()
     // Set Post-Pro-like settings
     QStringList strs;
     pqRenderView::ManipulatorType manips[9];
-    const pqRenderView::ManipulatorType* default3DManips = pqRenderView::getDefaultManipulatorTypes();
+    const pqRenderView::ManipulatorType* default3DManips = pqRenderView::getDefault3DManipulatorTypes();
 
     // Copy default settings, make changes for Ctrl+MB and MB modes
     for(int i=0; i<9; i++)

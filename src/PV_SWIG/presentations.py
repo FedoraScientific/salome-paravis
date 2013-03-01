@@ -32,13 +32,13 @@ import warnings
 from math import sqrt, sin, cos, radians
 from string import upper
 
-try:
-    import pvsimple as pv
-    # TODO(MZN): to be removed (issue with Point Sprite texture)
-    #import paravisSM as sm
-except:
-    import paraview.simple as pv
-    import paraview.servermanager as sm
+import pvsimple as pv
+#try:
+#    # TODO(MZN): to be removed (issue with Point Sprite texture)
+#    #import paravisSM as sm
+#except:
+#    import paraview.simple as pv
+#    import paraview.servermanager as sm
 
 
 # Constants

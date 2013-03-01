@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
 
 vtkCxxSetObjectMacro(vtkMedCurvilinearGrid, Coordinates, vtkDataArray);
 
-vtkCxxRevisionMacro(vtkMedCurvilinearGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedCurvilinearGrid, "$Revision$")
 vtkStandardNewMacro(vtkMedCurvilinearGrid)
 
 vtkMedCurvilinearGrid::vtkMedCurvilinearGrid()
@@ -102,7 +102,6 @@ vtkDataSet* vtkMedCurvilinearGrid::CreateVTKDataSet(
   vtkPoints* points = vtkPoints::New();
   vtkgrid->SetPoints(points);
   points->Delete();
-
   vtkgrid->SetDimensions(this->GetAxisSize(0),
                          this->GetAxisSize(1),
                          this->GetAxisSize(2));
@@ -115,6 +114,20 @@ vtkDataSet* vtkMedCurvilinearGrid::CreateVTKDataSet(
     }
   else
     {
+    if(this->GetDimension() == 1)
+      {
+      vtkgrid->SetDimensions(this->GetAxisSize(0),
+                             1,
+                             1);
+      }
+
+    if(this->GetDimension() == 2)
+      {
+      vtkgrid->SetDimensions(this->GetAxisSize(0),
+                             this->GetAxisSize(1),
+                             1);
+      }
+
     vtkDataArray* coords = vtkDataArray::SafeDownCast(
         vtkAbstractArray::CreateArray(this->GetCoordinates()->GetDataType()));
     coords->SetNumberOfComponents(3);

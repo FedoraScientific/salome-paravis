@@ -26,7 +26,7 @@ class VTK_EXPORT vtkScaleVectorFilter: public vtkPassInputTypeAlgorithm
 {
 public:
   static vtkScaleVectorFilter *New();
-  vtkTypeRevisionMacro(vtkScaleVectorFilter,vtkPassInputTypeAlgorithm);
+  vtkTypeMacro(vtkScaleVectorFilter,vtkPassInputTypeAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description :

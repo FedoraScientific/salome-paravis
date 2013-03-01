@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -56,6 +56,7 @@
 #include "vtkMultiBlockDataSet.h"
 #include "vtkExecutive.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkMultiTimeStepAlgorithm.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkMath.h"
 #include "vtkPointData.h"
@@ -81,7 +82,6 @@
 #include <list>
 #include <set>
 #include <algorithm>
-
 using namespace std;
 
 struct VTKField
@@ -187,7 +187,7 @@ public:
 
   vtkIdType GetGroupId(const char* key)
   {
-    vtkstd::string meshname, celltypename, groupname;
+    std::string meshname, celltypename, groupname;
     vtkMedUtilities::SplitGroupKey(key, meshname, celltypename, groupname);
     vtkIdType root=GetChild(0, "SIL");
     if(root==-1)
@@ -204,7 +204,7 @@ public:
 
 };
 
-vtkCxxRevisionMacro(vtkMedReader, "$Revision$");
+//vtkCxxRevisionMacro(vtkMedReader, "$Revision$");
 vtkStandardNewMacro(vtkMedReader);
 
 vtkMedReader::vtkMedReader()
@@ -425,10 +425,21 @@ int vtkMedReader::RequestData(vtkInformation *request,
     this->Internal->GhostLevel=0;
     }
 
-  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+  //vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()
+  /* if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
     {
     this->Internal->UpdateTimeStep=info->Get(
         vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())[0];
+    }
+  else
+    {
+    this->Internal->UpdateTimeStep=0;
+    } */
+
+  if (info->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
+    {
+    this->Internal->UpdateTimeStep=info->Get(
+        vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
     }
   else
     {
@@ -1746,16 +1757,6 @@ void vtkMedReader::AddQuadratureSchemeDefinition(vtkInformation* info,
 
   vtkQuadratureSchemeDefinition* def=vtkQuadratureSchemeDefinition::New();
   int cellType=vtkMedUtilities::GetVTKCellType(loc->GetGeometryType());
-  // Control to avoid crahs when loading a file with structural elements.
-  // This should be removed in version 7.1.0 of SALOME.
-  // See mantis issue 21990
-  if(loc->GetGeometryType() >= MED_STRUCT_GEO_INTERNAL)    
-    {
-    vtkErrorMacro("You are loading a file containing structural elements BUT they are still not supported");
-    return;
-    }
-  if(loc->GetWeights()->GetVoidPointer(0) ==  NULL)
-    return;
   def->Initialize(cellType, vtkMedUtilities::GetNumberOfPoint(
       loc->GetGeometryType()), loc->GetNumberOfQuadraturePoint(),
       (double*)loc->GetShapeFunction()->GetVoidPointer(0),
@@ -2338,7 +2339,7 @@ void vtkMedReader::SetVTKFieldOnSupport(vtkMedFieldOnProfile* fop,
       // if the data set is only composed of VTK_VERTEX cells,
       // and no field called with the same name exist on cells,
       // map this field to cells too
-      if(foe->GetVertexOnly()==1 && ds->GetCellData()->GetArray(
+      if(foe->GetVertexOnly()==1&&ds->GetCellData()->GetArray(
               vtkfield.DataArray->GetName())==NULL)
         {
         ds->GetCellData()->AddArray(vtkfield.DataArray);
@@ -2784,7 +2785,7 @@ void vtkMedReader::CreateVTKFieldOnSupport(vtkMedFieldOnProfile* fop,
       if(!foep->KeepPoint(realIndex))
         continue;
 
-      vtkfield.DataArray->InsertNextTuple(fop->GetData()->GetTuple(id));
+      vtkfield.DataArray->InsertNextTuple(fop->GetData()->GetTuple(realIndex));
       }
     vtkfield.DataArray->Squeeze();
     }// support on point
@@ -2875,7 +2876,7 @@ void vtkMedReader::BuildSIL(vtkMutableDirectedGraph* sil)
   crossEdgesArray->SetName("CrossEdges");
   sil->GetEdgeData()->AddArray(crossEdgesArray);
   crossEdgesArray->Delete();
-  vtkstd::deque<vtkstd::string> names;
+  /*vtk*/std::deque</*vtk*/std::string> names;
 
   // Now build the hierarchy.
   vtkIdType rootId=sil->AddVertex();
@@ -3024,7 +3025,7 @@ void vtkMedReader::BuildSIL(vtkMutableDirectedGraph* sil)
   namesArray->SetNumberOfTuples(sil->GetNumberOfVertices());
   sil->GetVertexData()->AddArray(namesArray);
   namesArray->Delete();
-  vtkstd::deque<vtkstd::string>::iterator iter;
+  /*vtk*/std::deque</*vtk*/std::string>::iterator iter;
   vtkIdType cc;
   for(cc=0, iter=names.begin(); iter!=names.end(); ++iter, ++cc)
     {

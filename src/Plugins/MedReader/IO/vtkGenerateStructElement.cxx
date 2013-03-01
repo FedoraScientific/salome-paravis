@@ -1,22 +1,3 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-//
-// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-//
-
 #include "vtkGenerateStructElement.h"
 
 #include "vtkObjectFactory.h"
@@ -77,7 +58,7 @@ protected :
   std::map<std::string, vtkDataArray*> varAttribute;
 };
 
-vtkCxxRevisionMacro(vtkGenerateStructElement, "$Revision$");
+// vtkCxxRevisionMacro(vtkGenerateStructElement, "$Revision$");
 vtkStandardNewMacro(vtkGenerateStructElement);
 
 vtkGenerateStructElement::vtkGenerateStructElement()
@@ -108,6 +89,8 @@ int vtkGenerateStructElement::RequestData(vtkInformation* request,
   vtkMedStructElement* strelem = vtkMedStructElement::SafeDownCast(
       inug->GetInformation()->Get(vtkMedUtilities::STRUCT_ELEMENT()));
 
+  std::cout << "Inside vtkGenerateStructElement::RequestData" << std::endl;
+
   if(strelem == NULL)
     {
     vtkDebugMacro("vtkGenerateStructElement needs a vtkMedStructElement information");
@@ -131,20 +114,23 @@ int vtkGenerateStructElement::RequestData(vtkInformation* request,
 
   if(name == MED_BALL_NAME)
     {
+    std::cout << "vtkGenerateStructElement::RequestData ...  if(name == MED_BALL_NAME)" << std::endl;
     // sanity check : is the diameter defined?
     if(!cache.HasParameter(MED_BALL_DIAMETER))
       {
       vtkErrorMacro("MED_BALL elements need a diameter");
       return 1;
       }
+    std::cout << "inug->GetNumberOfCells() = " << inug->GetNumberOfCells() << std::endl;
     for(vtkIdType cellId = 0; cellId < inug->GetNumberOfCells(); cellId++)
       {
       vtkIdType ballMedId = strelemindex->GetValue(2*cellId);
       double balldiam = this->GetParameter1(MED_BALL_DIAMETER, ballMedId, cache);
-
+      std::cout << balldiam << " - ";
       //TODO
       //this->GenerateBall(inug, cellId, balldiam, outug);
       }
+    std::cout << std::endl;
     }
   else if(name == MED_PARTICLE_NAME)
     {

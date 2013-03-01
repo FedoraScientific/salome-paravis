@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -45,7 +45,7 @@ vtkCxxSetObjectVectorMacro(vtkMedMesh, CellGroup, vtkMedGroup);
 
 vtkCxxSetObjectMacro(vtkMedMesh, ParentFile, vtkMedFile);
 
-vtkCxxRevisionMacro(vtkMedMesh, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedMesh, "$Revision$")
 vtkStandardNewMacro(vtkMedMesh)
 
 vtkMedMesh::vtkMedMesh()
@@ -155,7 +155,7 @@ vtkMedFamily* vtkMedMesh::GetOrCreateCellFamilyById(med_int id)
     }
   vtkMedFamily* family = vtkMedFamily::New();
   family->SetId(id);
-  vtkstd::ostringstream sstr;
+  std::ostringstream sstr;
   sstr << "UNDEFINED_CELL_FAMILY_" << id;
   family->SetName(sstr.str().c_str());
   family->SetPointOrCell(vtkMedUtilities::OnCell);
@@ -187,7 +187,7 @@ vtkMedFamily* vtkMedMesh::GetOrCreatePointFamilyById(med_int id)
     }
   vtkMedFamily* family = vtkMedFamily::New();
   family->SetId(id);
-  vtkstd::ostringstream sstr;
+  std::ostringstream sstr;
   sstr << "UNDEFINED_POINT_FAMILY_" << id;
   family->SetName(sstr.str().c_str());
   family->SetPointOrCell(vtkMedUtilities::OnPoint);

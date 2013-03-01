@@ -33,8 +33,8 @@
 #include "vtkCellData.h"
 #include "vtkIdList.h"
 
-vtkCxxRevisionMacro(vtkELNOMeshFilter, "$Revision$")
-;
+//vtkCxxRevisionMacro(vtkELNOMeshFilter, "$Revision$")
+//;
 vtkStandardNewMacro(vtkELNOMeshFilter)
 ;
 
@@ -77,7 +77,7 @@ int vtkELNOMeshFilter::RequestData(vtkInformation *request,
 
   vtkSmartPointer<vtkShrinkFilter> shrink =
       vtkSmartPointer<vtkShrinkFilter>::New();
-  shrink->SetInput(usgInClone);
+  shrink->SetInputData(usgInClone);
   shrink->SetShrinkFactor(0.9999);
   shrink->Update();
   vtkUnstructuredGrid* shrinked = shrink->GetOutput();

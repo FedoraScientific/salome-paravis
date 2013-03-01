@@ -34,7 +34,7 @@
 #include "vtkContourFilter.h"
 
 vtkStandardNewMacro(vtkTableTo3D);
-vtkCxxRevisionMacro(vtkTableTo3D, "$Revision$");
+//vtkCxxRevisionMacro(vtkTableTo3D, "$Revision$");
 
 
 vtkTableTo3D::vtkTableTo3D()
@@ -155,7 +155,7 @@ int vtkTableTo3D::RequestData(vtkInformation* vtkNotUsed(request),
 
   vtkSmartPointer<vtkStructuredGridGeometryFilter> geomFilter = 
     vtkSmartPointer<vtkStructuredGridGeometryFilter>::New();
-  geomFilter->SetInput(structuredGrid);
+  geomFilter->SetInputData(structuredGrid);
   geomFilter->Update();
   
   vtkSmartPointer<vtkWarpScalar> warpScalar = 
@@ -179,17 +179,17 @@ int vtkTableTo3D::RequestData(vtkInformation* vtkNotUsed(request),
 
   if (this->PresentationType == TABLETO3D_SURFACE)
     {
-      warpScalar->SetInput(geomFilter->GetOutput());
+      warpScalar->SetInputConnection(geomFilter->GetOutputPort(0));
       warpScalar->SetScaleFactor(scaleFactor);
     }
   else
     {
       vtkSmartPointer<vtkContourFilter> contourFilter = 
 	vtkSmartPointer<vtkContourFilter>::New();
-      contourFilter->SetInput(geomFilter->GetOutput());
+      contourFilter->SetInputConnection(geomFilter->GetOutputPort(0));
       contourFilter->GenerateValues(this->NumberOfContours, 
 				    geomFilter->GetOutput()->GetScalarRange());
-      warpScalar->SetInput(contourFilter->GetOutput());
+      warpScalar->SetInputConnection(contourFilter->GetOutputPort(0));
       warpScalar->SetScaleFactor(scaleFactor);
     }
 

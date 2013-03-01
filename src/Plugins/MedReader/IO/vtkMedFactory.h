@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ class VTK_EXPORT vtkMedFactory: public vtkObject
 {
 public:
   static vtkMedFactory* New();
-  vtkTypeRevisionMacro(vtkMedFactory, vtkObject)
+  vtkTypeMacro(vtkMedFactory, vtkObject)
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMedDriver* NewMedDriver(int major, int minor, int release);

@@ -74,7 +74,7 @@
 #include <pqViewFrameActionsBehavior.h>
 #include <pqParaViewMenuBuilders.h>
 #include <pqCollaborationPanel.h>
-#include <pqMemoryInspector.h>
+#include <pqMemoryInspectorPanel.h>
 
 class ResizeHelper : public pqPVAnimationWidget
 {
@@ -240,12 +240,11 @@ void PVGUI_Module::setupDockWidgets()
   // Memory inspector dock
   QDockWidget* memoryInspectorDock = new QDockWidget(tr( "TTL_MEMORY_INSPECTOR" ), desk);
   memoryInspectorDock->setObjectName("memoryInspectorDock");
-  pqMemoryInspector* dockWidgetContents = new pqMemoryInspector();
+  pqMemoryInspectorPanel* dockWidgetContents = new pqMemoryInspectorPanel();
   dockWidgetContents->setObjectName("dockWidgetContents");
   memoryInspectorDock->setWidget(dockWidgetContents);
   desk->addDockWidget(Qt::RightDockWidgetArea, memoryInspectorDock);
   myDockWidgets[memoryInspectorDock] = false; // hidden by default
-
 
   // Setup the statusbar ...
   pqProgressWidget* aProgress = new pqProgressWidget(desk->statusBar());
@@ -262,7 +261,6 @@ void PVGUI_Module::setupDockWidgets()
   selectionInspectorDock->hide();
   collaborationPanelDock->hide();
   memoryInspectorDock->hide();
-
 
   // Setup quick-launch shortcuts.
   QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, desk);

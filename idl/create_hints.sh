@@ -21,5 +21,6 @@
 
 CONF_DIR=`echo $0 | sed -e "s,[^/]*$,,;s,/$,,;s,^$,.,"`
 
-cp $1/hints hints
+#cp $1/hints hints
+cp ${CONF_DIR}/hints hints
 cat ${CONF_DIR}/hints_paravis >> hints

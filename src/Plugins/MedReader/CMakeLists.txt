@@ -1,22 +1,3 @@
-# Copyright (C) 2010-2012  CEA/DEN, EDF R&D
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-#
-# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-#
-
 project(MedReader)
 	 
 cmake_minimum_required(VERSION 2.8)
@@ -42,6 +23,8 @@ if(MedReader_BUILD_ParaView_Plugin)
         MESSAGE(FATAL_ERROR "Please locate ParaView." )
     ENDIF(NOT ParaView_FOUND)
     INCLUDE(${PARAVIEW_USE_FILE})
+    # Load information about VTK/ParaView modules loaded/available.
+    pv_setup_module_environment("vtkMedReader")
 else(MedReader_BUILD_ParaView_Plugin)
     FIND_PACKAGE(VTK REQUIRED)
     if(NOT VTK_FOUND)
@@ -63,14 +46,25 @@ FIND_PACKAGE(MED REQUIRED)
 include_directories(${MED_INCLUDE_DIRS})
 
 #
+# process all vtk-modules defined in this plugin. This generates the necessary
+# wrappings for all these modules as well.
+#
+SET(VTK_INSTALL_RUNTIME_DIR lib/salome)
+SET(VTK_INSTALL_LIBRARY_DIR lib/salome)
+SET(VTK_INSTALL_ARCHIVE_DIR lib/salome)
+
+pv_process_modules()
+
+#
 # Build the vtkMedReader
 #
-add_subdirectory(IO)
+# add_subdirectory(IO)
 
 #
 # Build the parallel vtkPMedReader
 #
 set(MedReader_BUILD_PARALLEL ${VTK_USE_PARALLEL} CACHE BOOL "Build the Med Reader with parallel support.")
+# MESSAGE(${MedReader_BUILD_PARALLEL})
 
 #
 # Build the ParaView Plugin

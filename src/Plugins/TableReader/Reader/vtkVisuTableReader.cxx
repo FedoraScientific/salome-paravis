@@ -29,14 +29,14 @@
 #include "vtkStringArray.h"
 #include "vtkStringToNumeric.h"
 
-#include <vtkstd/stdexcept>
+#include <vtksys/stl/stdexcept>
 #include <vtksys/ios/sstream>
 
 #include <vector> // STL include
 #include <string> // STL include
 using namespace std;
 
-vtkCxxRevisionMacro(vtkVisuTableReader, "$Revision$");
+//vtkCxxRevisionMacro(vtkVisuTableReader, "$Revision$");
 vtkStandardNewMacro(vtkVisuTableReader);
 
 vtkVisuTableReader::vtkVisuTableReader():
@@ -130,7 +130,7 @@ int vtkVisuTableReader::RequestData(vtkInformation*,
 	
 	  if (table.myColumnTitles[col].empty()) 
 	    {
-	      vtkstd::stringstream buffer;
+	      vtksys_ios::stringstream buffer;
 	      if (hasUnit) 
 		{
 		  buffer << col <<" [" << table.myColumnUnits[col].c_str() << "]";
@@ -145,7 +145,7 @@ int vtkVisuTableReader::RequestData(vtkInformation*,
 	  {
 	    if (hasUnit) 
 	      {
-		vtkstd::stringstream buffer;
+		vtksys_ios::stringstream buffer;
 		buffer << table.myColumnTitles[col].c_str() 
 		       <<" [" << table.myColumnUnits[col].c_str() << "]";
 		newCol->SetName(buffer.str().c_str());
@@ -166,14 +166,14 @@ int vtkVisuTableReader::RequestData(vtkInformation*,
 	  vtkStringToNumeric* convertor = vtkStringToNumeric::New();
 	  vtkTable* clone = output_table->NewInstance();
 	  clone->ShallowCopy(output_table);
-	  convertor->SetInput(clone);
+	  convertor->SetInputData(clone);
 	  convertor->Update();
 	  clone->Delete();
 	  output_table->ShallowCopy(convertor->GetOutputDataObject(0));
 	  convertor->Delete();
 	}
     } 
-  catch(vtkstd::exception& e) 
+  catch(vtksys_stl::exception& e) 
     {
       vtkErrorMacro(<< "caught exception: " << e.what() << endl);
       output_table->Initialize();

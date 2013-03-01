@@ -25,8 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "vtkConfigure.h"
 #include "vtkParse.h"
 #include "vtkParseType.h"
+#include "vtkParseMain.h"
 #include "vtkWrapIDL.h"
 #include "vtkWrap.h"
 
@@ -54,9 +56,11 @@ char* Copyright[] = {
 
 #define bs 12288
 
+HierarchyInfo *hierarchyInfo = NULL;
 int numberOfWrappedFunctions = 0;
 FunctionInfo *wrappedFunctions[1000];
 extern FunctionInfo *currentFunction;
+char *EmptyString = "";
 
 
 static void add_to_sig(char *sig, const char *add, int *i)
@@ -414,14 +418,16 @@ void output_type(char* result, int *currPos, int i, ValueInfo* aType, const char
     }
   }
   
-  if(IsChar(aType)) {
-    if(IsString(aType)) {
-      if(IsReturnArg(i))
-        add_to_sig(result,"const ",currPos);
-      add_to_sig(result,"char",currPos);
+  if(IsString(aType)) {
+    if(IsReturnArg(i))
+      add_to_sig(result,"const ",currPos);
+    if(strcmp(aType->Class, "vtkStdString") == 0) {
+      add_to_sig(result,"vtkStdString",currPos);
     } else {
-      add_to_sig(result,"CORBA::Char",currPos);	    
+      add_to_sig(result,"char",currPos);
     }
+  } else if(IsChar(aType)) {
+    add_to_sig(result,"CORBA::Char",currPos);	    
   }
   
   if(IsBoolean(aType)) {
@@ -438,7 +444,9 @@ void output_type(char* result, int *currPos, int i, ValueInfo* aType, const char
   }
   
   if(IsArray(aType) || IsPtr(aType) || IsClass(aType) || IsString(aType)) {
-    add_to_sig(result,"*",currPos);
+    if(strcmp(aType->Class, "vtkStdString") != 0) {
+      add_to_sig(result,"*",currPos);
+    }
   }
 }
 
@@ -743,8 +751,8 @@ void get_signature(const char* num, ClassInfo *data)
       ret = 1;
   }
   
-  for (j = 0; j < currentFunction->NumberOfArguments; j++) {
-    aArgVal = currentFunction->Arguments[j];
+  for (j = 0; j < vtkWrap_CountWrappedParameters(currentFunction); j++) {
+    aArgVal = currentFunction->Parameters[j];
     if(IsFunction(aArgVal))
       ret == 1;
     if(IsClass(aArgVal) && ret == 0) {
@@ -762,6 +770,7 @@ void get_signature(const char* num, ClassInfo *data)
     ret = 1;
   }
   
+
   if(ret) {
     add_to_sig(result,"//\n",&currPos);
     /*currentFunction->Signature = (const char*)realloc((void*)currentFunction->Signature,
@@ -802,8 +811,8 @@ void get_signature(const char* num, ClassInfo *data)
   add_to_sig(result,"* TObj;\n",&currPos);
   add_to_sig(result,"  TObj myObj;\n",&currPos);
   
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    aArgVal = currentFunction->Arguments[i];
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
+    aArgVal = currentFunction->Parameters[i];
     //output_typedef(result, &currPos, i, currentFunction->ArgTypes[i],
     //               currentFunction->ArgClasses[i]);
     output_typedef(result, &currPos, i, aArgVal, currentFunction->ArgClasses[i]);
@@ -821,13 +830,13 @@ void get_signature(const char* num, ClassInfo *data)
   }
   add_to_sig(result,")",&currPos);
   add_to_sig(result,"(TObj theObj",&currPos);  
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
     sprintf(buf,", TParam%d theParam%d",i,i);
     add_to_sig(result,buf,&currPos);
   }
   add_to_sig(result,"):\n",&currPos);  
   add_to_sig(result,"  myObj(theObj)",&currPos);  
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
     sprintf(buf,", myParam%d(theParam%d)",i,i);
     add_to_sig(result,buf,&currPos);
   }
@@ -846,8 +855,8 @@ void get_signature(const char* num, ClassInfo *data)
   add_to_sig(result,"myObj->",&currPos);  
   add_to_sig(result,currentFunction->Name,&currPos);  
   add_to_sig(result,"(",&currPos);  
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    aArgVal = currentFunction->Arguments[i];
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
+    aArgVal = currentFunction->Parameters[i];
     if(i!=0)
       add_to_sig(result,", ",&currPos);  
     if(IsClass(aArgVal) && IsPtr(aArgVal)) {
@@ -895,23 +904,23 @@ void get_signature(const char* num, ClassInfo *data)
   /* print the arg list */
   add_to_sig(result,"(",&currPos);
 
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    aArgVal = currentFunction->Arguments[i];
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
+    aArgVal = currentFunction->Parameters[i];
     if( i != 0 ) {
       add_to_sig(result,", ",&currPos);	  
     }
     /*    output_temp(result, &currPos, i, currentFunction->ArgTypes[i],
                 (char*)currentFunction->ArgClasses[i],
                 currentFunction->ArgCounts[i]);*/
-    output_temp(result, &currPos, i, aArgVal,  aArgVal->Class, currentFunction->NumberOfArguments);
+    output_temp(result, &currPos, i, aArgVal,  aArgVal->Class, vtkWrap_CountWrappedParameters(currentFunction));
   }
 
   add_to_sig(result,")",&currPos);
 #if defined(IDL_I_CC)
   add_to_sig(result," {\n",&currPos);
   add_to_sig(result,"  try {\n",&currPos);
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    aArgVal = currentFunction->Arguments[i];
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
+    aArgVal = currentFunction->Parameters[i];
     if(IsClass(aArgVal)) {
       sprintf(buf,"    PARAVIS_Base_i* i_temp%d = GET_SERVANT(temp%d);\n",i,i);
       add_to_sig(result,buf,&currPos);
@@ -1012,6 +1021,10 @@ void get_signature(const char* num, ClassInfo *data)
     add_to_sig(result,buf,&currPos);
     add_to_sig(result,"    ",&currPos); 
   }
+
+  if(IsArray(aRetVal) && IsUnsigned(aRetVal)) {
+    add_to_sig(result,"unsigned ",&currPos);
+  }
   
   if(IsFloat(aRetVal)) {
     if(IsArray(aRetVal)) {
@@ -1092,8 +1105,8 @@ void get_signature(const char* num, ClassInfo *data)
   add_to_sig(result,"*)",&currPos);
   add_to_sig(result,"getVTKObject()\n",&currPos);
   
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    aArgVal = currentFunction->Arguments[i];
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
+    aArgVal = currentFunction->Parameters[i];
     add_to_sig(result,"      , ",&currPos);
     
     //if(IsClass(currentFunction->ArgTypes[i]) && IsPtr(currentFunction->ArgTypes[i])) {
@@ -1159,8 +1172,8 @@ void get_signature(const char* num, ClassInfo *data)
     add_to_sig(result,");\n",&currPos);	      
   }
     
-  for (i = 0; i < currentFunction->NumberOfArguments; i++) {
-    aArgVal = currentFunction->Arguments[i];
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++) {
+    aArgVal = currentFunction->Parameters[i];
     if(IsArray(aArgVal) && !IsVoid(aArgVal) && !IsString(aArgVal) && !IsClass(aArgVal)) {
       if (!IsIn(aArgVal)) {
         sprintf(buf,"    for(j_temp%d=0;j_temp%d<l_temp%d;j_temp%d++) {\n",i,i,i,i);
@@ -1266,7 +1279,8 @@ void get_signature(const char* num, ClassInfo *data)
       buf[j]=0;
       buf1[j]=0;
       if(strcmp(buf,buf1) == 0) {
-        ((char*)currentFunction->Signature)[0]='\0';
+        //((char*)currentFunction->Signature)[0]='\0';
+	currentFunction->Signature = EmptyString;
         return;
       }
     }
@@ -1373,7 +1387,6 @@ void outputFunction2(FILE *fp, ClassInfo *data)
         {
           sprintf(num,"_%d",j);
         }
-      
       get_signature(num,data);
     }
   /* create external type declarations for all object
@@ -1385,7 +1398,7 @@ void outputFunction2(FILE *fp, ClassInfo *data)
       theName = NULL;
       theType = 0;
       
-      for (i = theFunc->NumberOfArguments; i >= 0; i--)
+      for (i = vtkWrap_CountWrappedParameters(theFunc); i >= 0; i--)
         {
           if (i==0)/* return type */
             {
@@ -1395,7 +1408,7 @@ void outputFunction2(FILE *fp, ClassInfo *data)
             }
           else /* arg type */
             {
-              aArgVal = theFunc->Arguments[i-1];
+              aArgVal = theFunc->Parameters[i-1];
               //theType = theFunc->ArgTypes[i-1];
               //theName = (char*)theFunc->ArgClasses[i-1];
             }
@@ -1416,7 +1429,7 @@ void outputFunction2(FILE *fp, ClassInfo *data)
                     k = i+1;
                   else
                     k = 0;
-                  for (j = backFunc->NumberOfArguments; j >= k; j--)
+                  for (j = vtkWrap_CountWrappedParameters(backFunc); j >= k; j--)
                     {
                       if (j==0) /* return type */
                         {
@@ -1426,7 +1439,7 @@ void outputFunction2(FILE *fp, ClassInfo *data)
                         }
                       else /* arg type */
                         {
-                          aBackArgVal = backFunc->Arguments[j-1];
+                          aBackArgVal = backFunc->Parameters[j-1];
                           //backType = backFunc->ArgTypes[j-1];
                           //backName = (char*)backFunc->ArgClasses[j-1];
                         }
@@ -1553,9 +1566,9 @@ void outputFunction(FILE *fp, ClassInfo *data)
   //printf("#### Check %s\n", currentFunction->Name);
  
   /* check to see if we can handle the args */
-  for (i = 0; i < currentFunction->NumberOfArguments; i++)
+  for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++)
     {
-      aArgVal = currentFunction->Arguments[i];
+      aArgVal = currentFunction->Parameters[i];
       /*printf("  Argument: %s ", vtkWrap_GetTypeName(aArgVal));
       if (vtkWrap_IsArray(aArgVal)) {
         printf("!!!! Argument %i is array\n", i);
@@ -1652,12 +1665,12 @@ void outputFunction(FILE *fp, ClassInfo *data)
   if (aRetVal % VTK_PARSE_BASE_TYPE == 0x316) args_ok = 0;
   
 
-  if (currentFunction->NumberOfArguments && 
+  if (vtkWrap_CountWrappedParameters(currentFunction) && 
       (currentFunction->ArgTypes[0] == 0x5000)
-      &&(currentFunction->NumberOfArguments != 0x1)) args_ok = 0;*/
+      &&(vtkWrap_CountWrappedParameters(currentFunction) != 0x1)) args_ok = 0;*/
 
   /* make sure we have all the info we need for array arguments in */
-  /*for (i = 0; i < currentFunction->NumberOfArguments; i++)
+  /*for (i = 0; i < vtkWrap_CountWrappedParameters(currentFunction); i++)
     {
     if (((currentFunction->ArgTypes[i] % VTK_PARSE_BASE_TYPE)/0x100 == 0x3)&&
         (currentFunction->ArgCounts[i] <= 0)&&
@@ -1689,7 +1702,7 @@ void outputFunction(FILE *fp, ClassInfo *data)
   }
   
   /* check for New() function */
-  if (!strcmp("New",currentFunction->Name) && currentFunction->NumberOfArguments == 0)
+  if (!strcmp("New",currentFunction->Name) && vtkWrap_CountWrappedParameters(currentFunction) == 0)
     {
       class_has_new = 1;
     }
@@ -1707,17 +1720,41 @@ void outputFunction(FILE *fp, ClassInfo *data)
 }
 
 /* print the parsed structures */
-void vtkParseOutput(FILE *fp, FileInfo *file_info)
+int main(int argc, char *argv[])
 {
-  int i;
+  OptionInfo *options;
+  FileInfo *file_info;
   ClassInfo *data;
+  FILE *fp;
+  int i;
+
+  /* get command-line args and parse the header file */
+  file_info = vtkParse_Main(argc, argv);
+
+  /* get the command-line options */
+  options = vtkParse_GetCommandLineOptions();
+
+  /* get the output file */
+  fp = fopen(options->OutputFileName, "w");
+
+  if (!fp)
+    {
+    fprintf(stderr, "Error opening output file %s\n", options->OutputFileName);
+    exit(1);
+    }
 
   /* get the main class */
-  data = file_info->MainClass;
+  if ((data = file_info->MainClass) == NULL)
+    {
+    fclose(fp);
+    exit(0);
+    }
 
-  // Do not wrap this class
-  //  if (strcmp(data->Name, "vtkVariant") == 0)
-  //  return;
+  /* get the hierarchy info for accurate typing */
+  if (options->HierarchyFileName)
+    {
+    hierarchyInfo = vtkParseHierarchy_ReadFile(options->HierarchyFileName);
+    }
 
 #if defined(IDL_I_HH)
   fprintf(fp, "// idl wrapper interface for %s object implementation\n//\n", data->Name);
@@ -1753,6 +1790,10 @@ void vtkParseOutput(FILE *fp, FileInfo *file_info)
   for (i = 0; i < data->NumberOfFunctions; i++)
     {
       currentFunction = data->Functions[i];
+#ifdef VTK_LEGACY_REMOVE
+      if(currentFunction->IsLegacy)
+	continue;
+#endif
       outputFunction(fp, data);
     }
   //printf("#### NbFunctions %i\n", numberOfWrappedFunctions);
@@ -1768,5 +1809,8 @@ void vtkParseOutput(FILE *fp, FileInfo *file_info)
 #else
   fprintf(fp,"\n#endif\n");
 #endif
-  return;
+
+  vtkParse_Free(file_info);
+
+  return 0;
 }

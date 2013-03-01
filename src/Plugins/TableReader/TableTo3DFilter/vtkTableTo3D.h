@@ -29,7 +29,7 @@ class VTK_EXPORT vtkTableTo3D : public vtkPolyDataAlgorithm
 {
 public:
   static vtkTableTo3D* New();
-  vtkTypeRevisionMacro(vtkTableTo3D, vtkPolyDataAlgorithm);
+  vtkTypeMacro(vtkTableTo3D, vtkPolyDataAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

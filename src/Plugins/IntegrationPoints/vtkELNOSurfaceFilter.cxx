@@ -34,8 +34,8 @@
 #include "vtkCellData.h"
 #include "vtkIdList.h"
 
-vtkCxxRevisionMacro(vtkELNOSurfaceFilter, "$Revision$")
-;
+//vtkCxxRevisionMacro(vtkELNOSurfaceFilter, "$Revision$")
+//;
 vtkStandardNewMacro(vtkELNOSurfaceFilter)
 ;
 
@@ -72,7 +72,7 @@ int vtkELNOSurfaceFilter::RequestData(vtkInformation *request,
 
   vtkSmartPointer<vtkPVGeometryFilter> geomFilter=vtkSmartPointer<
       vtkPVGeometryFilter>::New();
-  geomFilter->SetInput(usgInClone);
+  geomFilter->SetInputData(usgInClone);
   geomFilter->SetPassThroughCellIds(1);
   geomFilter->SetPassThroughPointIds(1);
   geomFilter->SetUseOutline(0);
@@ -98,7 +98,7 @@ int vtkELNOSurfaceFilter::RequestData(vtkInformation *request,
 
   vtkSmartPointer<vtkShrinkFilter> shrink=
       vtkSmartPointer<vtkShrinkFilter>::New();
-  shrink->SetInput(surface);
+  shrink->SetInputConnection(geomFilter->GetOutputPort(0));
   shrink->SetShrinkFactor(0.9999);
   shrink->Update();
 

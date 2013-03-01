@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,7 @@ vtkCxxSetObjectMacro(vtkMedEntityArray,NodeIndex,vtkMedIntArray);
 vtkCxxSetObjectMacro(vtkMedEntityArray,ParentGrid,vtkMedGrid);
 vtkCxxSetObjectMacro(vtkMedEntityArray,StructElement,vtkMedStructElement);
 
-vtkCxxRevisionMacro(vtkMedEntityArray, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedEntityArray, "$Revision$");
 vtkStandardNewMacro(vtkMedEntityArray);
 
 vtkMedEntityArray::vtkMedEntityArray()
@@ -185,27 +185,9 @@ int vtkMedEntityArray::IsConnectivityLoaded()
 
   if(this->Connectivity == MED_NODAL && this->Entity.EntityType != MED_STRUCT_ELEMENT)
     {
-    vtkIdType connSize = 0;
-    if(this->Entity.GeometryType == MED_POLYHEDRON || this->Entity.GeometryType == MED_POLYGON)
-      {
-      if(!this->NodeIndex || !this->FaceIndex)
-        return 0;
-      for(med_int i  = 0; i < this->NumberOfEntity; i++ ) 
-        {
-        med_int start = this->FaceIndex->GetValue(i)-1;
-        med_int end = this->FaceIndex->GetValue(i+1)-1;
-        for(med_int fi = start ; fi < end; fi++ ) 
-          {          
-          med_int fstart = this->NodeIndex->GetValue(fi)-1;
-          med_int fend = this->NodeIndex->GetValue(fi+1)-1;
-          connSize += (fend-fstart);
-          }
-        }
-      } else
-        {
-        connSize = this->NumberOfEntity * 
-        vtkMedUtilities::GetNumberOfPoint(this->Entity.GeometryType);
-        }
+    vtkIdType connSize = this->NumberOfEntity
+        * vtkMedUtilities::GetNumberOfPoint(this->Entity.GeometryType);
+
     return connSize == this->ConnectivityArray->GetNumberOfTuples();
     }
   else if (this->Connectivity == MED_NODAL && this->Entity.EntityType == MED_STRUCT_ELEMENT)

@@ -27,7 +27,6 @@
 #include <SALOME_Event.h>
 
 vtkStandardNewMacro(PVGUI_OutputWindowAdapter);
-vtkCxxRevisionMacro(PVGUI_OutputWindowAdapter, "$Revision$");
 
 
 

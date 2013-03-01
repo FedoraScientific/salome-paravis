@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -194,8 +194,8 @@ public:
   static const char* OnPointName;
 
   //BTX
-  static void SplitGroupKey(const char* name, vtkstd::string& mesh,
-      vtkstd::string& entity, vtkstd::string& group);
+  static void SplitGroupKey(const char* name, /*vtkstd::*/std::string& mesh,
+      /*vtkstd::*/std::string& entity, /*vtkstd::*/std::string& group);
 
   static std::string GetModeKey(int index, double frequency, int maxindex);
   static int  GetModeFromKey(const char*, int& index, double& frequency);

@@ -51,7 +51,8 @@ A simple example:
 import re, os, new, sys
 from paravis import *
 
-
+# VTN: Avoid paraview.* instructions in this file.
+# It leads to problems during execution.
 
 def _wrap_property(proxy, smproperty):
     """ Internal function.
@@ -224,7 +225,7 @@ class Proxy(object):
             self.Observed = None
             self.ObserverTag = -1
             observed.RemoveObserver(tag)
-        if self.SMProxy and (self.SMProxy, self.Port) in _pyproxies:
+        if _pyproxies and self.SMProxy and (self.SMProxy, self.Port) in _pyproxies:
             del _pyproxies[(self.SMProxy, self.Port)]
 
     def InitializeFromProxy(self, aProxy, update=True):
@@ -956,14 +957,25 @@ class ArrayListProperty(VectorProperty):
            not isinstance(values, list):
             values = (values,)
         fullvalues = []
-        for i in range(len(values)):
-            val = self.ConvertValue(values[i])
-            fullvalues.append(val)
-            fullvalues.append('1')
+
+        # WARNING:
+        # The order of the two loops below are delibrately set in this way
+        # so that values passed in will take precedence.
+        # This is needed for backward compatibility of the
+        # property ElementBlocks for vtkExodusIIReader.
+        # If you attemp to change this, please verify that
+        # python state files for opening old .ex2 file (<=3.14) still works.
         for array in self.Available:
             if not values.__contains__(array):
                 fullvalues.append(array)
                 fullvalues.append('0')
+
+        for i in range(len(values)):
+            val = self.ConvertValue(values[i])
+            fullvalues.append(val)
+            fullvalues.append('1')
+
+
         i = 0
         for value in fullvalues:
             self.SMProperty.SetElement(i, value)
@@ -1915,9 +1927,6 @@ def Connect(ds_host=None, ds_port=11111, rs_host=None, rs_port=22221):
       creates a new connection to the data server on ds_host:ds_port and to the
       render server on rs_host: rs_port.
     """
-    global fromGUI
-    if fromGUI:
-        raise RuntimeError, "Cannot create a session through python. Use the GUI to setup the connection."
     if ds_host == None:
         session = vtkSMSession()
     elif rs_host == None:
@@ -1941,9 +1950,6 @@ def ReverseConnect(port=11111):
     option).
     The optional port specified the port to listen to.
     """
-    global fromGUI
-    if fromGUI:
-        raise RuntimeError, "Cannot create a connection through python. Use the GUI to setup the connection."
     session = vtkSMSessionClient()
     session.Connect("csrc://hostname:" + port)
     id = vtkProcessModule.GetProcessModule().RegisterSession(session)
@@ -1957,7 +1963,9 @@ def Disconnect(session=None):
     global MultiServerConnections
     global fromGUI
     if fromGUI:
-        raise RuntimeError, "Cannot disconnect through python. Use the GUI to disconnect."
+        # Let the UI know that we want to disconnect
+        ActiveConnection.Session.InvokeEvent('ExitEvent')
+        return
     if ActiveConnection and (not session or session == ActiveConnection.Session):
         session = ActiveConnection.Session
         if MultiServerConnections:
@@ -3001,3 +3009,6 @@ def GetConnectionAt(index):
 
 def GetNumberOfConnections():
    return len(MultiServerConnections)
+
+#VTN: Problem during execution
+#atexit.register(vtkPythonProgrammableFilter.DeleteGlobalPythonInterpretor)

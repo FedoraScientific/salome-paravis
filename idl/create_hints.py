@@ -24,7 +24,8 @@ CONF_DIR = os.path.dirname(sys.argv[0])
 
 content = ""
 for filename in [
-    os.path.join(sys.argv[1], "hints"),
+#    os.path.join(sys.argv[1], "hints"),
+    os.path.join(CONF_DIR, "hints"),
     os.path.join(CONF_DIR, "hints_paravis"),
     ]:
     stream = open(filename)

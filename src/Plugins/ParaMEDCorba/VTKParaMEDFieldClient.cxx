@@ -39,11 +39,11 @@ std::vector<double> ParaMEDMEM2VTK::FillMEDCouplingParaFieldDoubleInstanceFrom(S
       SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_var fieldCorba=SALOME_MED::MEDCouplingFieldDoubleCorbaInterface::_narrow(obj);
       std::vector<double> times;
       vtkDataSet *part=ParaMEDMEM2VTK::BuildFullyFilledFromMEDCouplingFieldDoubleInstance(fieldCorba,times);
-      tmp->AddInputConnection(part->GetProducerPort());
+      tmp->SetInputData(part);
       part->Delete();
     }
   vtkCompositeDataToUnstructuredGridFilter *tmp2=vtkCompositeDataToUnstructuredGridFilter::New();
-  tmp2->AddInputConnection(tmp->GetOutput()->GetProducerPort());
+  tmp2->SetInputData(tmp->GetOutput());
   tmp2->Update();
   //
   vtkUnstructuredGrid *ret3=tmp2->GetOutput();

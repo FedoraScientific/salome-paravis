@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 vtkCxxSetObjectMacro(vtkMedProfile,Ids,vtkMedIntArray);
 vtkCxxSetObjectMacro(vtkMedProfile,ParentFile,vtkMedFile);
 
-vtkCxxRevisionMacro(vtkMedProfile, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedProfile, "$Revision$");
 vtkStandardNewMacro(vtkMedProfile);
 
 vtkMedProfile::vtkMedProfile()

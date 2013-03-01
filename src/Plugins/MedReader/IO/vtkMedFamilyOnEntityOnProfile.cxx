@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -45,7 +45,7 @@
 vtkCxxSetObjectMacro(vtkMedFamilyOnEntityOnProfile,FamilyOnEntity, vtkMedFamilyOnEntity);
 vtkCxxSetObjectMacro(vtkMedFamilyOnEntityOnProfile, Profile, vtkMedProfile);
 
-vtkCxxRevisionMacro(vtkMedFamilyOnEntityOnProfile, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedFamilyOnEntityOnProfile, "$Revision$");
 vtkStandardNewMacro(vtkMedFamilyOnEntityOnProfile)
 
 vtkMedFamilyOnEntityOnProfile::vtkMedFamilyOnEntityOnProfile()
@@ -269,9 +269,10 @@ void  vtkMedFamilyOnEntityOnProfile::ComputeUsedPoints()
       this->UseAllPoints = true;
       return;
       }
-    // if there is no profile, the entity is on cell
+    // if there is no profile, the grid is structured, the entity is on cell
     // and there is at most 1 family on his entity, then all points are used
-    if(this->FamilyOnEntity->GetPointOrCell() == vtkMedUtilities::OnCell &&
+    if(vtkMedUnstructuredGrid::SafeDownCast(grid) == NULL &&
+       this->FamilyOnEntity->GetPointOrCell() == vtkMedUtilities::OnCell &&
        this->FamilyOnEntity->GetEntityArray()->GetNumberOfFamilyOnEntity() <= 1)
       {
       this->UseAllPoints = true;

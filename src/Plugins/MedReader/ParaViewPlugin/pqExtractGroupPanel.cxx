@@ -149,7 +149,14 @@ void pqExtractGroupPanel::linkServerManagerProperties()
 
 void pqExtractGroupPanel::updateSIL()
 {
+/* VSR???????? 
+//<<<<<<< HEAD:ParaViewPlugin/pqExtractGroupPanel.cxx
 
+  this->proxy()->UpdatePropertyInformation(
+      this->proxy()->GetProperty("SILUpdateStamp"));
+//=======
+//>>>>>>> medparallel:ParaViewPlugin/pqExtractGroupPanel.cxx
+*/
   vtkSMProxy* reader = this->referenceProxy()->getProxy();
   reader->UpdatePropertyInformation(reader->GetProperty("SILUpdateStamp"));
 

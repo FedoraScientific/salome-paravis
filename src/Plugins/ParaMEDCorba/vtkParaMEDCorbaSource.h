@@ -23,7 +23,7 @@
 
 #include "ParaMEDMEM2VTK_defines.hxx"
 #include "vtkUnstructuredGridAlgorithm.h"
-#include <vtkstd/vector>
+#include <vtksys/stl/vector>
 
 class vtkDoubleArray;
 class vtkUnstructuredGrid;
@@ -36,7 +36,7 @@ namespace ParaMEDMEM2VTK
 class vtkParaMEDCorbaSource : public vtkAlgorithm //
 {
 public:
-  vtkTypeRevisionMacro(vtkParaMEDCorbaSource, vtkAlgorithm);
+  vtkTypeMacro(vtkParaMEDCorbaSource, vtkAlgorithm)
   ParaMEDMEM2VTK_EXPORT static vtkParaMEDCorbaSource* New();
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   const char *GetIORCorba();
@@ -60,7 +60,7 @@ protected:
   int EndPiece;
   int BufferingPolicy;
   vtkUnstructuredGrid *MyDataSet;
-  vtkstd::vector<char> IOR;
+  vtksys_stl::vector<char> IOR;
   ParaMEDMEM2VTK::MEDCouplingMultiFieldsFetcher *mfieldsFetcher;
   //not clean but to avoid to include CORBA.h in this *.h
   static void *Orb;

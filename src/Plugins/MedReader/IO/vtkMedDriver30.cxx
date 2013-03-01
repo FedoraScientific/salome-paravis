@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -54,11 +54,9 @@
 #include "vtkMultiProcessController.h"
 
 #include <string>
-#include <vector>
-#include <algorithm>
 using namespace std;
 
-vtkCxxRevisionMacro(vtkMedDriver30, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedDriver30, "$Revision$")
 vtkStandardNewMacro(vtkMedDriver30)
 
 vtkMedDriver30::vtkMedDriver30() : vtkMedDriver()
@@ -170,6 +168,7 @@ void  vtkMedDriver30::LoadRegularGridCoordinates(vtkMedRegularGrid* grid)
       return;
       }
     }
+
 }
 
 // Description:
@@ -201,6 +200,7 @@ void vtkMedDriver30::ReadCurvilinearGridInformation(vtkMedCurvilinearGrid* grid)
   grid->SetNumberOfPoints(size);
 
   med_int axissize[3];
+
   if(MEDmeshGridStructRd(
       this->FileId,
       grid->GetParentMesh()->GetName(),
@@ -210,24 +210,60 @@ void vtkMedDriver30::ReadCurvilinearGridInformation(vtkMedCurvilinearGrid* grid)
     {
     vtkErrorMacro("ReadCurvilinearGridInformation MEDmeshGridStructRd");
     }
-  grid->SetAxisSize(0, (axissize[0] <= 0 ? 1: axissize[0]));
-  grid->SetAxisSize(1, (axissize[1] <= 0 ? 1: axissize[1]));
-  grid->SetAxisSize(2, (axissize[2] <= 0 ? 1: axissize[2]));
+
+  switch(grid->GetDimension())
+    {
+    case 0 :
+      break;
+    case 1 :
+      grid->SetAxisSize(0, (axissize[0] <= 0 ? 1: axissize[0]));
+      break;
+    case 2 :
+      grid->SetAxisSize(0, (axissize[0] <= 0 ? 1: axissize[0]));
+      grid->SetAxisSize(1, (axissize[1] <= 0 ? 1: axissize[1]));
+      break;
+    case 3 :
+      grid->SetAxisSize(0, (axissize[0] <= 0 ? 1: axissize[0]));
+      grid->SetAxisSize(1, (axissize[1] <= 0 ? 1: axissize[1]));
+      grid->SetAxisSize(2, (axissize[2] <= 0 ? 1: axissize[2]));
+      break;
+    default :
+        vtkErrorMacro("Unsupported dimension for curvilinear grid : "
+                      << grid->GetDimension());
+    return;
+    }
 
   // A test to verify the number of points : total number of
   // points should be equal to the product of each axis size
-  if(size != grid->GetAxisSize(0)*grid->GetAxisSize(1)*grid->GetAxisSize(2))
+  med_int size2 = 0;
+
+  if (grid->GetDimension() == 1)
+    {
+    size2 = grid->GetAxisSize(0);
+    }
+
+  if (grid->GetDimension() == 2)
+    {
+    size2 = grid->GetAxisSize(0)*grid->GetAxisSize(1);
+    }
+
+  if (grid->GetDimension() == 3)
+    {
+    size2 = grid->GetAxisSize(0)*grid->GetAxisSize(1)*grid->GetAxisSize(2);
+    }
+
+  if(size != size2)
     {
     vtkErrorMacro("The total number of points of a Curvilinear grid should "
                   << "be the product of each axis size!");
     }
 
   med_int ncell = 1;
-  if(grid->GetAxisSize(0) > 1)
+  if ((grid->GetDimension() >= 1) && (grid->GetAxisSize(0) > 1))
     ncell *= grid->GetAxisSize(0)-1;
-  if(grid->GetAxisSize(1) > 1)
+  if ((grid->GetDimension() >= 2) && (grid->GetAxisSize(1) > 1))
     ncell *= grid->GetAxisSize(1)-1;
-  if(grid->GetAxisSize(2) > 1)
+  if ((grid->GetDimension() >= 3) && (grid->GetAxisSize(2) > 1))
     ncell *= grid->GetAxisSize(2)-1;
 
   vtkMedEntity entity;
@@ -262,7 +298,6 @@ void vtkMedDriver30::ReadCurvilinearGridInformation(vtkMedCurvilinearGrid* grid)
   array->Delete();
   // this triggers the creation of undefined families
   this->LoadFamilyIds(array);
-
 }
 
 // Description : read the number of entity of all geometry type
@@ -543,56 +578,17 @@ void vtkMedDriver30::ReadFamilyInformation(vtkMedMesh* mesh, vtkMedFamily* famil
 
   family->SetId(familyid);
 
-  if( familyid == 0 ) {
-    family->SetPointOrCell( vtkMedUtilities::OnCell );
-    mesh->AppendCellFamily( family );
-  } else {
-    //rnv: improve algorithm to determine entity of the family:
-    //     1) Read Nb nodes
-    //     2) Read families of the nodes
-    //     3) If list of the families of the nodes contains familyid => vtkMedUtilities::OnPoint
-    //     otherwise => vtkMedUtilities::OnCell
-    med_bool  v1, v2;
-    med_int size = MEDmeshnEntity(
-				  this->FileId,
-				  meshName,
-				  MED_NO_DT,
-				  MED_NO_IT,
-				  MED_NODE,
-				  MED_NO_GEOTYPE,
-				  MED_COORDINATE,
-				  MED_NO_CMODE,
-				  &v1,
-				  &v2 );
-    if( size < 0 ) {
-      vtkErrorMacro( "vtkMedDriver30::ReadInformation(vtkMedFamily* family)"
-		     <<" cannot read nb Nodes" );
-      return;
+  if(familyid <= 0)
+    {
+    family->SetPointOrCell(vtkMedUtilities::OnCell);
+    mesh->AppendCellFamily(family);
     }
-    
-    vector<med_int> n_fams;
-    n_fams.resize( size );
-    
-    med_int ret_val = MEDmeshEntityFamilyNumberRd( this->FileId,
-                                                   meshName,
-                                                   MED_NO_DT,
-                                                   MED_NO_IT,
-                                                   MED_NODE,
-                                                   MED_NO_GEOTYPE ,
-                                                   &n_fams[0] );
-    // Remove ZERO FAMILY
-    remove( n_fams.begin(),n_fams.end(), 0 );
-    
-    bool isOnPoints = ( ret_val >= 0) && (find( n_fams.begin(), n_fams.end(), familyid ) != n_fams.end() );
-    if( isOnPoints ) {
-      family->SetPointOrCell(vtkMedUtilities::OnPoint);
-      mesh->AppendPointFamily(family);
-    } else {
-      family->SetPointOrCell(vtkMedUtilities::OnCell);	      
-      mesh->AppendCellFamily(family);	
+  else
+    {
+    family->SetPointOrCell(vtkMedUtilities::OnPoint);
+    mesh->AppendPointFamily(family);
     }
-  }
-  
+
   family->AllocateNumberOfGroup(ngroup);
   // if there where no group, set the name to the default value
   if(has_no_group)
@@ -1071,7 +1067,7 @@ void vtkMedDriver30::ReadFieldInformation(vtkMedField* field)
     vtkMedFieldStep* step = vtkMedFieldStep::New();
     step->SetMedIterator(csit + 1);
     step->SetParentField(field);
-    this->ReadFieldStepInformation(step, true);
+    this->ReadFieldStepInformation(step, csit == 0);
     field->AddFieldStep(step);
     step->SetPreviousStep(previousStep);
     previousStep = step;
@@ -1115,32 +1111,15 @@ void vtkMedDriver30::ReadFieldStepInformation(vtkMedFieldStep* step, bool readAl
   if(mesh == NULL)
     return;
   
-  std::set<vtkMedEntity> tmp_entities;
   std::set<vtkMedEntity> entities;
-  mesh->GatherMedEntities(tmp_entities);
-  
-  std::set<vtkMedEntity>::iterator tmp_entity_it = tmp_entities.begin();
-  while(tmp_entity_it != tmp_entities.end())
-    {
-    vtkMedEntity entity = *tmp_entity_it;
-    tmp_entity_it++;
-    entities.insert(entity);
-    if(entity.EntityType == MED_CELL)
-      {
-      vtkMedEntity newEntity;
-      newEntity.EntityType = MED_NODE_ELEMENT;
-      newEntity.GeometryType = entity.GeometryType;
-      newEntity.GeometryName = entity.GeometryName;
-      entities.insert(newEntity);
-      }
-    }
+  mesh->GatherMedEntities(entities);
   
   vtkMedEntity pointEntity;
   pointEntity.EntityType = MED_NODE;
   pointEntity.GeometryType = MED_NONE;
   pointEntity.GeometryName = MED_NAME_BLANK;
   entities.insert(pointEntity);
-
+  
   std::set<vtkMedEntity>::iterator entity_it = entities.begin();
   while(entity_it != entities.end())
     {
@@ -1986,6 +1965,7 @@ void vtkMedDriver30::LoadConnectivity(vtkMedEntityArray* array)
       {
       if(array->GetEntity().EntityType == MED_STRUCT_ELEMENT)
         {
+        std::cout << "  -- MED_STRUCT_ELEMENT --" << std::endl;
         if(array->GetStructElement() == NULL)
           {
           vtkErrorMacro("Entity type = MED_STRUCT_ELEMENT, but StructElement is not set!");

@@ -29,7 +29,6 @@ from datetime import date
 
 import salome
 
-
 # Auxiliary variables
 
 # Data directory
@@ -78,7 +77,8 @@ class SalomeSession(object):
     def __init__(self):
         import runSalome
         import sys
-        sys.argv += ["--killall"]
+        #sys.argv += ["--killall"]
+        #sys.argv += ["--portkill=" + port]
         sys.argv += ["--show-desktop=1"]
         sys.argv += ["--splash=0"]
         sys.argv += ["--modules=MED,VISU,PARAVIS"]

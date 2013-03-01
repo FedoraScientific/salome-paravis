@@ -44,10 +44,14 @@ SET(vtkWrapIDL_HH_CPPFLAGS
 SET(vtkWrapIDL_CC_CPPFLAGS
   -DIDL_I_CC
   )
+#VTN TODO:
+#IF(VTK_LEGACY_REMOVE)
+#  ADD_DEFINITIONS(-DVTK_PARSE_LEGACY_REMOVE)
+#ENDIF()
 
 INCLUDE(wrap.cmake)
 
-INCLUDE(${ParaView_CMAKE_DIR}/vtkClientServer.cmake)
+INCLUDE(${ParaView_CMAKE_DIR}/vtkWrapClientServer.cmake)
 VTK_WRAP_ClientServer(vtkEDFCutterCS vtkEDFCutter_SRCS ${GUI_ROOT_DIR}/include/salome/vtkEDFCutter.h)
 
 # Library sources
@@ -68,6 +72,8 @@ SET(dist_libPARAVIS_la_SOURCES
   PVGUI_Tools.cxx
   PVGUI_ParaViewSettingsPane.h
   PVGUI_ParaViewSettingsPane.cxx
+  PVGUI_MatplotlibMathTextUtilities.h
+  PVGUI_MatplotlibMathTextUtilities.cxx
   PV_I.h
   PARAVIS_Gen_i.hh
   PV_Events.h
@@ -155,6 +161,12 @@ ENDFOREACH(f ${PARAVIEW_INCLUDES} ${VTK_INCLUDES} ${PLATFORM_CPPFLAGS} ${PTHREAD
 SET_TARGET_PROPERTIES(PARAVIS PROPERTIES COMPILE_FLAGS "${flags}")
 SET_TARGET_PROPERTIES(PARAVIS PROPERTIES VERSION ${VERSION_INFO} SOVERSION ${SOVERSION_INFO})
 
+#FIND_PACKAGE(VTK 6.0 COMPONENTS vtkPVClientServerCoreCore vtkPVServerImplementationCore NO_MODULE)
+#SET(VTK_LIBS vtkPVClientServerCoreCore vtkPVServerImplementationCore)
+SET(VTK_LIBS)
+FIND_PACKAGE(ParaView COMPONENTS pqApplicationComponents NO_MODULE)
+SET(PARAVIEW_LIBS pqApplicationComponents)
+
 TARGET_LINK_LIBRARIES(PARAVIS 
   ${PLATFORM_LIBADD} ${PLATFORM_LDFLAGS}
   ${OMNIORB_LIBRARIES}
@@ -177,13 +189,18 @@ FOREACH(name ${bin_PROGRAMS})
     ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParse.tab.c 
     ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParsePreprocess.c
     ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseHierarchy.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c
     ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseExtras.c
+    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c
+    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseData.c
+    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseString.c
     ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrap.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrapText.c
+#    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrapText.c
     ${CMAKE_SOURCE_DIR}/idl/vtkWrapIDL.c)
   ADD_DEPENDENCIES(${name} generate_txt)
   
+  set_property(SOURCE ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c PROPERTY COMPILE_DEFINITIONS
+    VTK_PARSE_VERSION="${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+
   SET(flags)
   FOREACH(f ${PARAVIEW_INCLUDES} ${VTK_INCLUDES} ${PLATFORM_CPPFLAGS} ${PTHREAD_CFLAGS} ${${name}_CPPFLAGS})
     SET(flags "${flags} ${f}")

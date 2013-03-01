@@ -26,7 +26,7 @@ class VTK_EXPORT vtkELNOMeshFilter: public vtkUnstructuredGridAlgorithm
 {
 public:
   static vtkELNOMeshFilter *New();
-  vtkTypeRevisionMacro(vtkELNOMeshFilter,vtkUnstructuredGridAlgorithm);
+  vtkTypeMacro(vtkELNOMeshFilter,vtkUnstructuredGridAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 protected:

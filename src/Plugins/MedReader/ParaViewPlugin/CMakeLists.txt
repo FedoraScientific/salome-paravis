@@ -17,26 +17,11 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-set(MEDREADER_HDRS)
-set(EXTRACTGROUP_HDRS)
+# add include indirectories to the vtk files in this plugin.
+include_directories(
+  ${MedReader_SOURCE_DIR}/IO
+  ${MedReader_BINARY_DIR}/IO)
 
-include(${MedReader_BINARY_DIR}/IO/vtkMedReader_IOKit.cmake)
-
-include_directories(${VTK_MEDREADER_IO_HEADER_DIR})
-
-add_definitions( -I${CMAKE_CURRENT_BINARY_DIR}/../IO )
-
-foreach(class ${VTK_MEDREADER_IO_CLASSES})
-    set(MEDREADER_HDRS ${MEDREADER_HDRS} ${VTK_MEDREADER_IO_HEADER_DIR}/${class}.h)
-endforeach(class)
-
-foreach(class ${VTK_MEDREADER_IO_CLASSES_ABSTRACT})
-    set_source_files_properties(${VTK_MEDREADER_IO_HEADER_DIR}/${class}.h PROPERTIES ABSTRACT 1)
-endforeach(class)
-
-foreach(class ${VTK_MEDREADER_IO_CLASSES_WRAP_EXCLUDE})
-    set_source_files_properties(${VTK_MEDREADER_IO_HEADER_DIR}/${class}.h PROPERTIES WRAP_EXCLUDE 1)
-endforeach(class)
 
 SET(SM_SRCS
     vtkSMMedGroupSelectionDomain.cxx
@@ -74,7 +59,7 @@ IF(PARAVIEW_BUILD_QT_GUI)
     
     # create the med reader plugin itself
     ADD_PARAVIEW_PLUGIN(MedReaderPlugin "4.0"
-        SERVER_MANAGER_SOURCES ${MEDREADER_HDRS} ${EXTRACTGROUP_HDRS} ${SM_SRCS}
+        SERVER_MANAGER_SOURCES ${SM_SRCS}
         SERVER_MANAGER_XML Resources/MedReaderServer.xml
         GUI_INTERFACES ${MEDREADER_IFACES} ${EXTRACTGROUP_IFACES}
         GUI_RESOURCES Resources/pqMedReader.qrc
@@ -83,19 +68,27 @@ IF(PARAVIEW_BUILD_QT_GUI)
               ${MOC_SRCS}
               ${MEDREADER_IFACE_SRCS}
               ${EXTRACTGROUP_IFACE_SRCS}
+        CS_KITS
+            # this is the same name as the name in module.cmake file IO
+            # directory.
+            vtkMedReader
     )
         
 ELSE(PARAVIEW_BUILD_QT_GUI)
           
     # create the med reader plugin itself
     ADD_PARAVIEW_PLUGIN(MedReaderPlugin "4.0"
-        SERVER_MANAGER_SOURCES ${MEDREADER_HDRS} ${EXTRACTGROUP_HDRS} ${SM_SRCS}
+        SERVER_MANAGER_SOURCES ${SM_SRCS}
         SERVER_MANAGER_XML Resources/MedReaderServer.xml
+        CS_KITS
+            # this is the same name as the name in module.cmake file IO
+            # directory.
+            vtkMedReader
     )
     
 ENDIF(PARAVIEW_BUILD_QT_GUI)
 
-TARGET_LINK_LIBRARIES(MedReaderPlugin vtkMedReader)
+TARGET_LINK_LIBRARIES(MedReaderPlugin vtkMedReader vtkMedReaderCS)
 
 # Install
 INSTALL(

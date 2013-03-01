@@ -19,7 +19,7 @@
 
 PROJECT( ParaMEDCorba )
 
-  CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
+  CMAKE_MINIMUM_REQUIRED( VERSION 2.8.7 )
   ## !!! This definition corrupts wrapping process
   #SET( LIBRARY_OUTPUT_PATH ${ParaMEDCorba_BINARY_DIR}/bin CACHE INTERNAL "Single place for output" )
   #SET( EXECUTABLE_OUTPUT_PATH ${ParaMEDCorba_BINARY_DIR}/bin  CACHE INTERNAL "Single place for output" )
@@ -28,11 +28,14 @@ PROJECT( ParaMEDCorba )
     EXECUTABLE_OUTPUT_PATH
   )
 
-  FIND_PACKAGE( ParaView REQUIRED )
+  FIND_PACKAGE( ParaView COMPONENTS pqCore NO_MODULE)
 
   IF( ParaView_FOUND )
     
     INCLUDE( ${PARAVIEW_USE_FILE} )
+
+    FIND_PACKAGE( VTK 6.0 COMPONENTS vtkClientServer NO_MODULE)
+    INCLUDE( ${VTK_USE_FILE} )
 
     SET( PARACORBAPLUG_SRCS
       ${ParaMEDCorba_SOURCE_DIR}/vtkParaMEDCorbaSource.cxx
@@ -52,9 +55,9 @@ PROJECT( ParaMEDCorba )
     SET_TARGET_PROPERTIES(ParaMEDCorbaPlugin PROPERTIES COMPILE_FLAGS "${OMNIORB_DEFINITIONS}")
 
     TARGET_LINK_LIBRARIES(ParaMEDMEM2VTK
-      vtkCommon
-      vtkFiltering
-      vtkGraphics
+      #vtkCommon
+      #vtkFiltering
+      #vtkGraphics
       vtkClientServer
       pqCore
       ${OMNIORB_LIBRARIES}

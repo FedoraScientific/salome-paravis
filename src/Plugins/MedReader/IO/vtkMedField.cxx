@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012  CEA/DEN, EDF R&D
+// Copyright (C) 2010-2011  CEA/DEN, EDF R&D
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,7 @@ vtkCxxSetObjectVectorMacro(vtkMedField, Interpolation, vtkMedInterpolation);
 
 vtkCxxSetObjectMacro(vtkMedField, ParentFile, vtkMedFile);
 
-vtkCxxRevisionMacro(vtkMedField, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedField, "$Revision$")
 vtkStandardNewMacro(vtkMedField)
 
 vtkMedField::vtkMedField()
@@ -181,7 +181,6 @@ void  vtkMedField::ExtractFieldType(vtkMedField* otherfield, int type)
     vtkMedFieldStep* otherstep = otherfield->GetFieldStep(stepid);
     vtkMedFieldStep* step = vtkMedFieldStep::New();
     step->SetComputeStep(otherstep->GetComputeStep());
-    step->SetMedIterator(otherstep->GetMedIterator());
     this->AddFieldStep(step);
     step->Delete();
 

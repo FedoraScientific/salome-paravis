@@ -17,45 +17,6 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-FIND_PACKAGE(ParaView REQUIRED)
-
-SET(PARAVIEW_INCLUDES -I${PARAVIEW_INCLUDE_DIRS})
-
-FIND_LIBRARY(QtPython QtPython PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(QVTK QVTK PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkClientServer vtkClientServer PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkPVServerManager vtkPVServerManager PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(pqApplicationComponents pqApplicationComponents PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(pqComponents pqComponents PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(pqCore pqCore PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(pqWidgets pqWidgets PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkPVClientServerCore vtkPVClientServerCore PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkPVServerImplementation vtkPVServerImplementation  PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkPVCommon vtkPVCommon PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkPVVTKExtensions vtkPVVTKExtensions PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkViews vtkViews PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(pqApplicationComponents pqApplicationComponents  PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkGraphicsCS vtkGraphicsCS  PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-FIND_LIBRARY(vtkCommonCS vtkCommonCS  PATHS ${PARAVIEW_LIBRARY_DIRS} NO_DEFAULT_PATH)
-
-SET(PARAVIEW_LIBS
-  ${QtPython}
-  ${QVTK}
-  ${vtkClientServer}
-  ${vtkGenericFiltering}
-  ${vtkInfovis}
-  ${vtkVolumeRendering}
-  ${vtkPVServerManager}
-  ${pqApplicationComponents}
-  ${pqComponents}
-  ${pqCore}
-  ${pqWidgets}
-  ${vtkPVClientServerCore}
-  ${vtkPVServerImplementation}
-  ${vtkPVVTKExtensions}
-  ${vtkPVCommon}
-  ${vtkViews}
-  ${pqApplicationComponents}
-  ${vtkGraphicsCS}
-  ${vtkCommonCS}
-  )
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.7 FATAL_ERROR)
+FIND_PACKAGE(ParaView REQUIRED NO_MODULE)
+INCLUDE(${PARAVIEW_USE_FILE})

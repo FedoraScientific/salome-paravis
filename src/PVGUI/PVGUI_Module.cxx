@@ -114,7 +114,7 @@
 #include <pqPythonDialog.h>
 #include <pqPythonManager.h>
 #include <pqPythonShell.h>
-#include <pqBrandPluginsLoader.h>
+//#include <pqBrandPluginsLoader.h>
 #include <pqLoadDataReaction.h>
 #include <vtkEventQtSlotConnect.h>
 #include <pqPythonScriptEditor.h>
@@ -124,10 +124,17 @@
 #include <pqPipelineRepresentation.h>
 #include <pqLookupTableManager.h>
 #include <pqDisplayColorWidget.h>
+#include <pqColorToolbar.h>
+#include <pqScalarBarVisibilityReaction.h>
+#include <pqStandardPropertyWidgetInterface.h>
+#include <pqMultiServerBehavior.h>
+#include <pqViewStreamingBehavior.h>
 
 #include <PARAVIS_version.h>
 
 #include <vtkPVConfig.h>
+
+#include <PVGUI_MatplotlibMathTextUtilities.h>
 
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 
@@ -138,18 +145,18 @@
  * collect.
  */
 
-#include <vtkCommonInstantiator.h>
-#include <vtkFilteringInstantiator.h>
-#include <vtkGenericFilteringInstantiator.h>
-#include <vtkIOInstantiator.h>
-#include <vtkImagingInstantiator.h>
-#include <vtkInfovisInstantiator.h>
-#include <vtkGraphicsInstantiator.h>
+//#include <vtkCommonInstantiator.h>
+//#include <vtkFilteringInstantiator.h>
+//#include <vtkGenericFilteringInstantiator.h>
+//#include <vtkIOInstantiator.h>
+//#include <vtkImagingInstantiator.h>
+//#include <vtkInfovisInstantiator.h>
+//#include <vtkGraphicsInstantiator.h>
 
-#include <vtkRenderingInstantiator.h>
-#include <vtkVolumeRenderingInstantiator.h>
-#include <vtkHybridInstantiator.h>
-#include <vtkParallelInstantiator.h>
+//#include <vtkRenderingInstantiator.h>
+//#include <vtkVolumeRenderingInstantiator.h>
+//#include <vtkHybridInstantiator.h>
+//#include <vtkParallelInstantiator.h>
 
 #include <pqAlwaysConnectedBehavior.h>
 #include <pqApplicationCore.h>
@@ -369,6 +376,9 @@ PVGUI_Module::~PVGUI_Module()
 */
 void PVGUI_Module::initialize( CAM_Application* app )
 {
+  //VTN: Disable conflict with python initialization for MatPlot.
+  PVGUI_MatplotlibMathTextUtilities::Disable();
+
   SalomeApp_Module::initialize( app );
 
   // Create ParaViS actions
@@ -416,7 +426,9 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
     // * adds support for standard paraview views.
     pgm->addInterface(new pqStandardViewModules(pgm));
+    //VTN TODO Paraview 3.98.0: Unresolved symbol _ZN36pqStandardSummaryPanelImplementationC1EP7QObject
     pgm->addInterface(new pqStandardSummaryPanelImplementation(pgm));
+    pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
 
     // Load plugins distributed with application.
     pqApplicationCore::instance()->loadDistributedPlugins();
@@ -442,6 +454,8 @@ void PVGUI_Module::initialize( CAM_Application* app )
     new pqPersistentMainWindowStateBehavior(aDesktop);
     new pqObjectPickingBehavior(aDesktop);
     new pqCollaborationBehavior(this);
+    new pqMultiServerBehavior(this);
+    new pqViewStreamingBehavior(this);
 
     // Setup quick-launch shortcuts.
     QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);
@@ -564,11 +578,6 @@ void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
   if( t == VARIABLE_TYPE_NONE )
     return;
 
-  pqDataRepresentation* data  = colorWidget->getRepresentation();
-
-  if( !data->getLookupTable() )
-    return;
-
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
   
   if(!aResourceMgr)
@@ -579,12 +588,26 @@ void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
   if(!visible)
     return;
   
+  /*//VTN: getRepresentation is protected
+  pqDataRepresentation* data  = colorWidget->getRepresentation();
+
+  if( !data->getLookupTable() )
+    return;
+
   pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
 
   if(lut_mgr) {
     lut_mgr->setScalarBarVisibility(data,visible);
   }
-  
+  */
+  pqColorToolbar* colorTooBar = qobject_cast<pqColorToolbar*>(colorWidget->parent());
+  if( !colorTooBar )
+    return;
+
+  pqScalarBarVisibilityReaction* scalarBarVisibility = colorTooBar->findChild<pqScalarBarVisibilityReaction *>();
+  if(scalarBarVisibility) {
+    scalarBarVisibility->setScalarBarVisibility(visible);
+  }
 }
 
 
@@ -677,6 +700,7 @@ bool PVGUI_Module::pvInit()
       return false;
       }
 
+    /* VTN: Looks like trash. For porting see branded_paraview_initializer.cxx.in
     // Not sure why this is needed. Andy added this ages ago with comment saying
     // needed for Mac apps. Need to check that it's indeed still required.
     QDir dir(QApplication::applicationDirPath());
@@ -696,7 +720,7 @@ bool PVGUI_Module::pvInit()
     plugin_string = "";
     plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
     loader.loadPlugins(plugin_list, true); //quietly skip not-found plugins.
-
+    */
     // End of Initializer code
 
     vtkOutputWindow::SetInstance(PVGUI_OutputWindowAdapter::New());

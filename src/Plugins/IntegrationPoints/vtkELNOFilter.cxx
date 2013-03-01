@@ -28,7 +28,7 @@
 #include "vtkQuadratureSchemeDefinition.h"
 #include "vtkUnstructuredGrid.h"
 
-vtkCxxRevisionMacro(vtkELNOFilter, "$Revision$");
+//vtkCxxRevisionMacro(vtkELNOFilter, "$Revision$");
 vtkStandardNewMacro(vtkELNOFilter);
 
 vtkELNOFilter::vtkELNOFilter()

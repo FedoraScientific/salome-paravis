@@ -25,31 +25,51 @@ from pvsimple import CreateXYPlotView
 # Create view
 aXYPlot = CreateXYPlotView()
 
-# Set range
-axisRange = aXYPlot.AxisRange
+error = 0
+
+aXYPlot.AxisUseCustomRange = [1, 1, 0, 0]
 # Left axis range
+axisRange = aXYPlot.LeftAxisRange
 axisRange[0:2] = [200., 800.]
-Ranges = aXYPlot.AxisRange
-Etvalue = [200, 800, axisRange[2], axisRange[3],
-           axisRange[4], axisRange[5], axisRange[6], axisRange[7] ]
-error = test_values(Ranges, Etvalue)
+Ranges = aXYPlot.LeftAxisRange
+Etvalue = [200, 800]
+error = error + test_values(Ranges, Etvalue)
 # Bottom axis range
-aXYPlot.AxisRange[2:4] = [350.,750.]
-Ranges = aXYPlot.AxisRange
-Etvalue = [200, 800, 350, 750,
-           axisRange[4], axisRange[5], axisRange[6], axisRange[7]]
+axisRange = aXYPlot.BottomAxisRange
+axisRange[0:2] = [350.,750.]
+Ranges = aXYPlot.BottomAxisRange
+Etvalue = [350, 750]
 error = error + test_values(Ranges, Etvalue)
 # Left and bottom axis range
-aXYPlot.AxisRange[0:4] = [1350.,2750.,240.,2230.]
-Ranges=aXYPlot.AxisRange
-Etvalue=[1350.,2750.,240.,2230.,
-         axisRange[4], axisRange[5], axisRange[6], axisRange[7]]
-error = error + test_values(Ranges, Etvalue)
+aXYPlot.LeftAxisRange[0:2] = [1350.,2750.]
+aXYPlot.BottomAxisRange[0:2] = [240.,2230.]
+Etvalue=[1350.,2750.,240.,2230.]
+Ranges=aXYPlot.LeftAxisRange
+error = error + test_values(Ranges, Etvalue[0:2])
+Ranges=aXYPlot.BottomAxisRange
+error = error + test_values(Ranges, Etvalue[2:4])
+
+try:
+    aXYPlot.ShowAxis = [1, 1, 1, 1]
+except:
+    print "Error: ShowAxis property is not avaliable for XYPlotView"
+    error = error + 1
+
+aXYPlot.AxisUseCustomRange = [1, 1, 1, 1]
 # Left, bottom, right and top axis range
-aXYPlot.AxisRange = [0, 200, 100, 450, 0, 200, 100, 450]
-Ranges = aXYPlot.AxisRange
+aXYPlot.LeftAxisRange = [0, 200]
+aXYPlot.BottomAxisRange = [100, 450]
+aXYPlot.RightAxisRange = [0, 200]
+aXYPlot.TopAxisRange = [100, 450]
 Etvalue = [0, 200, 100, 450, 0, 200, 100, 450]
-error = error + test_values(Ranges, Etvalue)
+Ranges=aXYPlot.LeftAxisRange
+error = error + test_values(Ranges, Etvalue[0:2])
+Ranges=aXYPlot.BottomAxisRange
+error = error + test_values(Ranges, Etvalue[2:4])
+Ranges=aXYPlot.RightAxisRange
+error = error + test_values(Ranges, Etvalue[4:6])
+Ranges=aXYPlot.TopAxisRange
+error = error + test_values(Ranges, Etvalue[6:8])
 
 if error > 0:
     raise RuntimeError, "There is(are) some error(s) was(were) found... For more info see ERRORs above..."

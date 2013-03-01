@@ -28,7 +28,7 @@ class VTK_EXPORT vtkVisuTableReader: public vtkTableAlgorithm
 {
 public:
   static vtkVisuTableReader* New();
-  vtkTypeRevisionMacro(vtkVisuTableReader, vtkTableAlgorithm)
+  vtkTypeMacro(vtkVisuTableReader, vtkTableAlgorithm)
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

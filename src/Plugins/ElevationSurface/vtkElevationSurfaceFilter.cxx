@@ -37,7 +37,7 @@
 
 #include <math.h>
 
-vtkCxxRevisionMacro(vtkElevationSurfaceFilter, "$Revision$");
+//vtkCxxRevisionMacro(vtkElevationSurfaceFilter, "$Revision$");
 vtkStandardNewMacro(vtkElevationSurfaceFilter);
 
 vtkElevationSurfaceFilter::vtkElevationSurfaceFilter()
