@@ -426,7 +426,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
     // * adds support for standard paraview views.
     pgm->addInterface(new pqStandardViewModules(pgm));
-    //VTN TODO Paraview 3.98.0: Unresolved symbol _ZN36pqStandardSummaryPanelImplementationC1EP7QObject
     pgm->addInterface(new pqStandardSummaryPanelImplementation(pgm));
     pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
 

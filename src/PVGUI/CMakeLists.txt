@@ -44,7 +44,9 @@ SET(vtkWrapIDL_HH_CPPFLAGS
 SET(vtkWrapIDL_CC_CPPFLAGS
   -DIDL_I_CC
   )
-#VTN TODO:
+#VTN TODO: vtkParseData supports two types of structures for wrapping.
+#We use old structures currently, but is is not influent for results of wrapping.
+#It may be necessary to port vtkWrapIDL to new approach in future.
 #IF(VTK_LEGACY_REMOVE)
 #  ADD_DEFINITIONS(-DVTK_PARSE_LEGACY_REMOVE)
 #ENDIF()
@@ -89,7 +91,7 @@ SET(dist_libPARAVIS_la_SOURCES
 # Check ParaView documentation file existence
 # if it exists add it to the resources (compile into binary form)
 # otherwise print warning message
-SET(PV_DOC_FILE ${ParaView_INSTALL_PREFIX}/share/doc/paraview-${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}/paraview.qch)
+SET(PV_DOC_FILE ${VTK_INSTALL_PREFIX}/share/doc/paraview-${PARAVIEW_VERSION_MAJOR}.${PARAVIEW_VERSION_MINOR}/paraview.qch)
 IF (EXISTS ${PV_DOC_FILE})
   SET(RC_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/PVGUI.qrc.in)
   SET(RC_GENERATED ${CMAKE_CURRENT_BINARY_DIR}/PVGUI.qrc)

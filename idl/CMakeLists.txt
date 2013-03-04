@@ -88,7 +88,9 @@ FOREACH(f ${PLATFORM_CPPFLAGS} ${PTHREAD_CFLAGS} ${PARAVIEW_INCLUDES} ${VTK_INCL
   SET(flags "${flags} ${f}")
 ENDFOREACH(f ${PLATFORM_CPPFLAGS} ${PTHREAD_CFLAGS} ${PARAVIEW_INCLUDES} ${VTK_INCLUDES})
 
-#VTN TODO:
+#VTN TODO: vtkParseData supports two types of structures for wrapping.
+#We use old structures currently, but is is not influent for results of wrapping.
+#It may be necessary to port vtkWrapIDL to new approach in future.
 #IF(VTK_LEGACY_REMOVE)
 #  ADD_DEFINITIONS(-DVTK_PARSE_LEGACY_REMOVE)
 #ENDIF()
