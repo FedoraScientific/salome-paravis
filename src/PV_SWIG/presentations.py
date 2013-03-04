@@ -673,9 +673,9 @@ def get_calc_magnitude(proxy, array_entity, array_name):
     nb_components = get_nb_components(proxy, array_entity, array_name)
     if (nb_components > 1):
         calculator = pv.Calculator(proxy)
-        attribute_mode = "point_data"
+        attribute_mode = "Point Data"
         if array_entity != EntityType.NODE:
-            attribute_mode = "cell_data"
+            attribute_mode = "Cell Data"
         calculator.AttributeMode = attribute_mode
         if (nb_components == 2):
             # Workaroud: calculator unable to compute magnitude
