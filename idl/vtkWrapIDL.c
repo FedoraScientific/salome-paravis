@@ -192,6 +192,10 @@ void AddCharAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
   AddAtomArg(I,Type,"char","Char",Result,CurrPos);
 }
 
+void AddCharArrayArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
+  AddArrayArg(I,Type,"char",Result,CurrPos);
+}
+
 void AddStringArg(int I, char *Result, int *CurrPos) {
 #if defined(IDL_I_HH) || defined(IDL_I_CC)
   add_to_sig(Result,"char ",CurrPos);
@@ -242,9 +246,20 @@ int IsvtkIdType(ValueInfo* theType) {
 int IsShort(ValueInfo* theType) {
   //return ((Type % 0x10) == 0x4 || (Type % 0x10) == 0x5 || (Type % 0x10) == 0xA);
   int aVal = theType->Type & VTK_PARSE_BASE_TYPE;
-  return (aVal == VTK_PARSE_SHORT) || (aVal == VTK_PARSE_INT) || 
-    (aVal == VTK_PARSE_ID_TYPE) || (aVal == VTK_PARSE_UNSIGNED_INT) || (aVal == VTK_PARSE_UNSIGNED_SHORT) ||
+  return (aVal == VTK_PARSE_SHORT) || (aVal == VTK_PARSE_UNSIGNED_SHORT);
+}
+
+int IsInt(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x4 || (Type % 0x10) == 0x5 || (Type % 0x10) == 0xA);
+  int aVal = theType->Type & VTK_PARSE_BASE_TYPE;
+  return (aVal == VTK_PARSE_INT) || 
+    (aVal == VTK_PARSE_ID_TYPE) || (aVal == VTK_PARSE_UNSIGNED_INT) ||
     (aVal == VTK_PARSE_SSIZE_T) || (aVal == VTK_PARSE_SIZE_T);
+}
+
+int IsShortInt(ValueInfo* theType) {
+  //return ((Type % 0x10) == 0x4 || (Type % 0x10) == 0x5 || (Type % 0x10) == 0xA);
+  return (IsShort(theType) || IsInt(theType));
 }
 
 void AddShortAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
@@ -253,6 +268,10 @@ void AddShortAtomArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
 
 int IsShortArray(ValueInfo* Type) {
   return (IsShort(Type) && IsArray(Type));
+}
+
+int IsIntArray(ValueInfo* Type) {
+  return (IsInt(Type) && IsArray(Type));
 }
 
 void AddShortArrayArg(int I, ValueInfo* Type, char *Result, int *CurrPos) {
@@ -347,7 +366,7 @@ void AddVoidArg(int I, char *Result, int *CurrPos, ValueInfo* Type) {
 }
 
 void AddTypeArray(ValueInfo* Type, char *Result, int *CurrPos) {
-  if(IsShort(Type))
+  if(IsShortInt(Type))
     add_to_sig(Result,"short",CurrPos);
   if(IsLong(Type))
     add_to_sig(Result,"long",CurrPos);
@@ -394,7 +413,7 @@ void output_type(char* result, int *currPos, int i, ValueInfo* aType, const char
     }
   }
   
-  if(IsShort(aType)) {
+  if(IsShortInt(aType)) {
     if(IsArray(aType)) {
       if (IsUnsigned(aType))
         add_to_sig(result,"unsigned ",currPos);
@@ -427,7 +446,13 @@ void output_type(char* result, int *currPos, int i, ValueInfo* aType, const char
       add_to_sig(result,"char",currPos);
     }
   } else if(IsChar(aType)) {
-    add_to_sig(result,"CORBA::Char",currPos);	    
+    if(IsArray(aType)) {
+      if (IsUnsigned(aType))
+        add_to_sig(result,"unsigned ",currPos);
+      add_to_sig(result,"char",currPos);
+    } else {
+      add_to_sig(result,"CORBA::Char",currPos);	    
+    }
   }
   
   if(IsBoolean(aType)) {
@@ -503,8 +528,8 @@ void output_temp(char* result, int *currPos, int i, ValueInfo* aType, const char
     }
   }
 
-  if(IsShort(aType)) {
-    if(IsShortArray(aType)) {
+  if(IsShortInt(aType)) {
+    if(IsArray(aType)) {
       AddShortArrayArg(i,aType,result,currPos);
     } else {
       AddShortAtomArg(i,aType,result,currPos);
@@ -523,7 +548,11 @@ void output_temp(char* result, int *currPos, int i, ValueInfo* aType, const char
     if(IsString(aType)) {
       AddStringArg(i,result,currPos);
     } else {
-      AddCharAtomArg(i,aType,result,currPos);
+      if(IsCharArray(aType)) {
+	AddCharArrayArg(i,aType,result,currPos);
+      } else {
+	AddCharAtomArg(i,aType,result,currPos);
+      }
     }
   } else if (IsString(aType)) //!!! VSV
     AddStringArg(i,result,currPos);
@@ -862,7 +891,7 @@ void get_signature(const char* num, ClassInfo *data)
     if(IsClass(aArgVal) && IsPtr(aArgVal)) {
       add_to_sig(result,"*",&currPos);  
     }
-    if (IsString(aArgVal) && IsConst(aArgVal))
+    if (IsString(aArgVal) && IsConst(aArgVal) && strcmp(aArgVal->Class, "vtkStdString") != 0)
       sprintf(buf,"checkNullStr(myParam%d)",i);
     else
       sprintf(buf,"myParam%d",i);
@@ -939,12 +968,18 @@ void get_signature(const char* num, ClassInfo *data)
       if(IsDouble(aArgVal))
         add_to_sig(result,"double",&currPos);
       
+      if(IsChar(aArgVal)) {
+	if (IsUnsigned(aArgVal))
+	  add_to_sig(result,"unsigned ",&currPos);
+        add_to_sig(result,"char",&currPos);
+      }
+
       if(IsvtkIdType(aArgVal)) {
         if (IsUnsigned(aArgVal))
           add_to_sig(result,"unsigned ",&currPos);
         add_to_sig(result,"vtkIdType",&currPos);
       } else {
-        if(IsShort(aArgVal)) {
+        if(IsShortInt(aArgVal)) {
           if (IsUnsigned(aArgVal))
             add_to_sig(result,"unsigned ",&currPos);
           add_to_sig(result,"int",&currPos);
@@ -965,12 +1000,18 @@ void get_signature(const char* num, ClassInfo *data)
       if(IsDouble(aArgVal))
         add_to_sig(result,"double",&currPos);
       
+      if(IsChar(aArgVal)) {
+	if (IsUnsigned(aArgVal))
+	  add_to_sig(result,"unsigned ",&currPos);
+        add_to_sig(result,"char",&currPos);
+      }
+
       if(IsvtkIdType(aArgVal)) {
         if (IsUnsigned(aArgVal))
           add_to_sig(result,"unsigned ",&currPos);
         add_to_sig(result,"vtkIdType",&currPos);
       } else {
-        if(IsShort(aArgVal)) {
+        if(IsShortInt(aArgVal)) {
           if (IsUnsigned(aArgVal))
             add_to_sig(result,"unsigned ",&currPos);
           add_to_sig(result,"int",&currPos);
@@ -1042,12 +1083,16 @@ void get_signature(const char* num, ClassInfo *data)
     }
   }
   
-  if(IsShort(aRetVal)) {
+  if(IsShortInt(aRetVal)) {
     if(IsArray(aRetVal)) {
       if(IsvtkIdType(aRetVal)) {
         add_to_sig(result,"vtkIdType",&currPos);
       } else {
-        add_to_sig(result,"int",&currPos);
+	if(IsShort(aRetVal)) {
+	  add_to_sig(result,"short",&currPos);
+	} else {
+	  add_to_sig(result,"int",&currPos);
+	}
       }
       add_to_sig(result,"* a_ret = ",&currPos);
     } else {

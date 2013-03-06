@@ -417,6 +417,9 @@ void PVGUI_Module::initialize( CAM_Application* app )
     pvCreateToolBars();
     pvCreateMenus();
 
+    QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
+    QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();
+
     // new pqParaViewBehaviors(anApp->desktop(), this);
     // Has to be replaced in order to exclude using of pqQtMessageHandlerBehaviour
     //  Start pqParaViewBehaviors
@@ -465,6 +468,24 @@ void PVGUI_Module::initialize( CAM_Application* app )
       pqApplicationCore::instance(), SLOT(quickLaunch()));
     //  End pqParaViewBehaviors
 
+    // Find Plugin Dock Widgets
+    QList<QDockWidget*> currentDocks = aDesktop->findChildren<QDockWidget*>();
+    QList<QDockWidget*>::iterator i;
+    for (i = currentDocks.begin(); i != currentDocks.end(); ++i) {
+      if(!activeDocks.contains(*i)) {
+	myDockWidgets[*i] = false; // hidden by default
+	(*i)->hide();
+      }
+    }
+
+    // Find Plugin Menus
+    QList<QMenu*> currentMenus = aDesktop->findChildren<QMenu*>();
+    QList<QMenu*>::iterator im;
+    for (im = currentMenus.begin(); im != currentMenus.end(); ++im) {
+      if(!activeMenus.contains(*im)) {
+	myMenus.append(*im);
+      }
+    }
 
     SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
     QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
@@ -848,15 +869,22 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   restoreDockWidgetsState();
 
-   QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
-   if(aMenu) {
-      QList<QAction*> anActns = aMenu->actions();
-      for (int i = 0; i < anActns.size(); ++i) {
-	      QAction* a = anActns.at(i);
-        if(a)
-           a->setVisible(true);
-      }
+  QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
+  if(aMenu) {
+    QList<QAction*> anActns = aMenu->actions();
+    for (int i = 0; i < anActns.size(); ++i) {
+      QAction* a = anActns.at(i);
+      if(a)
+	a->setVisible(true);
     }
+  }
+
+  QList<QMenu*>::iterator it;
+  for (it = myMenus.begin(); it != myMenus.end(); ++it) {
+    QAction* a = (*it)->menuAction();
+    if(a)
+      a->setVisible(true);
+  }
 
   if ( myRecentMenuId != -1 ) menuMgr()->show(myRecentMenuId);
 
@@ -874,15 +902,22 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 */
 bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 {
-   QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
-   if(aMenu) {
-      QList<QAction*> anActns = aMenu->actions();
-      for (int i = 0; i < anActns.size(); ++i) {
-	      QAction* a = anActns.at(i);
-        if(a)
-          a->setVisible(false);
-      }
+  QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
+  if(aMenu) {
+    QList<QAction*> anActns = aMenu->actions();
+    for (int i = 0; i < anActns.size(); ++i) {
+      QAction* a = anActns.at(i);
+      if(a)
+	a->setVisible(false);
     }
+  }
+
+  QList<QMenu*>::iterator it;
+  for (it = myMenus.begin(); it != myMenus.end(); ++it) {
+    QAction* a = (*it)->menuAction();
+    if(a)
+      a->setVisible(false);
+  }
 
   QList<QDockWidget*> aStreamingViews = application()->desktop()->findChildren<QDockWidget*>("pqStreamingControls");
   foreach(QDockWidget* aView, aStreamingViews) {

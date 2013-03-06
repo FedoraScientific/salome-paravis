@@ -35,6 +35,22 @@ from vtkPVServerManagerApplicationPython import *
 from vtkPVServerManagerCorePython import *
 from vtkPVServerManagerDefaultPython import *
 from vtkPVServerManagerRenderingPython import *
+try:
+    from vtkPVVTKExtensionsCorePython import *
+except:
+    pass
+try:
+    from vtkPVVTKExtensionsDefaultPython import *
+except:
+    pass
+try:
+    from vtkPVVTKExtensionsRenderingPython import *
+except:
+    pass
+try:
+    from vtkPVVTKExtensionsWebGLExporterPython import *
+except:
+    pass
 
 l1 = dir()
 for a in l1:
@@ -72,21 +88,21 @@ while len(pv_classes_new):
                     m=re.match('\s*class\s+(vtk\w+)\s*;',line)
                     if m is not None:
                         cn=m.group(1)
-                        if cn not in dic.keys() and cn not in pv_classes_new and cn in classeslistvtk:
+                        if cn not in dic.keys() and cn not in pv_classes_new and cn in classeslistvtk and issubclass(globals()[cn], vtkObjectBase):
                             pv_classes_new.append(cn)
                             continue
 
                     m=re.match('\s*struct\s+(vtk\w+)\s*;',line)
                     if m is not None:
                         cn=m.group(1)
-                        if cn not in dic.keys() and cn not in pv_classes_new and cn in classeslistvtk:
+                        if cn not in dic.keys() and cn not in pv_classes_new and cn in classeslistvtk and issubclass(globals()[cn], vtkObjectBase):
                             pv_classes_new.append(cn)
                             continue
 
                     m=re.match('\s*#include\s+"(vtk\w+)\.h"',line)
                     if m is not None:
                         cn=m.group(1)
-                        if cn not in dic.keys() and cn not in pv_classes_new and cn in classeslistvtk:
+                        if cn not in dic.keys() and cn not in pv_classes_new and cn in classeslistvtk and issubclass(globals()[cn], vtkObjectBase):
                             pv_classes_new.append(cn)
                             continue
 

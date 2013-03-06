@@ -54,7 +54,7 @@ if aView is None : print "Error"
 else : print "OK"
 
 # Gauss Points  creation
-prs= GaussPointsOnField(aProxy,EntityType.CELL,'pression' , 2,  theMultiplier=0.01)
+prs= GaussPointsOnField(aProxy,EntityType.CELL,'pression' , 2,  multiplier=0.01)
 prs.Visibility=1
 aView.ResetCamera()
 print "Creating an Animation.....................",

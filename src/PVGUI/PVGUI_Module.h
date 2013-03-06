@@ -269,6 +269,7 @@ private:
   WgMap                  myDockWidgets;
   WgMap                  myToolbars;
   WgMap                  myToolbarBreaks;
+  QList<QMenu*>          myMenus;
 
   QStringList            myTemporaryFiles;
 
