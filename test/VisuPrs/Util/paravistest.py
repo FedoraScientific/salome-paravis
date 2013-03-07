@@ -87,12 +87,13 @@ class SalomeSession(object):
         self.port = port
         return
 
-    def __del__(self):
+    #VTN: workaround for crash on CentOS.6.3.64
+    #def __del__(self):
         #os.system('killSalomeWithPort.py {0}'.format(self.port))
         #os.system('killSalomeWithPort.py ' + self.port)
-        import killSalomeWithPort
-        killSalomeWithPort.killMyPort(self.port)
-        return
+        #import killSalomeWithPort
+        #killSalomeWithPort.killMyPort(self.port)
+        #return
     pass
 
 
