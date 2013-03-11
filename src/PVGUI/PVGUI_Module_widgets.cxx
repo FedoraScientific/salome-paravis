@@ -37,6 +37,7 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QShowEvent>
+#include <QToolButton>
 
 #include <pqAnimationViewWidget.h> 
 #include <pqAnimationWidget.h> 
@@ -54,6 +55,7 @@
 #include <pqPVAnimationWidget.h>
 #include <pqSelectionInspectorWidget.h>
 #include <pqProgressWidget.h>
+#include <pqProgressManager.h>
 
 #include <pqAlwaysConnectedBehavior.h>
 #include <pqApplicationCore.h>
@@ -247,9 +249,29 @@ void PVGUI_Module::setupDockWidgets()
   myDockWidgets[memoryInspectorDock] = false; // hidden by default
 
   // Setup the statusbar ...
+  pqProgressManager* progress_manager =
+    pqApplicationCore::instance()->getProgressManager();
+
+  // Progress bar/button management
   pqProgressWidget* aProgress = new pqProgressWidget(desk->statusBar());
-  desk->statusBar()->addPermanentWidget(aProgress);
+  progress_manager->addNonBlockableObject(aProgress);
+  progress_manager->addNonBlockableObject(aProgress->getAbortButton());
   
+  QObject::connect( progress_manager, SIGNAL(enableProgress(bool)),
+                    aProgress,        SLOT(enableProgress(bool)));
+
+  QObject::connect( progress_manager, SIGNAL(progress(const QString&, int)),
+                    aProgress,        SLOT(setProgress(const QString&, int)));
+
+  QObject::connect( progress_manager, SIGNAL(enableAbort(bool)),
+                    aProgress,        SLOT(enableAbort(bool)));
+
+  QObject::connect( aProgress,        SIGNAL(abortPressed()),
+                    progress_manager, SLOT(triggerAbort()));
+
+  desk->statusBar()->addPermanentWidget(aProgress);
+  aProgress->setEnabled(true);
+
   // Set up the dock window corners to give the vertical docks more room.
   desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
