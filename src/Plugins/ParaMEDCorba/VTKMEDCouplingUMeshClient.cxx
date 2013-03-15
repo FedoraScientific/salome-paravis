@@ -30,7 +30,7 @@
 #include <string>
 #include <algorithm>
 
-static const int ParaMEDMEM2VTKTypeTraducer[32]={1,3,21,5,9,7,22,-1,23,-1,-1,-1,-1,-1,10,14,13,-1,12,-1,24,-1,16,27,-1,26,-1,-1,-1,-1,25,42};
+static const int ParaMEDMEM2VTKTypeTraducer[34]={1,3,21,5,9,7,22,34,23,28,-1,-1,-1,-1,10,14,13,-1,12,-1,24,-1,16,27,-1,26,-1,29,-1,-1,25,42,-1,4};
 
 void ParaMEDMEM2VTK::FillMEDCouplingUMeshInstanceFrom(SALOME_MED::MEDCouplingUMeshCorbaInterface_ptr meshPtr, vtkUnstructuredGrid *ret, bool& isPolyh)
 {
