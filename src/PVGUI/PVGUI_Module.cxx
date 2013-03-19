@@ -103,6 +103,7 @@
 #include <pqActiveObjects.h>
 #include <vtkProcessModule.h>
 #include <vtkSMSession.h>
+#include <vtkPVSession.h>
 #include <vtkPVProgressHandler.h>
 #include <pqParaViewBehaviors.h>
 #include <pqHelpReaction.h>
@@ -531,13 +532,21 @@ void PVGUI_Module::initialize( CAM_Application* app )
     startTimer( 50 );
 
   this->VTKConnect = vtkEventQtSlotConnect::New();
+  
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-
-  this->VTKConnect->Connect(pm, vtkCommand::StartEvent,
-    this, SLOT(onStartProgress()));
-  this->VTKConnect->Connect(pm, vtkCommand::EndEvent,
-    this, SLOT(onEndProgress()));
-
+  if(pm) {
+    vtkPVSession* pvs = dynamic_cast<vtkPVSession*>(pm->GetSession());
+    if(pvs) {
+      vtkPVProgressHandler* ph = pvs->GetProgressHandler();
+      if(ph) {
+	this->VTKConnect->Connect(ph, vtkCommand::StartEvent,
+				  this, SLOT(onStartProgress()));
+	this->VTKConnect->Connect(ph, vtkCommand::EndEvent,
+				  this, SLOT(onEndProgress()));
+      }
+    }
+  }
+  
   connect(&pqActiveObjects::instance(),
 	  SIGNAL(representationChanged(pqRepresentation*)),
 	  this, SLOT(onRepresentationChanged(pqRepresentation*)));
