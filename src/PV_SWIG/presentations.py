@@ -983,7 +983,7 @@ def get_time(proxy, timestamp_nb):
     # Check timestamp number
     timestamps = proxy.TimestepValues.GetData()
     if ((timestamp_nb - 1) not in xrange(len(timestamps))):
-        raise ValueError("Timestamp number is out of range: " + timestamp_nb)
+        raise ValueError("Timestamp number is out of range: " + str(timestamp_nb))
 
     # Return time value
     return timestamps[timestamp_nb - 1]
