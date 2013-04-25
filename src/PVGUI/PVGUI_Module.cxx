@@ -529,7 +529,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
   bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
   // start timer to activate trace in a proper moment
   if(!isStop) 
-    startTimer( 50 );
+    startTimer( 1000 );
 
   this->VTKConnect = vtkEventQtSlotConnect::New();
   
@@ -567,7 +567,7 @@ void PVGUI_Module::onFinishedAddingServer(pqServer* /*server*/)
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
   bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
   if(!isStop) 
-    startTimer( 50 );
+    startTimer( 500 );
 }
 
 void PVGUI_Module::onDataRepresentationCreated(pqDataRepresentation* data) {
