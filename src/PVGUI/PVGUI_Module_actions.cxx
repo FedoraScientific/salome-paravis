@@ -373,6 +373,13 @@ void PVGUI_Module::pvCreateActions()
   connect(anAction, SIGNAL(triggered()), this, SLOT(onShowTrace()));
   registerAction(ShowTraceId, anAction);
 
+  //Show Trace
+  anAction = new QAction(tr("MEN_RESTART_TRACE"), this);
+  anAction->setToolTip(tr("TOP_RESTART_TRACE"));
+  anAction->setStatusTip(tr("STB_RESTART_TRACE"));
+  connect(anAction, SIGNAL(triggered()), this, SLOT(onRestartTrace()));
+  registerAction(RestartTraceId, anAction);
+
   // --- Menu "Help"
 
   // About
@@ -521,6 +528,7 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( PythonShellId, aToolsMnu );
   createMenu( separator(), aToolsMnu );
   createMenu( ShowTraceId, aToolsMnu );
+  createMenu( RestartTraceId, aToolsMnu );
 
   // --- Menu "Help"
 

@@ -171,6 +171,18 @@
         <source>STB_SHOW_TRACE</source>
         <translation>Show Trace</translation>
     </message>
+    <message>
+        <source>MEN_RESTART_TRACE</source>
+        <translation>Re-initialize Trace</translation>
+    </message>
+    <message>
+        <source>TOP_RESTART_TRACE</source>
+        <translation>Re-initialize Trace</translation>
+    </message>
+    <message>
+        <source>STB_RESTART_TRACE</source>
+        <translation>Re-initialize Trace</translation>
+    </message>
 </context>
 <context>
     <name>PVGUI_ViewManager</name>

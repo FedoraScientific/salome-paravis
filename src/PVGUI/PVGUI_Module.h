@@ -113,6 +113,7 @@ class PVGUI_Module : public SalomeApp_Module
 	 OutputWindowId,
 	 PythonShellId,
 	 ShowTraceId,
+	 RestartTraceId,
 
 	 // Menu "Help" 
 	 AboutParaViewId,
@@ -232,6 +233,7 @@ private slots:
   void onStartProgress();
   void onEndProgress();
   void onShowTrace();
+  void onRestartTrace();
 
   void onNewParaViewWindow();
 

@@ -1326,6 +1326,9 @@ void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QS
   }
 }
 
+/*!
+  \brief. Show ParaView python trace.
+*/
 void PVGUI_Module::onShowTrace()
 {
   if (!myTraceWindow) {
@@ -1335,6 +1338,31 @@ void PVGUI_Module::onShowTrace()
   myTraceWindow->show();
   myTraceWindow->raise();
   myTraceWindow->activateWindow();
+}
+
+
+/*!
+  \brief. Re-initialize ParaView python trace.
+*/
+void PVGUI_Module::onRestartTrace()
+{
+  PyInterp_Dispatcher* aDispatcher = PyInterp_Dispatcher::Get();
+  if ( !aDispatcher->IsBusy() ) {
+    pqPythonManager* manager = qobject_cast<pqPythonManager*>
+       ( pqApplicationCore::instance()->manager( "PYTHON_MANAGER" ) );
+    if ( manager )  {
+      pqPythonDialog* pyDiag = manager->pythonShellDialog();
+        if ( pyDiag ) {
+          pqPythonShell* shell = pyDiag->shell();
+            if ( shell ) {
+              QString script = "from paraview import smtrace\n";
+              script += "smtrace.stop_trace()\n";
+              script += "smtrace.start_trace()\n";
+              shell->executeScript(script);
+            }
+        }
+    }
+  }
 }
 
 /*!
