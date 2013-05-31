@@ -464,10 +464,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
     QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);
     QObject::connect(ctrlSpace, SIGNAL(activated()),
       pqApplicationCore::instance(), SLOT(quickLaunch()));
-    QShortcut *altSpace = new QShortcut(Qt::ALT + Qt::Key_Space, aDesktop);
-    QObject::connect(altSpace, SIGNAL(activated()),
-      pqApplicationCore::instance(), SLOT(quickLaunch()));
-    //  End pqParaViewBehaviors
 
     // Find Plugin Dock Widgets
     QList<QDockWidget*> currentDocks = aDesktop->findChildren<QDockWidget*>();

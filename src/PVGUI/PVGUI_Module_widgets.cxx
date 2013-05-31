@@ -283,13 +283,6 @@ void PVGUI_Module::setupDockWidgets()
   selectionInspectorDock->hide();
   collaborationPanelDock->hide();
   memoryInspectorDock->hide();
-
-  // Setup quick-launch shortcuts.
-  QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, desk);
-  QObject::connect(ctrlSpace, SIGNAL(activated()), pqApplicationCore::instance(), SLOT(quickLaunch()));
-  QShortcut *altSpace = new QShortcut(Qt::ALT + Qt::Key_Space, desk);
-  QObject::connect(altSpace, SIGNAL(activated()), pqApplicationCore::instance(), SLOT(quickLaunch()));
-
 }
 
 /*!
