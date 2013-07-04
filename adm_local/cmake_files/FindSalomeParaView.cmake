@@ -16,7 +16,15 @@
 #
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
+# Author: Adrien Bruneton
+#
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.7 FATAL_ERROR)
-FIND_PACKAGE(ParaView REQUIRED NO_MODULE)
+# Graphviz detection for salome
+#
+#  !! Please read the generic detection procedure in SalomeMacros.cmake !!
+#
+
+SALOME_FIND_PACKAGE_AND_DETECT_CONFLICTS(ParaView PARAVIEW_USE_FILE 4)
+#MARK_AS_ADVANCED()
+
 INCLUDE(${PARAVIEW_USE_FILE})

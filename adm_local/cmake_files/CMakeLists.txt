@@ -17,4 +17,4 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/FindPARAVIEW.cmake DESTINATION adm_local/cmake_files)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/FindSalomeParaView.cmake DESTINATION adm_local/cmake_files)

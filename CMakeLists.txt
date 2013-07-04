@@ -17,7 +17,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-PROJECT(PARAVIS)
+PROJECT(PARAVIS C CXX)
 
 IF(WINDOWS)
   STRING( REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags ${CMAKE_SHARED_LINKER_FLAGS_DEBUG} )
@@ -30,33 +30,54 @@ IF(COMMAND cmake_policy)
 ENDIF(COMMAND cmake_policy)            
 
 SET(KERNEL_ROOT_DIR $ENV{KERNEL_ROOT_DIR} CACHE PATH "KERNEL_ROOT_DIR")
-SET(MODULE PARAVIS)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/SalomeMacros.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindPLATFORM.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/FindSalomePython.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindOMNIORB.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindPTHREADS.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindHDF5.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindBOOST.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindLIBXML2.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindSWIG.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/FindCppUnit.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindDOXYGEN.cmake)
-INCLUDE(${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/FindKERNEL.cmake)
-
-INCLUDE(${CMAKE_SOURCE_DIR}/adm_local/cmake_files/FindPARAVIEW.cmake)
-IF(EXISTS ${PARAVIEW_VTK_DIR}/VTKConfig.cmake)
-  SET(VTK_DIR ${PARAVIEW_VTK_DIR})
-ENDIF(EXISTS ${PARAVIEW_VTK_DIR}/VTKConfig.cmake)
-
 SET(GUI_ROOT_DIR $ENV{GUI_ROOT_DIR} CACHE PATH "GUI_ROOT_DIR")
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindCAS.cmake)
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindQT4.cmake)
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindOPENGL.cmake)
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindVTK.cmake)
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindQWT.cmake)
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindSIPPYQT.cmake)
-INCLUDE(${GUI_ROOT_DIR}/adm_local/cmake_files/deprecated/FindGUI.cmake)
+SET(MODULE PARAVIS)
+
+SET(CMAKE_MODULE_PATH 
+    "${KERNEL_ROOT_DIR}/salome_adm/cmake_files" 
+    "${GUI_ROOT_DIR}/adm_local/cmake_files"
+    "${CMAKE_SOURCE_DIR}/adm_local/cmake_files")
+
+INCLUDE(SalomeMacros)
+INCLUDE(SalomeSetupPlatform)
+
+FIND_PACKAGE(SalomeKERNEL REQUIRED)
+
+# From KERNEL:
+FIND_PACKAGE(SalomePython REQUIRED)
+FIND_PACKAGE(SalomeOmniORB REQUIRED)
+SET(OMNIORB_IDL_PYTHON ${OMNIORB_IDL_COMPILER}) 
+FIND_PACKAGE(SalomePThread REQUIRED)
+FIND_PACKAGE(SalomeHDF5 REQUIRED)
+FIND_PACKAGE(SalomeBoost REQUIRED)
+FIND_PACKAGE(SalomeLibXml2 REQUIRED)
+FIND_PACKAGE(SalomeSWIG REQUIRED)
+FIND_PACKAGE(SalomeCppUnit REQUIRED)
+FIND_PACKAGE(SalomeDoxygen REQUIRED)
+
+# Specific to ParaVis:
+FIND_PACKAGE(SalomeParaView)
+
+# GUI has to be loaded AFTER ParaView: the ParaView config doesn't mix
+# well with the VTK one (GUI loads VTK):
+FIND_PACKAGE(SalomeGUI REQUIRED)
+
+# From GUI:
+FIND_PACKAGE(SalomeCAS REQUIRED)
+FIND_PACKAGE(SalomeQt4 REQUIRED COMPONENTS QtCore QtGui QtXml QtHelp)
+message("QT_INCLUDES ${QT_INCLUDES}")
+SET(_new_inc)
+FOREACH(_inc ${QT_INCLUDES})
+  SET(_new_inc "${_new_inc} -I${_inc}")
+ENDFOREACH()
+SET(QT_INCLUDES "${_new_inc}")
+message("QT_INCLUDES ${QT_INCLUDES}")
+
+FIND_PACKAGE(SalomeOpenGL REQUIRED)
+FIND_PACKAGE(SalomeVTK REQUIRED)
+FIND_PACKAGE(SalomeQwt REQUIRED)
+FIND_PACKAGE(SalomePyQt4 REQUIRED)
+FIND_PACKAGE(SalomeSIP REQUIRED)
 
 SET(VERSION_MAJOR 7)
 SET(VERSION_MINOR 2)
@@ -67,15 +88,17 @@ SET(VERSION_DEV 0)
 
 SET(BUILD_PLUGINS 1)
 
-SET(VISU_ROOT_DIR $ENV{VISU_ROOT_DIR} CACHE PATH "VISU_ROOT_DIR")
-IF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
-  INCLUDE(${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
-  SET(WITH_VISU 1)
-ENDIF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
+#SET(VISU_ROOT_DIR $ENV{VISU_ROOT_DIR} CACHE PATH "VISU_ROOT_DIR")
+#IF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
+  #INCLUDE(${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
+  #SET(WITH_VISU 1)
+#ENDIF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
 
 SET(MED_ROOT_DIR $ENV{MED_ROOT_DIR} CACHE PATH "MED_ROOT_DIR")
 INCLUDE(${MED_ROOT_DIR}/adm_local/cmake_files/FindMED.cmake)
 
+# TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
+MESSAGE(STATUS "Generating wrapped class list (??) ...")
 LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
 EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0})
 
