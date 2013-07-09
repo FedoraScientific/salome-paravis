@@ -36,7 +36,7 @@ SET(MODULE PARAVIS)
 SET(CMAKE_MODULE_PATH 
     "${KERNEL_ROOT_DIR}/salome_adm/cmake_files" 
     "${GUI_ROOT_DIR}/adm_local/cmake_files"
-    "${CMAKE_SOURCE_DIR}/adm_local/cmake_files")
+    "${PROJECT_SOURCE_DIR}/adm_local/cmake_files")
 
 INCLUDE(SalomeMacros)
 INCLUDE(SalomeSetupPlatform)
@@ -101,7 +101,7 @@ INCLUDE(${MED_ROOT_DIR}/adm_local/cmake_files/FindMED.cmake)
 # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
 MESSAGE(STATUS "Generating wrapped class list (??) ...")
 LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
-EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0})
+EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0})
 
 SET(SUBDIRS
   idl

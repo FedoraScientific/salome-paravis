@@ -21,7 +21,7 @@ SET(VERSION_INFO ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MAINTENANCE})
 SET(SOVERSION_INFO ${VERSION_MAJOR}.${VERSION_MINOR})
 
 ADD_DEFINITIONS(-DHAVE_SALOME_CONFIG)
-INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR} ${KERNEL_ROOT_DIR}/include/salome ${CMAKE_BINARY_DIR}/idl)
+INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR} ${KERNEL_ROOT_DIR}/include/salome ${PROJECT_BINARY_DIR}/idl)
 
 INCLUDE(wrap.cmake)
 
@@ -66,23 +66,23 @@ TARGET_LINK_LIBRARIES(SalomeIDLPARAVIS ${PLATFORM_LIBADD} ${PLATFORM_LDFLAGS} ${
 INSTALL(TARGETS SalomeIDLPARAVIS DESTINATION lib/salome)
   
 ADD_EXECUTABLE(vtkWrapIDL 
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParse.tab.c 
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParsePreprocess.c
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseHierarchy.c
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseExtras.c
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseData.c
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseString.c
-  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrap.c
-#  ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrapText.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParse.tab.c 
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParsePreprocess.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseHierarchy.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseExtras.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseMain.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseData.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseString.c
+  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkWrap.c
+#  ${PROJECT_SOURCE_DIR}/src/ParaView/vtkWrapText.c
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkWrapIDL.c)
 
-set_property(SOURCE ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c PROPERTY COMPILE_DEFINITIONS
+set_property(SOURCE ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseMain.c PROPERTY COMPILE_DEFINITIONS
   VTK_PARSE_VERSION="${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
 
 ADD_DEPENDENCIES(vtkWrapIDL generate_txt)
   
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/ParaView)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/ParaView)
 SET(flags)
 FOREACH(f ${PLATFORM_CPPFLAGS} ${PTHREAD_CFLAGS} ${PARAVIEW_INCLUDES} ${VTK_INCLUDES})
   SET(flags "${flags} ${f}")

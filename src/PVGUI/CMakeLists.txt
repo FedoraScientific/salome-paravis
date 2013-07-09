@@ -26,8 +26,8 @@ INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR}
     ${KERNEL_ROOT_DIR}/include/salome
     ${GUI_ROOT_DIR}/include/salome 
     ${CMAKE_CURRENT_SOURCE_DIR}/../ParaView 
-    ${CMAKE_BINARY_DIR}/idl 
-    ${CMAKE_BINARY_DIR} 
+    ${PROJECT_BINARY_DIR}/idl 
+    ${PROJECT_BINARY_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CAS_INCLUDE_DIRS} )
 
@@ -198,19 +198,19 @@ INSTALL(TARGETS PARAVIS DESTINATION lib/salome)
 
 FOREACH(name ${bin_PROGRAMS})
   ADD_EXECUTABLE(${name} 
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParse.tab.c 
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParsePreprocess.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseHierarchy.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseExtras.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseData.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseString.c
-    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrap.c
-#    ${CMAKE_SOURCE_DIR}/src/ParaView/vtkWrapText.c
-    ${CMAKE_SOURCE_DIR}/idl/vtkWrapIDL.c)
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParse.tab.c 
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParsePreprocess.c
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseHierarchy.c
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseExtras.c
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseMain.c
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseData.c
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseString.c
+    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkWrap.c
+#    ${PROJECT_SOURCE_DIR}/src/ParaView/vtkWrapText.c
+    ${PROJECT_SOURCE_DIR}/idl/vtkWrapIDL.c)
   ADD_DEPENDENCIES(${name} generate_txt)
   
-  set_property(SOURCE ${CMAKE_SOURCE_DIR}/src/ParaView/vtkParseMain.c PROPERTY COMPILE_DEFINITIONS
+  set_property(SOURCE ${PROJECT_SOURCE_DIR}/src/ParaView/vtkParseMain.c PROPERTY COMPILE_DEFINITIONS
     VTK_PARSE_VERSION="${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
 
   SET(flags)

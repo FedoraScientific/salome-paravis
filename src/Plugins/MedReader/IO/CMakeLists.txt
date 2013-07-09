@@ -83,7 +83,7 @@ set_source_files_properties(
 vtk_module_library(vtkMedReader ${MedReader_SRCS})
 
 # Introducing selection for parallel compilation
-# CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/IO/config.h.cmake ${CMAKE_SOURCE_DIR}/IO/config.h )
+# CONFIGURE_FILE( ${PROJECT_SOURCE_DIR}/IO/config.h.cmake ${PROJECT_SOURCE_DIR}/IO/config.h )
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h )
 
 target_link_libraries(vtkMedReader ${MED_LIBRARIES})
