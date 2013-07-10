@@ -101,7 +101,11 @@ INCLUDE(${MED_ROOT_DIR}/adm_local/cmake_files/FindMED.cmake)
 # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
 MESSAGE(STATUS "Generating wrapped class list (??) ...")
 LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
-EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0})
+EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0}
+    RESULT_VARIABLE _res)
+IF(NOT _res EQUAL 0)
+  MESSAGE(FATAL_ERROR "Unable to run the Python script retrieving the list of VTK classes.")
+ENDIF()
 
 SET(SUBDIRS
   idl
