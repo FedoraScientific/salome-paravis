@@ -65,9 +65,6 @@ endif()
 # GUI has to be loaded AFTER ParaView: the ParaView config doesn't mix
 # well with the VTK one (and GUI loads VTK):
 FIND_PACKAGE(SalomeGUI REQUIRED)
-IF(TARGET vtkTools)
- message("bli !!")
-endif()
 
 # From GUI:
 FIND_PACKAGE(SalomeCAS REQUIRED)
