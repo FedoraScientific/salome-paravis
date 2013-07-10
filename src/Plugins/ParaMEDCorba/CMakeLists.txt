@@ -61,8 +61,8 @@ PROJECT( ParaMEDCorba )
       vtkClientServer
       pqCore
       ${OMNIORB_LIBRARIES}
-      ${SalomeIDLMED}
-      ${SalomeIDLKernel}
+      ${MED_SalomeIDLMED}
+      ${KERNEL_SalomeIDLKernel}
       ${QT_LIBS}
       )
     TARGET_LINK_LIBRARIES(ParaMEDCorbaPlugin

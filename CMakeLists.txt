@@ -58,10 +58,16 @@ FIND_PACKAGE(SalomeDoxygen REQUIRED)
 
 # Specific to ParaVis:
 FIND_PACKAGE(SalomeParaView)
+IF(TARGET vtkTools)
+ message("bli !!")
+endif()
 
 # GUI has to be loaded AFTER ParaView: the ParaView config doesn't mix
-# well with the VTK one (GUI loads VTK):
+# well with the VTK one (and GUI loads VTK):
 FIND_PACKAGE(SalomeGUI REQUIRED)
+IF(TARGET vtkTools)
+ message("bli !!")
+endif()
 
 # From GUI:
 FIND_PACKAGE(SalomeCAS REQUIRED)
@@ -95,8 +101,9 @@ SET(BUILD_PLUGINS 1)
   #SET(WITH_VISU 1)
 #ENDIF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
 
-SET(MED_ROOT_DIR $ENV{MED_ROOT_DIR} CACHE PATH "MED_ROOT_DIR")
-INCLUDE(${MED_ROOT_DIR}/adm_local/cmake_files/FindMED.cmake)
+SET(MED_ROOT_DIR "$ENV{MED_ROOT_DIR}" CACHE PATH "Path to the MED Salome module")
+LIST(APPEND CMAKE_MODULE_PATH "${MED_ROOT_DIR}/adm_local/cmake_files")
+FIND_PACKAGE(SalomeMED REQUIRED)
 
 # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
 MESSAGE(STATUS "Generating wrapped class list (??) ...")

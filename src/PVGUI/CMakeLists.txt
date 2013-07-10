@@ -186,9 +186,11 @@ TARGET_LINK_LIBRARIES(PARAVIS
   ${CAS_KERNEL}
   ${VTK_LIBS}
   ${PYTHON_LIBS}
-  ${KERNEL_LDFLAGS} ${SalomeDS} ${SALOMELocalTrace} ${SalomeIDLKernel} ${SalomeNS} ${SalomeLifeCycleCORBA} ${SalomeContainer} ${TOOLSDS}
-  ${GUI_LDFLAGS} ${SalomeApp} ${LightApp} ${CAM} ${qtx} ${suit} ${Event} ${PyInterp} ${SalomeObject} ${vtkTools}
-  ${MED_LDFLAGS} ${SalomeIDLMED}
+  ${KERNEL_LDFLAGS} ${KERNEL_SalomeDS} ${KERNEL_SALOMELocalTrace} ${KERNEL_SalomeIDLKernel} 
+                    ${KERNEL_SalomeNS} ${KERNEL_SalomeLifeCycleCORBA} ${KERNEL_SalomeContainer} ${KERNEL_TOOLSDS}
+  ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_CAM} ${GUI_qtx} ${GUI_suit} ${GUI_Event} ${GUI_PyInterp} 
+                 ${GUI_SalomeObject} ${GUI_vtkTools}
+  ${MED_LDFLAGS} ${MED_SalomeIDLMED}
   ${VISU_LDFLAGS}
   ${VISU_PARAVIS_LIBS}
   ${PARAVIEW_LIBS}
