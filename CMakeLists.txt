@@ -101,6 +101,7 @@ SET(BUILD_PLUGINS 1)
 SET(MED_ROOT_DIR "$ENV{MED_ROOT_DIR}" CACHE PATH "Path to the MED Salome module")
 LIST(APPEND CMAKE_MODULE_PATH "${MED_ROOT_DIR}/adm_local/cmake_files")
 FIND_PACKAGE(SalomeMED REQUIRED)
+FIND_PACKAGE(SalomeMEDFile REQUIRED)
 
 # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
 MESSAGE(STATUS "Generating wrapped class list (??) ...")
