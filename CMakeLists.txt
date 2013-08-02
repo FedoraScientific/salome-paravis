@@ -56,6 +56,9 @@ FIND_PACKAGE(SalomeSWIG REQUIRED)
 FIND_PACKAGE(SalomeCppUnit REQUIRED)
 FIND_PACKAGE(SalomeDoxygen REQUIRED)
 
+# From GUI: part 1 (Qt must be checked before ParaView)
+FIND_PACKAGE(SalomeQt4 REQUIRED COMPONENTS QtCore QtGui QtXml QtHelp)
+
 # Specific to ParaVis:
 FIND_PACKAGE(SalomeParaView)
 IF(TARGET vtkTools)
@@ -66,17 +69,8 @@ endif()
 # well with the VTK one (and GUI loads VTK):
 FIND_PACKAGE(SalomeGUI REQUIRED)
 
-# From GUI:
+# From GUI: part 2
 FIND_PACKAGE(SalomeCAS REQUIRED)
-FIND_PACKAGE(SalomeQt4 REQUIRED COMPONENTS QtCore QtGui QtXml QtHelp)
-message("QT_INCLUDES ${QT_INCLUDES}")
-SET(_new_inc)
-FOREACH(_inc ${QT_INCLUDES})
-  SET(_new_inc "${_new_inc} -I${_inc}")
-ENDFOREACH()
-SET(QT_INCLUDES "${_new_inc}")
-message("QT_INCLUDES ${QT_INCLUDES}")
-
 FIND_PACKAGE(SalomeOpenGL REQUIRED)
 FIND_PACKAGE(SalomeVTK REQUIRED)
 FIND_PACKAGE(SalomeQwt REQUIRED)
