@@ -81,7 +81,9 @@ class SalomeSession(object):
         #sys.argv += ["--portkill=" + port]
         sys.argv += ["--show-desktop=1"]
         sys.argv += ["--splash=0"]
-        sys.argv += ["--modules=MED,VISU,PARAVIS"]
+        sys.argv += ["--modules=MED,PARAVIS"]
+        sys.argv += ["--standalone=study"]
+        sys.argv += ["--embedded=SalomeAppEngine,cppContainer,registry,moduleCatalog"]
         clt, d = runSalome.main()
         port = d['port']
         self.port = port
@@ -193,13 +195,3 @@ def setShaded(view, shading):
 # Run Salome
 salome_session = SalomeSession()
 salome.salome_init()
-
-# Create new study
-print "Creating new study...",
-aStudy = salome.myStudyManager.NewStudy("Study1")
-if aStudy is None:
-    raise RuntimeError("FAILED")
-else:
-    print "OK"
-
-salome.myStudy = aStudy

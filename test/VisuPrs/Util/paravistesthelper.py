@@ -1,8 +1,15 @@
 import searchFreePort
 import subprocess
-import sys
+import sys, os
 import signal
 import killSalomeWithPort
+
+## TEMP >>> ###
+if not os.getenv("OMNIORB_USER_PATH"):
+    os.environ["OMNIORB_USER_PATH"] = os.path.realpath(os.path.expanduser('~'))
+    pass
+## <<< TEMP ###
+
 
 args = {}
 searchFreePort.searchFreePort(args)
