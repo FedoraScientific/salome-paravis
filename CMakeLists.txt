@@ -58,6 +58,14 @@ FIND_PACKAGE(SalomeDoxygen REQUIRED)
 
 # From GUI: part 1 (Qt must be checked before ParaView)
 FIND_PACKAGE(SalomeQt4 REQUIRED COMPONENTS QtCore QtGui QtXml QtHelp)
+# This search for qhelpgenerator is required here
+# to avoid detecting native one due to bug in ParaViewMacros.cmake
+FIND_PROGRAM(QT_HELP_GENERATOR
+    qhelpgenerator
+    PATHS "${QT_BINARY_DIR}"
+    NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH
+    DOC "qhelpgenerator used to compile Qt help project files")
+MARK_AS_ADVANCED(QT_HELP_GENERATOR)
 
 # Specific to ParaVis:
 FIND_PACKAGE(SalomeParaView)
