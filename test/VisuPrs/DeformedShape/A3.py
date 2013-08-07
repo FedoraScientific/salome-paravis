@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"DeformedShape/A3") 
+picturedir = get_picture_dir("DeformedShape/A3") 
 
 file = datadir + "Fields_group3D.med"
 print " --------------------------------- "

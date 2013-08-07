@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"Plot3D/A7") 
+picturedir = get_picture_dir("Plot3D/A7") 
 
 file = datadir + "Tetra4.med"
 print " --------------------------------- "

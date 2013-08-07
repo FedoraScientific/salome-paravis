@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"Vectors/A8") 
+picturedir = get_picture_dir("Vectors/A8") 
 
 file = datadir + "Tria3.med"
 print " --------------------------------- "

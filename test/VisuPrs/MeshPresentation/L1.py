@@ -28,7 +28,7 @@ import paravis
 
 # Create presentations
 myParavis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "MeshPresentation/L1")
+picturedir = get_picture_dir("MeshPresentation/L1")
 
 theFileName = datadir +  "Bug829_resu_mode.med"
 print " --------------------------------- "

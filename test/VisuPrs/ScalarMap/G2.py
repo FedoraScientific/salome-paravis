@@ -31,7 +31,7 @@ from presentations import ScalarMapOnField, hide_all, EntityType, PrsTypeEnum,re
 # Create presentations
 myParavis = paravis.myParavis
 
-picturedir = get_picture_dir(sys.argv[1], "ScalarMap/G2")
+picturedir = get_picture_dir("ScalarMap/G2")
 
 theFileName = datadir +  "Bug829_resu_mode.med"
 print " --------------------------------- "

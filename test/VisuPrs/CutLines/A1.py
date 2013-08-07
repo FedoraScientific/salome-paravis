@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutLines/A1") 
+picturedir = get_picture_dir("CutLines/A1") 
 
 file = datadir + "hexa_28320_ELEM.med"
 print " --------------------------------- "

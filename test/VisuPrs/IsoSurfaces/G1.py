@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"IsoSurfaces/G1") 
+picturedir = get_picture_dir("IsoSurfaces/G1") 
 
 file = datadir + "maill.2.med"
 print " --------------------------------- "

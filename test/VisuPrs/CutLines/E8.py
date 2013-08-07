@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutLines/E8") 
+picturedir = get_picture_dir("CutLines/E8") 
 
 file = datadir + "KCOUPLEX1.med"
 print " --------------------------------- "

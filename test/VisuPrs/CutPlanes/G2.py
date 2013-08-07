@@ -28,7 +28,7 @@ import paravis
 
 # Create presentations
 myParavis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "CutPlanes/G2")
+picturedir = get_picture_dir("CutPlanes/G2")
 
 theFileName = datadir +  "Bug829_resu_mode.med"
 print " --------------------------------- "

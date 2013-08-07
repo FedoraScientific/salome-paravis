@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"ScalarMap/E6") 
+picturedir = get_picture_dir("ScalarMap/E6") 
 
 file = datadir + "toto.med"
 print " --------------------------------- "

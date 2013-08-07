@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"MeshPresentation/E7") 
+picturedir = get_picture_dir("MeshPresentation/E7") 
 
 file = datadir + "couplex_alain.med"
 print " --------------------------------- "

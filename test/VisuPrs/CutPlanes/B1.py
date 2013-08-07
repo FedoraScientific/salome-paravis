@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutPlanes/B1") 
+picturedir = get_picture_dir("CutPlanes/B1") 
 
 file = datadir + "carre_en_quad4_seg2_fields.med"
 print " --------------------------------- "

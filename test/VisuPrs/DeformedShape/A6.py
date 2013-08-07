@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"DeformedShape/A6") 
+picturedir = get_picture_dir("DeformedShape/A6") 
 
 file = datadir + "clo.med"
 print " --------------------------------- "

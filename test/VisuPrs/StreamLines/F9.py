@@ -31,7 +31,7 @@ import pvsimple
 my_paravis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "StreamLines/F9")
+picturedir = get_picture_dir("StreamLines/F9")
 
 # Import of the "Bug829_resu_mode.med" file
 file_path = datadir + "Bug829_resu_mode.med"

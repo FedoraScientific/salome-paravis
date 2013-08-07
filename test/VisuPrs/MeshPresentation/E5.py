@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"MeshPresentation/E5") 
+picturedir = get_picture_dir("MeshPresentation/E5") 
 
 file = datadir + "hydro_sea_alv.med"
 print " --------------------------------- "

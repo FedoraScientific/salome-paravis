@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"Plot3D/A3") 
+picturedir = get_picture_dir("Plot3D/A3") 
 
 file = datadir + "Fields_group3D.med"
 print " --------------------------------- "

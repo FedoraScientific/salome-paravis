@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutPlanes/A5") 
+picturedir = get_picture_dir("CutPlanes/A5") 
 
 file = datadir + "Penta6.med"
 print " --------------------------------- "

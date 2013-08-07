@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"IsoSurfaces/E2") 
+picturedir = get_picture_dir("IsoSurfaces/E2") 
 
 file = datadir + "cas2_2d_couplage_chess_castem.med"
 print " --------------------------------- "

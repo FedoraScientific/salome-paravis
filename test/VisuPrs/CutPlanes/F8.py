@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutPlanes/F8") 
+picturedir = get_picture_dir("CutPlanes/F8") 
 
 file = datadir + "homard_ASTER_OSF_MEDV2.1.5_1_v2.1.med"
 print " --------------------------------- "

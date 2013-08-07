@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"DeformedShape/F2") 
+picturedir = get_picture_dir("DeformedShape/F2") 
 
 file = datadir + "T_COUPLEX1.med"
 print " --------------------------------- "

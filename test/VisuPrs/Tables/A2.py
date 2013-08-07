@@ -66,7 +66,7 @@ pvsimple.Render(xy_view)
 # Write image
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "Tables/A2")
+picturedir = get_picture_dir("Tables/A2")
 if not picturedir.endswith(os.sep):
     picturedir += os.sep
 

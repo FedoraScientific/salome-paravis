@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"ScalarMap_On_DeformedShape/B1") 
+picturedir = get_picture_dir("ScalarMap_On_DeformedShape/B1") 
 
 file = datadir + "carre_en_quad4_seg2_fields.med"
 print " --------------------------------- "

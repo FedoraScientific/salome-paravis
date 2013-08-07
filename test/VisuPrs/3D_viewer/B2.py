@@ -30,7 +30,7 @@ import paravis
 
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "3D_viewer/B2")
+picturedir = get_picture_dir("3D_viewer/B2")
 
 # Add path separator to the end of picture path if necessery
 if not picturedir.endswith(os.sep):

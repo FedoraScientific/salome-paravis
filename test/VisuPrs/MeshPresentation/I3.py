@@ -28,7 +28,7 @@ import paravis
 
 # Create presentations
 myParavis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "MeshPresentation/I3")
+picturedir = get_picture_dir("MeshPresentation/I3")
 
 theFileName = datadir +  "UnitTetraDegenT.med"
 print " --------------------------------- "

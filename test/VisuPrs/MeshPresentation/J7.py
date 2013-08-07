@@ -28,7 +28,7 @@ import paravis
 
 # Create presentations
 myParavis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "MeshPresentation/J7")
+picturedir = get_picture_dir("MeshPresentation/J7")
 
 theFileName = datadir +  "HalfstripOnly.med"
 print " --------------------------------- "

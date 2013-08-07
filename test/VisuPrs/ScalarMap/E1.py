@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"ScalarMap/E1") 
+picturedir = get_picture_dir("ScalarMap/E1") 
 
 file = datadir + "H_COUPLEX1.med"
 print " --------------------------------- "

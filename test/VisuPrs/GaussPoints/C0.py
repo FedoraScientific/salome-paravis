@@ -30,7 +30,7 @@ import pvsimple
 
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "GaussPoints/C0")
+picturedir = get_picture_dir("GaussPoints/C0")
 if not picturedir.endswith(os.sep):
     picturedir += os.sep
     

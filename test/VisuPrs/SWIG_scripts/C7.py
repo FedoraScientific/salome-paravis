@@ -112,7 +112,7 @@ reset_view(view=view)
 # Write image
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "SWIG_scripts/C7")
+picturedir = get_picture_dir("SWIG_scripts/C7")
 if not picturedir.endswith(os.sep):
     picturedir += os.sep
 

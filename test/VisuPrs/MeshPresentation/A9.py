@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"MeshPresentation/A9") 
+picturedir = get_picture_dir("MeshPresentation/A9") 
 
 file = datadir + "Quad4.med"
 print " --------------------------------- "

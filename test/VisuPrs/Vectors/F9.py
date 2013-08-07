@@ -29,7 +29,7 @@ from presentations import VectorsOnField, hide_all,EntityType,PrsTypeEnum,reset_
 # Create presentations
 myParavis = paravis.myParavis
 
-picturedir = get_picture_dir(sys.argv[1], "Vectors/F9")
+picturedir = get_picture_dir("Vectors/F9")
 
 theFileName = datadir +  "Bug829_resu_mode.med"
 print " --------------------------------- "

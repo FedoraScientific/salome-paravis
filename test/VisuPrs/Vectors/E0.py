@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"Vectors/E0") 
+picturedir = get_picture_dir("Vectors/E0") 
 
 file = datadir + "test_55_solid_concentr_dom.med"
 print " --------------------------------- "

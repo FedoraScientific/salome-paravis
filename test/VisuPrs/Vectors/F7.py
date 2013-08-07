@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"Vectors/F7") 
+picturedir = get_picture_dir("Vectors/F7") 
 
 file = datadir + "occ4050.med"
 print " --------------------------------- "

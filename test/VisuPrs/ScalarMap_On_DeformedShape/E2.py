@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"ScalarMap_On_DeformedShape/E2") 
+picturedir = get_picture_dir("ScalarMap_On_DeformedShape/E2") 
 
 file = datadir + "cas2_2d_couplage_chess_castem.med"
 print " --------------------------------- "

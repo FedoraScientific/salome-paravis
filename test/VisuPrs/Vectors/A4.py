@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"Vectors/A4") 
+picturedir = get_picture_dir("Vectors/A4") 
 
 file = datadir + "Hexa8.med"
 print " --------------------------------- "

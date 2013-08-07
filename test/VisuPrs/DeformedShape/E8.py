@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"DeformedShape/E8") 
+picturedir = get_picture_dir("DeformedShape/E8") 
 
 file = datadir + "KCOUPLEX1.med"
 print " --------------------------------- "

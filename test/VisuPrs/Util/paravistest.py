@@ -25,6 +25,8 @@ This module provides auxiliary classes, functions and variables for testing.
 
 from math import fabs
 import os
+import tempfile
+import getpass
 from datetime import date
 
 import salome
@@ -129,14 +131,17 @@ def test_values(value, et_value, check_error=0):
     return error
 
 
-def get_picture_dir(pic_dir, subdir):
-    res_dir = pic_dir
+def get_picture_dir(subdir):
+    res_dir = os.getenv("PARAVIS_TEST_PICS")
     if not res_dir:
-        res_dir = "/tmp/pic"
-
-    # Add current date and subdirectory for the case to the directory path
-    cur_date = date.today().strftime("%d%m%Y")
-    res_dir += "/test_" + cur_date + "/" + subdir
+        # Add username and current date to unify the directory
+        cur_user = getpass.getuser()
+        cur_date = date.today().strftime("%Y%m%d")
+        res_dir = tempfile.gettempdir() + \
+            "/pic_" + cur_user + \
+            "/test_" + cur_date
+    # Add subdirectory for the case to the directory path
+    res_dir += "/" + subdir
     # Create the directory if doesn't exist
     res_dir = os.path.normpath(res_dir)
     if not os.path.exists(res_dir):

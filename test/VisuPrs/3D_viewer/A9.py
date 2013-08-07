@@ -54,7 +54,7 @@ def check_all_params(prs, pres_type,  shad, opac, lwid):
     return err
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "3D_viewer/A9")
+picturedir = get_picture_dir("3D_viewer/A9")
 
 # Add path separator to the end of picture path if necessery
 if not picturedir.endswith(os.sep):

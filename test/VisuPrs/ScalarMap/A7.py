@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"ScalarMap/A7") 
+picturedir = get_picture_dir("ScalarMap/A7") 
 
 file = datadir + "Tetra4.med"
 print " --------------------------------- "

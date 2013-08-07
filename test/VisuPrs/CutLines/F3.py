@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutLines/F3") 
+picturedir = get_picture_dir("CutLines/F3") 
 
 file = datadir + "test_hydro_darcy4_out.med"
 print " --------------------------------- "

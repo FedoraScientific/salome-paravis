@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"CutLines/E4") 
+picturedir = get_picture_dir("CutLines/E4") 
 
 file = datadir + "champc.med"
 print " --------------------------------- "

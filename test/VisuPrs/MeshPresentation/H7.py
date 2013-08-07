@@ -28,7 +28,7 @@ import paravis
 
 # Create presentations
 myParavis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "MeshPresentation/H7")
+picturedir = get_picture_dir("MeshPresentation/H7")
 
 theFileName = datadir +  "DegenEdgeXY.med"
 print " --------------------------------- "

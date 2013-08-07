@@ -31,7 +31,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "Animation/E8")
+picturedir = get_picture_dir("Animation/E8")
 
 theFileName = datadir +  "TimeStamps.med"
 print " --------------------------------- "

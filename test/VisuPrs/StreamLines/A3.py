@@ -28,7 +28,7 @@ import paravis
 
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "StreamLines/A3")
+picturedir = get_picture_dir("StreamLines/A3")
 
 # Create presentations
 myParavis = paravis.myParavis

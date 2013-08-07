@@ -29,7 +29,7 @@ import paravis
 myParavis = paravis.myParavis
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1],"ScalarMap_On_DeformedShape/F4") 
+picturedir = get_picture_dir("ScalarMap_On_DeformedShape/F4") 
 
 file = datadir + "UO2_250ans.med"
 print " --------------------------------- "
