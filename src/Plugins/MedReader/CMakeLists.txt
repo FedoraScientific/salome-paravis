@@ -63,6 +63,7 @@ OPTION(BUILD_SHARED_LIBS
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH} )
 FIND_PACKAGE(MED REQUIRED)
 include_directories(${MED_INCLUDE_DIRS})
+include_directories(${MEDFILE_INCLUDE_DIRS})
 
 #
 # process all vtk-modules defined in this plugin. This generates the necessary

@@ -1370,6 +1370,16 @@ void outputFunction2(FILE *fp, ClassInfo *data)
     fprintf(fp,"#include \"PARAVIS_Gen_%s_i.hh\"\n",data->SuperClasses[i]);
   }
 
+  //RNV: to avoid link error on windows via Visual Studio
+  //undef GetObject macro.
+  if( strcmp(data->Name, "vtkWebGLExporter") == 0 ) {
+    fprintf(fp,"#ifdef WIN32\n");
+    fprintf(fp,"  #ifdef GetObject\n");
+    fprintf(fp,"    #undef GetObject\n");
+    fprintf(fp,"  #endif\n");
+    fprintf(fp,"#endif\n");
+  }
+
   fprintf(fp,"\nclass %s;\n",data->Name);
   fprintf(fp,"\nnamespace PARAVIS\n{\n\n");
 #elif defined(IDL_I_CC)

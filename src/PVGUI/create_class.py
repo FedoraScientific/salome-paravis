@@ -31,6 +31,13 @@ ffile_stream.write('#include <QString>' + '\n')
 ffile_stream.write('#include "PARAVIS_Gen_i.hh"' + '\n')
 wfile_stream = open(wfile)
 for line in wfile_stream:
+    if line.split()[0] == "vtkWebGLExporter" :
+       ffile_stream.write('#ifdef WIN32\n')
+       ffile_stream.write('  #ifdef GetObject\n')
+       ffile_stream.write('    #undef GetObject\n')
+       ffile_stream.write('  #endif\n')
+       ffile_stream.write('#endif\n')
+       pass
     ffile_stream.write('#include "PARAVIS_Gen_%s_i.hh"'%(line.split()[0]) + '\n')
     pass
 wfile_stream.close()

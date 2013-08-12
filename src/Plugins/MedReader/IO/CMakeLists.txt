@@ -86,7 +86,7 @@ vtk_module_library(vtkMedReader ${MedReader_SRCS})
 # CONFIGURE_FILE( ${PROJECT_SOURCE_DIR}/IO/config.h.cmake ${PROJECT_SOURCE_DIR}/IO/config.h )
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h )
 
-target_link_libraries(vtkMedReader ${MED_LIBRARIES})
+target_link_libraries(vtkMedReader ${MEDFILE_LIBRARIES})
 
 #set(MedReader_BUILD_Testing ${VTK_BUILD_TESTING} CACHE BOOL "Build tests for the MedReader filter")
 
