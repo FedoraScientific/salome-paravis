@@ -29,6 +29,7 @@ IF (PYTHON_EXECUTABLE)
       A8
       A9
       B0
+      B1
       B2
       )
     SET(TIMEOUT 10000)

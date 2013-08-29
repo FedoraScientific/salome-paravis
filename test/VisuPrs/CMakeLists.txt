@@ -19,19 +19,24 @@
 
 SUBDIRS(Util
         2D_viewer
-	3D_viewer
-        ScalarMap 
-        DeformedShape 
-        ScalarMap_On_DeformedShape 
-        CutPlanes 
-        CutLines 
-        Vectors 
+        3D_viewer
+        ScalarMap
+        DeformedShape
+        ScalarMap_On_DeformedShape
+        CutPlanes
+        CutLines
+        Vectors
         Plot3D
         IsoSurfaces
         MeshPresentation
         Animation
-	GaussPoints
-	StreamLines
-	SWIG_scripts
-	Tables
+        GaussPoints
+        StreamLines
+        SWIG_scripts
+        Tables
+        ImportMedField
+        united
+        bugs
+        imps
+        dump_study
 )

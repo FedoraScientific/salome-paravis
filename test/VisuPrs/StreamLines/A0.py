@@ -39,3 +39,6 @@ print "file ", file
 print " --------------------------------- "
 print "\nCreatePrsForFile..."
 CreatePrsForFile(myParavis, file, [PrsTypeEnum.STREAMLINES], picturedir, pictureext)
+
+import time
+time.sleep(10000)

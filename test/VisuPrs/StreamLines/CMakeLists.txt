@@ -32,6 +32,8 @@ IF (PYTHON_EXECUTABLE)
       B0
       B1
       B2
+      B3
+      B4
       E0
       E1
       E2
@@ -51,6 +53,7 @@ IF (PYTHON_EXECUTABLE)
       F7
       F8
       F9
+      G0
       )
     SET(TIMEOUT 10000)
     ADD_TEST(STREAMLINES_${tfile} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py)

@@ -108,7 +108,6 @@ add_scalar_bar(table_name, nb_components, vector_mode,
 # Reset view
 reset_view(view=view)
 
-
 # Write image
 
 # Directory for saving snapshots

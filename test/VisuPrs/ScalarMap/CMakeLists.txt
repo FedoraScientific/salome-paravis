@@ -32,6 +32,7 @@ IF (PYTHON_EXECUTABLE)
       B0
       B1
       B2
+      B3
       E0
       E1
       E2      

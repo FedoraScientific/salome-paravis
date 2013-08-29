@@ -31,6 +31,7 @@ from datetime import date
 
 import salome
 
+
 # Auxiliary variables
 
 # Data directory
@@ -42,7 +43,7 @@ if samples_dir is not None:
     datadir = samples_dir + "/MedFiles/"
     tablesdir = samples_dir + "/Tables/"
 
-# Graphica files extension
+# Graphics files extension
 pictureext = os.getenv("PIC_EXT")
 if pictureext == None:
     pictureext = "png"
@@ -189,6 +190,37 @@ def call_and_check(prs, property_name, value, do_raise=1, compare_toler=-1.0):
     return is_good
 
 
+def compare_lists(value, et_value, check_error=0, eps=1e-04):
+    """
+    Compare two lists: the same length and equality of corresponding items
+    param value - list to be compared
+    param et_value - etalon list
+    param check_error - flag to catch exception if errors>0
+    check_error=0 no exception, check_error !=0 catch exception
+    param eps - defines tolerance for comparison
+    return error - number of errors
+    """
+
+    error=0
+    length = len(value)
+    et_length = len(et_value)
+    if length != et_length:
+        print "ERROR!!! There is different number of items in created ", length, " and etalon ", et_length, " lists!!!"
+        error=error+1
+    else:
+        for i in range(et_length):
+            if abs(et_value[i]) > 1:
+                MAX = abs(eps*et_value[i])           
+            else:
+                MAX = eps
+            if abs(et_value[i] - value[i])> MAX:
+                print "ERROR!!!", i, "-th  item", value[i], " is not equal to etalon item", et_value[i], "!!!"
+                error=error+1
+    if check_error and error > 0:
+        raise RuntimeError, "There is(are) some error(s) was(were) found... For more info see ERRORs above..."
+    return error
+
+
 def setShaded(view, shading):
     """Utility function to set shaded mode in view"""
     if shading == 0:
@@ -196,6 +228,142 @@ def setShaded(view, shading):
     if shading == 1:
         view.LightDiffuseColor = [0, 0, 0]
 
+
+def TimeStampId(proxy):
+    """Return tuple for the given MED proxy: (mesh_name, {field_name: [entity, timestamp_id]})
+    Originally defined in KERNEL_TEST/Tools/CommonFunctions file.
+    """
+    import presentations
+    mesh_name = presentations.get_mesh_names(proxy).pop()
+    iterations = {}
+
+    # get list of field names
+    fields_on_points = list(proxy.PointArrays)
+    fields_on_cells = list(proxy.CellArrays)
+    all_fields = fields_on_points + fields_on_cells
+
+    # get timestamps
+    timestamps = proxy.TimestepValues.GetData()
+    timestamp_nb = len(timestamps)
+
+    for field in all_fields:
+        entity = None
+        if fields_on_points.count(field) > 0:
+            entity = presentations.EntityType.NODE
+        elif fields_on_cells.count(field) > 0:
+            entity = presentations.EntityType.CELL
+            
+        iterations[field] = [entity, timestamp_nb]
+
+    return mesh_name, iterations
+    
+    
+def Import_Med_Field(paravis, file, field_names, check_errors=0, prs=[]):
+    """Builds presentations on the given fields of the MED file.
+    Originally defined in VISU_TEST/Grids/visu/ImportMedField/begin file.
+    
+    Arguments:
+      paravis      : PARAVIS instance     
+      file_name    : the full path to med file
+      field_names  : the list of field names (for ex: ["pression","temperature","vitesse"])
+      prs          : [[0,1,...], [], []]; empty list (sublist(s)) is ignored
+                     0-VISU.TGAUSSPOINTS
+                     1-VISU.TSCALARMAP
+                     2-VISU.TISOSURFACE
+                     3-VISU.TCUTPLANES
+                     4-VISU.TCUTLINES
+                     5-VISU.TDEFORMEDSHAPE
+                     6-VISU.TVECTORS
+                     7-VISU.TSTREAMLINES
+                     8-VISU.TPLOT3D
+                     9-VISU.TSCALARMAPONDEFORMEDSHAPE
+    """
+    import presentations
+    
+    nb_errors = 0
+    
+    print "File: ", file
+    
+    # check the file accessibility
+    if not os.access(file, os.F_OK):
+        msg = "File " + file + " does not exist!!!"
+        raise RuntimeError, msg
+
+    # import MED file
+    paravis.ImportFile(file)
+    proxy = presentations.pv.GetActiveSource()
+    if proxy is None:
+      	raise RuntimeError, "ERROR!!! Can't import file!!!"  
+    
+    for i in range(len(field_names)):
+        print "Name of the field: ", field_names[i]
+        
+  	if len(prs) != 0:
+	    if len(prs[i]) != 0:
+		mesh_name, iterations = TimeStampId(proxy)
+                
+		if iterations.has_key(field_names[i]):
+		    entity = iterations[field_names[i]][0]
+		    iteration = iterations[field_names[i]][1]
+		else:
+		    msg="There is no information about TimeStampId of the " + field_names[i] + " field!!!"
+		    raise RuntimeError, msg
+
+		err = nb_errors
+                
+		for type in prs[i]:
+		    if type==0:
+			if presentations.GaussPointsOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created GaussPoints presentation is None!!!"; nb_errors+=1
+		    if type==1:
+			if presentations.ScalarMapOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created ScalarMap presentation is None!!!"; nb_errors+=1
+		    if type==2:
+			if presentations.IsoSurfacesOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created IsoSurfaces presentation is None!!!"; nb_errors+=1
+		    if type==3:
+			if presentations.CutPlanesOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created CutPlanes presentation is None!!!"; nb_errors+=1
+		    if type==4:
+			if presentations.CutLinesOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created CutLines presentation is None!!!"; nb_errors+=1
+		    if type==5:
+			if presentations.DeformedShapeOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created DeformedShape presentation is None!!!"; nb_errors+=1
+		    if type==6:
+			if presentations.VectorsOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created Vectors presentation is None!!!"; nb_errors+=1
+		    if type==7:
+			if presentations.StreamLinesOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created StreamLines presentation is None!!!"; nb_errors+=1
+		    if type==8:
+			if presentations.Plot3DOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created Plot3D presentation is None!!!"; nb_errors+=1
+		    if type==9:
+			if presentations.DeformedShapeAndScalarMapOnField(proxy, entity, field_names[i], iteration) is None:
+			    print "ERROR!!! Created ScalarMapOnDeformedShape presentation is None!!!"; nb_errors+=1
+                            
+                # check if number of errors has increased
+                if err == nb_errors:
+                    print "Presentation(s) creation...OK"
+
+    if nb_errors > 0 and check_errors:
+        raise RuntimeError, "There are some errors were occured!!! For more information see ERRORs above..."
+    else:
+        return nb_errors
+
+def delete_with_inputs(obj):
+    """Deletes the given object with all its inputs"""
+    import pvsimple
+    
+    obj_to_delete = obj
+    while obj_to_delete is not None:
+        tmp_obj = obj_to_delete
+        obj_to_delete = None
+        if hasattr(tmp_obj, 'Input'):
+            obj_to_delete = tmp_obj.Input
+        
+        pvsimple.Delete(tmp_obj)
 
 # Run Salome
 salome_session = SalomeSession()

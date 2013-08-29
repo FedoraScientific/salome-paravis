@@ -739,6 +739,9 @@ def select_cells_with_data(proxy, on_points=None, on_cells=None):
     types with data for even one field (from available) will be selected.
 
     """
+    if not hasattr(proxy, 'Entity'):
+        return
+    
     #all_cell_types = proxy.CellTypes.Available
     all_cell_types = proxy.Entity.Available
     all_arrays = list(proxy.CellArrays.GetData())
@@ -981,7 +984,13 @@ def get_group_names(proxy, mesh_name, entity, wo_nogroups=False):
 def get_time(proxy, timestamp_nb):
     """Get time value by timestamp number."""
     # Check timestamp number
-    timestamps = proxy.TimestepValues.GetData()
+    timestamps = []
+    
+    if (hasattr(proxy, 'TimestepValues')):
+        timestamps = proxy.TimestepValues.GetData()
+    elif (hasattr(proxy.Input, 'TimestepValues')):
+        timestamps = proxy.Input.TimestepValues.GetData()
+
     if ((timestamp_nb - 1) not in xrange(len(timestamps))):
         raise ValueError("Timestamp number is out of range: " + str(timestamp_nb))
 
@@ -2163,6 +2172,140 @@ def GaussPointsOnField(proxy, entity, field_name,
 
     return gausspnt
 
+def GaussPointsOnField1(proxy, entity, field_name,
+                        timestamp_nb,
+                        is_colored=True, color=None,
+                        primitive=GaussType.SPHERE,
+                        is_proportional=True,
+                        max_pixel_size=256,
+                        multiplier=None,
+                        vector_mode='Magnitude'):
+    """Creates Gauss Points on the given field. Use GaussPoints() Paraview interface.
+
+    Arguments:
+    proxy: the pipeline object, containig data
+    entity: the field entity type from PrsTypeEnum
+    field_name: the field name
+    timestamp_nb: the number of time step (1, 2, ...)
+    is_colored -- defines whether the Gauss Points will be multicolored,
+    using the corresponding data values
+    color: defines the presentation color as [R, G, B] triple. Taken into
+    account only if is_colored is False.
+    primitive: primitive type from GaussType
+    is_proportional: if True, the size of primitives will depends on
+    the gauss point value
+    max_pixel_size: the maximum sizr of the Gauss Points primitive in pixels
+    multiplier: coefficient between data values and the size of primitives
+    If not passed by user, default scale will be computed.
+    vector_mode: the mode of transformation of vector values into
+    scalar values, applicable only if the field contains vector values.
+    Possible modes: 'Magnitude' - vector module;
+    'X', 'Y', 'Z' - vector components.
+
+    Returns:
+      Gauss Points as representation object.
+
+    """
+    # Get time value
+    time_value = get_time(proxy, timestamp_nb)
+
+    # Set timestamp
+    pv.GetRenderView().ViewTime = time_value
+    proxy.UpdatePipeline(time=time_value)
+
+    # Create Gauss Points object
+    source = pv.GaussPoints(proxy)
+    source.UpdatePipeline()
+  
+    # Get Gauss Points representation object
+    gausspnt = pv.GetRepresentation(source)
+
+    # Get lookup table
+    entity_data_info = None
+    point_data_info = source.GetPointDataInformation()
+    if field_name in point_data_info.keys():
+        entity_data_info = point_data_info
+    else:
+        entity_data_info = source.GetCellDataInformation()
+    nb_components = entity_data_info[field_name].GetNumberOfComponents()
+    
+    lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
+
+    # Set field range if necessary
+    data_range = get_data_range(proxy, entity,
+                                field_name, vector_mode)
+    lookup_table.LockScalarRange = 1
+    lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
+
+    # Set display properties
+    if is_colored:
+        gausspnt.ColorAttributeType = EntityType.get_pvtype(entity)
+        gausspnt.ColorArrayName = field_name
+    else:
+        gausspnt.ColorArrayName = ''
+        if color:
+            gausspnt.DiffuseColor = color
+
+    gausspnt.LookupTable = lookup_table
+
+    # Add scalar bar
+    add_scalar_bar(field_name, nb_components,
+                   vector_mode, lookup_table, time_value)
+
+    # Set point sprite representation
+    gausspnt.Representation = 'Point Sprite'
+
+    # Point sprite settings
+    gausspnt.InterpolateScalarsBeforeMapping = 0
+    gausspnt.MaxPixelSize = max_pixel_size
+
+    # Render mode
+    gausspnt.RenderMode = GaussType.get_mode(primitive)
+
+    #if primitive == GaussType.SPRITE:
+        # Set texture
+        # TODO(MZN): replace with pvsimple high-level interface
+    #    texture = sm.CreateProxy("textures", "SpriteTexture")
+    #    alphamprop = texture.GetProperty("AlphaMethod")
+    #    alphamprop.SetElement(0, 2)  # Clamp
+    #    alphatprop = texture.GetProperty("AlphaThreshold")
+    #    alphatprop.SetElement(0, 63)
+    #    maxprop = texture.GetProperty("Maximum")
+    #    maxprop.SetElement(0, 255)
+    #    texture.UpdateVTKObjects()
+
+    #    gausspnt.Texture = texture
+        #gausspnt.Texture.AlphaMethod = 'Clamp'
+        #gausspnt.Texture.AlphaThreshold = 63
+        #gausspnt.Texture.Maximum= 255
+
+    # Proportional radius
+    gausspnt.RadiusUseScalarRange = 0
+    gausspnt.RadiusIsProportional = 0
+
+    if is_proportional:
+        mult = multiplier
+        if mult is None:
+            mult = abs(0.1 / data_range[1])
+
+        gausspnt.RadiusScalarRange = data_range
+        gausspnt.RadiusTransferFunctionEnabled = 1
+        gausspnt.RadiusMode = 'Scalar'
+        gausspnt.RadiusArray = ['POINTS', field_name]
+        if nb_components > 1:
+            v_comp = get_vector_component(vector_mode)
+            gausspnt.RadiusVectorComponent = v_comp
+        gausspnt.RadiusTransferFunctionMode = 'Table'
+        gausspnt.RadiusScalarRange = data_range
+        gausspnt.RadiusUseScalarRange = 1
+        gausspnt.RadiusIsProportional = 1
+        gausspnt.RadiusProportionalFactor = mult
+    else:
+        gausspnt.RadiusTransferFunctionEnabled = 0
+        gausspnt.RadiusMode = 'Constant'
+        gausspnt.RadiusArray = ['POINTS', 'Constant Radius']
+
+    return gausspnt
 
 def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
                        direction='BOTH', is_colored=False, color=None,

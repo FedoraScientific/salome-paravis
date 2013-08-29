@@ -46,6 +46,8 @@ IF (PYTHON_EXECUTABLE)
       C5
       C6
       C7
+      C8
+      C9
       )
     SET(TIMEOUT 10000)
     ADD_TEST(GAUSSPOINTS_${tfile} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py)
