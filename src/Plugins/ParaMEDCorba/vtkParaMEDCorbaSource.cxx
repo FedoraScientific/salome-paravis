@@ -57,12 +57,12 @@ vtkParaMEDCorbaSource::vtkParaMEDCorbaSource():mfieldsFetcher(0)
 {
   this->MyDataSet=0;
   if(!Orb)
-    {
-      CORBA::ORB_var *OrbC=new CORBA::ORB_var;
-      int argc=0;
-      *OrbC=CORBA::ORB_init(argc,0);
-      this->Orb=OrbC;
-    }
+  {
+    CORBA::ORB_var *OrbC=new CORBA::ORB_var;
+    int argc=0;
+    *OrbC=CORBA::ORB_init(argc,0);
+    this->Orb=OrbC;
+  }
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
 }
@@ -99,11 +99,11 @@ int vtkParaMEDCorbaSource::GetBufferingPolicy()
   return BufferingPolicy;
 }
 
- //int vtkParaMEDCorbaSource::RequestUpdateExtent( vtkInformation* request, vtkInformationVector** inInfo, vtkInformationVector* outInfo )
- //{
- //return this->Superclass::RequestUpdateExtent(request,inInfo,outInfo);
+//int vtkParaMEDCorbaSource::RequestUpdateExtent( vtkInformation* request, vtkInformationVector** inInfo, vtkInformationVector* outInfo )
+//{
+//return this->Superclass::RequestUpdateExtent(request,inInfo,outInfo);
 
-  /*vtkParaMEDCorbaDataSet* output = vtkParaMEDCorbaDataSet::SafeDownCast( info->Get( vtkDataObject::DATA_OBJECT() ) );
+/*vtkParaMEDCorbaDataSet* output = vtkParaMEDCorbaDataSet::SafeDownCast( info->Get( vtkDataObject::DATA_OBJECT() ) );
   if ( ! output )
     {
     output = vtkParaMEDCorbaDataSet::New();
@@ -112,22 +112,22 @@ int vtkParaMEDCorbaSource::GetBufferingPolicy()
     this->GetOutputPortInformation( 0 )->Set( vtkDataObject::DATA_EXTENT_TYPE(), output->GetExtentType() );
     }*/
 
- // return 1;
- //}
+// return 1;
+//}
 
 int vtkParaMEDCorbaSource::ProcessRequest(vtkInformation* request,
-                                         vtkInformationVector** inputVector,
-                                         vtkInformationVector* outputVector)
+    vtkInformationVector** inputVector,
+    vtkInformationVector* outputVector)
 {
   // generate the data
   if(request->Has(vtkDemandDrivenPipeline::REQUEST_DATA()))
-    {
+  {
     return this->RequestData(request, inputVector, outputVector);
-    }
+  }
   if(request->Has(vtkDemandDrivenPipeline::REQUEST_INFORMATION()))
-    {
+  {
     return this->RequestInformation(request, inputVector, outputVector);
-    }
+  }
   return this->Superclass::ProcessRequest(request, inputVector, outputVector);
 }
 
@@ -142,44 +142,44 @@ int vtkParaMEDCorbaSource::RequestInformation(vtkInformation* request, vtkInform
   vtkInformation* myInfo=outInfo->GetInformationObject(0);
   //myInfo->Set(vtkDataObject::DATA_TYPE_NAME(),"vtkUnstructuredGrid");
   if(!IOR.empty())
-    {
-      //myInfo->Remove(vtkDataObject::DATA_TYPE_NAME());
-      //myInfo->Remove(PORT_REQUIREMENTS_FILLED());
-      //myInfo->Set(vtkDataObject::DATA_TYPE_NAME(),"vtkUnstructuredGrid");
-      //myInfo->Set(PORT_REQUIREMENTS_FILLED(),1);
-      //vtkUnstructuredGrid *tony=vtkUnstructuredGrid::New();
-      //tony->SetInformation(myInfo);
-      //myInfo->Set(vtkDataObject::DATA_OBJECT(),tony);
-      //
-      CORBA::ORB_var *OrbC=(CORBA::ORB_var *)this->Orb;
-      CORBA::Object_var obj=(*OrbC)->string_to_object(&IOR[0]);
-      //
-      Engines::MPIObject_ptr objPara=Engines::MPIObject::_narrow(obj);
-      if(CORBA::is_nil(objPara))
-        {//sequential
-	  this->TotalNumberOfPieces=1;
-	  SALOME_MED::MEDCouplingMultiFieldsCorbaInterface_var multiPtr=SALOME_MED::MEDCouplingMultiFieldsCorbaInterface::_narrow(obj);
-          if(!CORBA::is_nil(multiPtr))
-	    {//Request for multiFields
-              delete mfieldsFetcher;
-              mfieldsFetcher=new ParaMEDMEM2VTK::MEDCouplingMultiFieldsFetcher(BufferingPolicy,multiPtr);
-              std::vector<double> tsteps=mfieldsFetcher->getTimeStepsForPV();
-              double timeRange[2];
-              timeRange[0]=tsteps.front();
-              timeRange[1]=tsteps.back();
-              myInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),&tsteps[0],tsteps.size());
-              myInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(),timeRange,2);
-	    }
-        }
-      else
-        {
-          Engines::IORTab *iorTab=objPara->tior();
-          this->TotalNumberOfPieces=iorTab->length();
-          delete iorTab;
-          CORBA::release(objPara);
-        }
-      myInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
+  {
+    //myInfo->Remove(vtkDataObject::DATA_TYPE_NAME());
+    //myInfo->Remove(PORT_REQUIREMENTS_FILLED());
+    //myInfo->Set(vtkDataObject::DATA_TYPE_NAME(),"vtkUnstructuredGrid");
+    //myInfo->Set(PORT_REQUIREMENTS_FILLED(),1);
+    //vtkUnstructuredGrid *tony=vtkUnstructuredGrid::New();
+    //tony->SetInformation(myInfo);
+    //myInfo->Set(vtkDataObject::DATA_OBJECT(),tony);
+    //
+    CORBA::ORB_var *OrbC=(CORBA::ORB_var *)this->Orb;
+    CORBA::Object_var obj=(*OrbC)->string_to_object(&IOR[0]);
+    //
+    Engines::MPIObject_ptr objPara=Engines::MPIObject::_narrow(obj);
+    if(CORBA::is_nil(objPara))
+    {//sequential
+      this->TotalNumberOfPieces=1;
+      SALOME_MED::MEDCouplingMultiFieldsCorbaInterface_var multiPtr=SALOME_MED::MEDCouplingMultiFieldsCorbaInterface::_narrow(obj);
+      if(!CORBA::is_nil(multiPtr))
+      {//Request for multiFields
+        delete mfieldsFetcher;
+        mfieldsFetcher=new ParaMEDMEM2VTK::MEDCouplingMultiFieldsFetcher(BufferingPolicy,multiPtr);
+        std::vector<double> tsteps=mfieldsFetcher->getTimeStepsForPV();
+        double timeRange[2];
+        timeRange[0]=tsteps.front();
+        timeRange[1]=tsteps.back();
+        myInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),&tsteps[0],tsteps.size());
+        myInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(),timeRange,2);
+      }
     }
+    else
+    {
+      Engines::IORTab *iorTab=objPara->tior();
+      this->TotalNumberOfPieces=iorTab->length();
+      delete iorTab;
+      CORBA::release(objPara);
+    }
+    myInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
+  }
   return 1;
 }
 
@@ -202,67 +202,67 @@ int vtkParaMEDCorbaSource::RequestData(vtkInformation* request, vtkInformationVe
   //
   Engines::MPIObject_var objPara=Engines::MPIObject::_narrow(obj);
   if(CORBA::is_nil(objPara))
-    {//sequential
-       SALOME_MED::MEDCouplingMeshCorbaInterface_var meshPtr=SALOME_MED::MEDCouplingMeshCorbaInterface::_narrow(obj);
-       if(!CORBA::is_nil(meshPtr))
-         {
-           bool dummy;//bug VTK
-           vtkDataSet *ret=ParaMEDMEM2VTK::BuildFromMEDCouplingMeshInstance(meshPtr,dummy);//bug VTK
-           if(!ret)
-             return 0;
-           ret0->SetBlock(0,ret);
-           ret->Delete();
-           return 1;
-         }
-       SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_var fieldPtr=SALOME_MED::MEDCouplingFieldDoubleCorbaInterface::_narrow(obj);
-       if(!CORBA::is_nil(fieldPtr))
-         {
-           std::vector<double> ret2;
-           vtkDataSet *ret=ParaMEDMEM2VTK::BuildFullyFilledFromMEDCouplingFieldDoubleInstance(fieldPtr,ret2);
-           if(!ret)
-             {
-               vtkErrorMacro("On single field CORBA fetching an error occurs !");
-               return 0;
-             }
-           ret0->SetBlock(0,ret);
-           ret->Delete();
-           //
-           double timeRange[2];
-           timeRange[0]=ret2[0];
-           timeRange[1]=ret2[0];
-           outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),&ret2[0],1);
-           outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(),timeRange,2);
-           ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(),ret2[0]);
-           return 1;
-         }
-       SALOME_MED::MEDCouplingMultiFieldsCorbaInterface_var multiPtr=SALOME_MED::MEDCouplingMultiFieldsCorbaInterface::_narrow(obj);
-       if(!CORBA::is_nil(multiPtr))
-         {
-           vtkDataSet *ret=mfieldsFetcher->buildDataSetOnTime(reqTS);
-           if(!ret)
-             {
-               vtkErrorMacro("On multi fields CORBA fetching an error occurs !");
-               return 0;
-             }
-           ret0->SetBlock(0,ret);
-           ret->Delete();
-           ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(),reqTS);
-           return 1;
-         }
-       vtkErrorMacro("Unrecognized sequential CORBA reference !");
-       return 0;
-    }
-  else
+  {//sequential
+    SALOME_MED::MEDCouplingMeshCorbaInterface_var meshPtr=SALOME_MED::MEDCouplingMeshCorbaInterface::_narrow(obj);
+    if(!CORBA::is_nil(meshPtr))
     {
-      SALOME_MED::ParaMEDCouplingFieldDoubleCorbaInterface_var paraFieldCorba=SALOME_MED::ParaMEDCouplingFieldDoubleCorbaInterface::_narrow(obj);
-      if(!CORBA::is_nil(paraFieldCorba))
-        {
-          ParaMEDMEM2VTK::FillMEDCouplingParaFieldDoubleInstanceFrom(paraFieldCorba,this->StartPiece,this->EndPiece,ret0);
-          return 1;
-        }
-      vtkErrorMacro("Unrecognized parallel CORBA reference !");
-      return 0;
+      bool dummy;//bug VTK
+      vtkDataSet *ret=ParaMEDMEM2VTK::BuildFromMEDCouplingMeshInstance(meshPtr,dummy);//bug VTK
+      if(!ret)
+        return 0;
+      ret0->SetBlock(0,ret);
+      ret->Delete();
+      return 1;
     }
+    SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_var fieldPtr=SALOME_MED::MEDCouplingFieldDoubleCorbaInterface::_narrow(obj);
+    if(!CORBA::is_nil(fieldPtr))
+    {
+      std::vector<double> ret2;
+      vtkDataSet *ret=ParaMEDMEM2VTK::BuildFullyFilledFromMEDCouplingFieldDoubleInstance(fieldPtr,ret2);
+      if(!ret)
+      {
+        vtkErrorMacro("On single field CORBA fetching an error occurs !");
+        return 0;
+      }
+      ret0->SetBlock(0,ret);
+      ret->Delete();
+      //
+      double timeRange[2];
+      timeRange[0]=ret2[0];
+      timeRange[1]=ret2[0];
+      outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),&ret2[0],1);
+      outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(),timeRange,2);
+      ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(),ret2[0]);
+      return 1;
+    }
+    SALOME_MED::MEDCouplingMultiFieldsCorbaInterface_var multiPtr=SALOME_MED::MEDCouplingMultiFieldsCorbaInterface::_narrow(obj);
+    if(!CORBA::is_nil(multiPtr))
+    {
+      vtkDataSet *ret=mfieldsFetcher->buildDataSetOnTime(reqTS);
+      if(!ret)
+      {
+        vtkErrorMacro("On multi fields CORBA fetching an error occurs !");
+        return 0;
+      }
+      ret0->SetBlock(0,ret);
+      ret->Delete();
+      ret0->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(),reqTS);
+      return 1;
+    }
+    vtkErrorMacro("Unrecognized sequential CORBA reference !");
+    return 0;
+  }
+  else
+  {
+    SALOME_MED::ParaMEDCouplingFieldDoubleCorbaInterface_var paraFieldCorba=SALOME_MED::ParaMEDCouplingFieldDoubleCorbaInterface::_narrow(obj);
+    if(!CORBA::is_nil(paraFieldCorba))
+    {
+      ParaMEDMEM2VTK::FillMEDCouplingParaFieldDoubleInstanceFrom(paraFieldCorba,this->StartPiece,this->EndPiece,ret0);
+      return 1;
+    }
+    vtkErrorMacro("Unrecognized parallel CORBA reference !");
+    return 0;
+  }
 }
 
 void vtkParaMEDCorbaSource::PrintSelf(ostream& os, vtkIndent indent)

@@ -182,7 +182,7 @@ int vtkMedDriver::Open()
 #ifdef MedReader_HAVE_PARALLEL_INFRASTRUCTURE
     // the following code opens the file in parallel
     vtkMultiProcessController* controller =
-    		vtkMultiProcessController::GetGlobalController();
+        vtkMultiProcessController::GetGlobalController();
     int lpID = 0;
     if (controller == NULL)
       {

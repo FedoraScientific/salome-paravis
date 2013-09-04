@@ -28,7 +28,7 @@
 
 //-----------------------------------------------------------------------------
 pqSetModeStarter::pqSetModeStarter(QObject* p/*=0*/)
-  : QObject(p)
+: QObject(p)
 {
 }
 
@@ -57,49 +57,49 @@ void pqSetModeStarter::setStandardMode()
 
     // Copy default settings, make changes for Ctrl+MB and MB modes
     for(int i=0; i<9; i++)
-      {
-	manips[i] = default3DManips[i];
+    {
+      manips[i] = default3DManips[i];
 
-	// Ctrl+MB
-	if (manips[i].Shift == 0 && manips[i].Control == 1) {
-	  if (manips[i].Mouse == 1)
-	    manips[i].Name = QByteArray("Zoom");
-	  else  if (manips[i].Mouse == 2)
-	    manips[i].Name = QByteArray("Pan");
-	  else  if (manips[i].Mouse == 3)
-	    manips[i].Name = QByteArray("Rotate");
-	}
-
-	// MB only
-	if (manips[i].Shift == 0 && manips[i].Control == 0) {
-	  if (manips[i].Mouse == 1)
-	    manips[i].Name = QByteArray("Rotate");
-	  else  if (manips[i].Mouse == 2)
-	    manips[i].Name = QByteArray("Pan");
-	  else  if (manips[i].Mouse == 3)
-	    manips[i].Name = QByteArray("Zoom");
-	}
+      // Ctrl+MB
+      if (manips[i].Shift == 0 && manips[i].Control == 1) {
+        if (manips[i].Mouse == 1)
+          manips[i].Name = QByteArray("Zoom");
+        else  if (manips[i].Mouse == 2)
+          manips[i].Name = QByteArray("Pan");
+        else  if (manips[i].Mouse == 3)
+          manips[i].Name = QByteArray("Rotate");
       }
+
+      // MB only
+      if (manips[i].Shift == 0 && manips[i].Control == 0) {
+        if (manips[i].Mouse == 1)
+          manips[i].Name = QByteArray("Rotate");
+        else  if (manips[i].Mouse == 2)
+          manips[i].Name = QByteArray("Pan");
+        else  if (manips[i].Mouse == 3)
+          manips[i].Name = QByteArray("Zoom");
+      }
+    }
 
     // Save settings
     for(int i=0; i<9; i++)
-      {
-	strs << QString("Manipulator%1Mouse%2Shift%3Control%4Name%5")
-	  .arg(i+1)
-	  .arg(manips[i].Mouse)
-	  .arg(manips[i].Shift)
-	  .arg(manips[i].Control)
-	  .arg(QString(manips[i].Name));
-      }
-      
+    {
+      strs << QString("Manipulator%1Mouse%2Shift%3Control%4Name%5")
+        .arg(i+1)
+        .arg(manips[i].Mouse)
+        .arg(manips[i].Shift)
+        .arg(manips[i].Control)
+        .arg(QString(manips[i].Name));
+    }
+
     settings->setValue("InteractorStyle/CameraManipulators", strs);
   }
   settings->endGroup();
 
   // Loop through render views and apply the settings
   QList<pqRenderViewBase*> views =
-    pqApplicationCore::instance()->getServerManagerModel()->
-    findItems<pqRenderViewBase*>();
+      pqApplicationCore::instance()->getServerManagerModel()->
+      findItems<pqRenderViewBase*>();
 
   foreach(pqRenderViewBase* view, views) {
     view->restoreSettings(true);

@@ -65,10 +65,10 @@ protected:
   //not clean but to avoid to include CORBA.h in this *.h
   static void *Orb;
   //ETX
- private:
+private:
   /*void traduceMedMeshToUnstructuredDataset(vtkUnstructuredGrid *ret, int nbOfCells, int nbOfNodes, 
-					   int nbOfTypes, const int *types, const int *nbOfEltsPerTypes, const int *nodalConnectivity,
-					   const double *coords, int spaceDim);
+            int nbOfTypes, const int *types, const int *nbOfEltsPerTypes, const int *nodalConnectivity,
+            const double *coords, int spaceDim);
   vtkDoubleArray *buildDataArrayFromMedCoords(const double *coords, int nbOfNodes, int spaceDim);
   void reorganizeCellConnectivity(int vtkType, int nbOfNodes, const int *medConn, int *vtkConn);
   int transformMedGeomEltType2VtkType(int typeMed, int *nbOfNodesPerCell);*/

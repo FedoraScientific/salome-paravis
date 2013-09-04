@@ -58,20 +58,20 @@ class pqCustomXYChartDisplayPanel::pqInternal : public Ui::CustomXYChartDisplayP
 {
 public:
   pqInternal()
-    {
+{
     this->SettingsModel = 0;
     this->XAxisArrayDomain = 0;
     this->XAxisArrayAdaptor = 0;
 
     this->VTKConnect = vtkSmartPointer<vtkEventQtSlotConnect>::New();
-    }
+}
 
   ~pqInternal()
-    {
+  {
     delete this->SettingsModel;
     delete this->XAxisArrayDomain;
     delete this->XAxisArrayAdaptor;
-    }
+  }
 
   vtkWeakPointer<vtkSMChartRepresentationProxy> ChartRepresentation;
   pqCustomPlotSettingsModel* SettingsModel;
@@ -86,7 +86,7 @@ public:
 
 //-----------------------------------------------------------------------------
 pqCustomXYChartDisplayPanel::pqCustomXYChartDisplayPanel(
-  pqRepresentation* display,QWidget* p)
+    pqRepresentation* display,QWidget* p)
 : pqDisplayPanel(display, p)
 {
   this->Internal = new pqCustomXYChartDisplayPanel::pqInternal();
@@ -96,64 +96,64 @@ pqCustomXYChartDisplayPanel::pqCustomXYChartDisplayPanel(
   this->Internal->SeriesList->setModel(this->Internal->SettingsModel);
 
   this->Internal->XAxisArrayAdaptor = new pqSignalAdaptorComboBox(
-    this->Internal->XAxisArray);
+      this->Internal->XAxisArray);
 
   QObject::connect(
-    this->Internal->SeriesList, SIGNAL(activated(const QModelIndex &)),
-    this, SLOT(activateItem(const QModelIndex &)));
+      this->Internal->SeriesList, SIGNAL(activated(const QModelIndex &)),
+      this, SLOT(activateItem(const QModelIndex &)));
   QItemSelectionModel *model = this->Internal->SeriesList->selectionModel();
   QObject::connect(model,
-    SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-    this, SLOT(updateOptionsWidgets()));
+      SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+      this, SLOT(updateOptionsWidgets()));
   QObject::connect(model,
-    SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-    this, SLOT(updateOptionsWidgets()));
+      SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+      this, SLOT(updateOptionsWidgets()));
   QObject::connect(this->Internal->SettingsModel, SIGNAL(modelReset()),
-    this, SLOT(updateOptionsWidgets()));
+      this, SLOT(updateOptionsWidgets()));
   QObject::connect(this->Internal->SettingsModel, SIGNAL(redrawChart()),
-    this, SLOT(updateAllViews()));
+      this, SLOT(updateAllViews()));
   QObject::connect(this->Internal->XAxisArray, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(updateAllViews()));
+      this, SLOT(updateAllViews()));
 
   QObject::connect(this->Internal->UseArrayIndex, SIGNAL(toggled(bool)),
-    this, SLOT(useArrayIndexToggled(bool)));
+      this, SLOT(useArrayIndexToggled(bool)));
   QObject::connect(this->Internal->UseDataArray, SIGNAL(toggled(bool)),
-    this, SLOT(useDataArrayToggled(bool)));
+      this, SLOT(useDataArrayToggled(bool)));
 
   QObject::connect(
-    this->Internal->ColorButton, SIGNAL(chosenColorChanged(const QColor &)),
-    this, SLOT(setCurrentSeriesColor(const QColor &)));
+      this->Internal->ColorButton, SIGNAL(chosenColorChanged(const QColor &)),
+      this, SLOT(setCurrentSeriesColor(const QColor &)));
   QObject::connect(this->Internal->Thickness, SIGNAL(valueChanged(int)),
-    this, SLOT(setCurrentSeriesThickness(int)));
+      this, SLOT(setCurrentSeriesThickness(int)));
   QObject::connect(this->Internal->StyleList, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(setCurrentSeriesStyle(int)));
+      this, SLOT(setCurrentSeriesStyle(int)));
   QObject::connect(this->Internal->AxisList, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(setCurrentSeriesAxes(int)));
+      this, SLOT(setCurrentSeriesAxes(int)));
   QObject::connect(this->Internal->MarkerStyleList, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(setCurrentSeriesMarkerStyle(int)));
+      this, SLOT(setCurrentSeriesMarkerStyle(int)));
 
   QObject::connect(
-    this->Internal->AutoSelect, SIGNAL(toggled(bool)),
-    this, SLOT(autoSelectToggled(bool)));
+      this->Internal->AutoSelect, SIGNAL(toggled(bool)),
+      this, SLOT(autoSelectToggled(bool)));
 
   QObject::connect(
-    this->Internal->IgnoreUnits, SIGNAL(toggled(bool)),
-    this, SLOT(ignoreUnitsToggled(bool)));
+      this->Internal->IgnoreUnits, SIGNAL(toggled(bool)),
+      this, SLOT(ignoreUnitsToggled(bool)));
 
   QObject::connect(
-    this->Internal->GenerateAxesTitles, SIGNAL(toggled(bool)),
-    this, SLOT(updateViewOptions()));
+      this->Internal->GenerateAxesTitles, SIGNAL(toggled(bool)),
+      this, SLOT(updateViewOptions()));
   QObject::connect(this->Internal->SettingsModel, SIGNAL(redrawChart()),
-    this, SLOT(updateViewOptions()));
+      this, SLOT(updateViewOptions()));
 
   resetUnitsControls();
 
   this->setDisplay(display);
 
   QObject::connect(&this->Internal->Links, SIGNAL(qtWidgetChanged()),
-                   this, SLOT(reloadSeries()), Qt::QueuedConnection);
+      this, SLOT(reloadSeries()), Qt::QueuedConnection);
   QObject::connect(&this->Internal->Links, SIGNAL(qtWidgetChanged()),
-                   this->Internal->SettingsModel, SLOT(reload()));
+      this->Internal->SettingsModel, SLOT(reload()));
 }
 
 //-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ pqCustomXYChartDisplayPanel::~pqCustomXYChartDisplayPanel()
 void pqCustomXYChartDisplayPanel::reloadSeries()
 {
   updateViewOptions();
-  
+
   this->updateAllViews();
   this->updateOptionsWidgets();
 }
@@ -177,14 +177,14 @@ void pqCustomXYChartDisplayPanel::setDisplay(pqRepresentation* disp)
   this->setEnabled(false);
 
   vtkSMChartRepresentationProxy* proxy =
-    vtkSMChartRepresentationProxy::SafeDownCast(disp->getProxy());
+      vtkSMChartRepresentationProxy::SafeDownCast(disp->getProxy());
   this->Internal->ChartRepresentation = proxy;
   if (!this->Internal->ChartRepresentation)
-    {
+  {
     qWarning() << "pqCustomXYChartDisplayPanel given a representation proxy "
-                  "that is not an XYChartRepresentation. Cannot edit.";
+        "that is not an XYChartRepresentation. Cannot edit.";
     return;
-    }
+  }
 
   // this is essential to ensure that when you undo-redo, the representation is
   // indeed update-to-date, thus ensuring correct domains etc.
@@ -204,13 +204,13 @@ void pqCustomXYChartDisplayPanel::setDisplay(pqRepresentation* disp)
 
   // Link to set whether the index is used for the x axis
   this->Internal->Links.addPropertyLink(
-    this->Internal->UseArrayIndex, "checked",
-    SIGNAL(toggled(bool)),
-    proxy, proxy->GetProperty("UseIndexForXAxis"));
+      this->Internal->UseArrayIndex, "checked",
+      SIGNAL(toggled(bool)),
+      proxy, proxy->GetProperty("UseIndexForXAxis"));
 
   // Proxy changed
   this->Internal->VTKConnect->Connect(proxy->GetProperty("SeriesNamesInfo"),
-	vtkCommand::PropertyModifiedEvent, this, SLOT(resetUnitsControls()));
+      vtkCommand::PropertyModifiedEvent, this, SLOT(resetUnitsControls()));
 
   this->changeDialog(disp);
 
@@ -223,13 +223,13 @@ void pqCustomXYChartDisplayPanel::setDisplay(pqRepresentation* disp)
 void pqCustomXYChartDisplayPanel::changeDialog(pqRepresentation* disp)
 {
   vtkSMChartRepresentationProxy* proxy =
-    vtkSMChartRepresentationProxy::SafeDownCast(disp->getProxy());
+      vtkSMChartRepresentationProxy::SafeDownCast(disp->getProxy());
   bool visible = true;
   if (QString("Bar") == vtkSMPropertyHelper(proxy,"ChartType").GetAsString())
-    {
-      visible = false;
-    }
-  
+  {
+    visible = false;
+  }
+
   this->Internal->Thickness->setVisible(visible);
   this->Internal->ThicknessLabel->setVisible(visible);
   this->Internal->StyleList->setVisible(visible);
@@ -245,10 +245,10 @@ void pqCustomXYChartDisplayPanel::activateItem(const QModelIndex &index)
 {
   if(!this->Internal->ChartRepresentation
       || !index.isValid() || index.column() != 1)
-    {
+  {
     // We are interested in clicks on the color swab alone.
     return;
-    }
+  }
 
   // Get current color
   QColor color = this->Internal->SettingsModel->getSeriesColor(index.row());
@@ -256,14 +256,14 @@ void pqCustomXYChartDisplayPanel::activateItem(const QModelIndex &index)
   // Show color selector dialog to get a new color
   color = QColorDialog::getColor(color, this);
   if (color.isValid())
-    {
+  {
     // Set the new color
     this->Internal->SettingsModel->setSeriesColor(index.row(), color);
     this->Internal->ColorButton->blockSignals(true);
     this->Internal->ColorButton->setChosenColor(color);
     this->Internal->ColorButton->blockSignals(false);
     this->updateAllViews();
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -271,15 +271,15 @@ void pqCustomXYChartDisplayPanel::updateOptionsWidgets()
 {
   QItemSelectionModel *model = this->Internal->SeriesList->selectionModel();
   if(model)
-    {
+  {
     // Show the options for the current item.
     QModelIndex current = model->currentIndex();
     QModelIndexList indexes = model->selectedIndexes();
     if((!current.isValid() || !model->isSelected(current)) &&
         indexes.size() > 0)
-      {
+    {
       current = indexes.last();
-      }
+    }
 
     this->Internal->ColorButton->blockSignals(true);
     this->Internal->Thickness->blockSignals(true);
@@ -287,27 +287,27 @@ void pqCustomXYChartDisplayPanel::updateOptionsWidgets()
     this->Internal->MarkerStyleList->blockSignals(true);
     this->Internal->AxisList->blockSignals(true);
     if (current.isValid())
-      {
+    {
       int seriesIndex = current.row();
       QColor color = this->Internal->SettingsModel->getSeriesColor(seriesIndex);
       this->Internal->ColorButton->setChosenColor(color);
       this->Internal->Thickness->setValue(
-        this->Internal->SettingsModel->getSeriesThickness(seriesIndex));
+          this->Internal->SettingsModel->getSeriesThickness(seriesIndex));
       this->Internal->StyleList->setCurrentIndex(
-        this->Internal->SettingsModel->getSeriesStyle(seriesIndex));
+          this->Internal->SettingsModel->getSeriesStyle(seriesIndex));
       this->Internal->MarkerStyleList->setCurrentIndex(
-        this->Internal->SettingsModel->getSeriesMarkerStyle(seriesIndex));
+          this->Internal->SettingsModel->getSeriesMarkerStyle(seriesIndex));
       this->Internal->AxisList->setCurrentIndex(
-        this->Internal->SettingsModel->getSeriesAxisCorner(seriesIndex));
-      }
+          this->Internal->SettingsModel->getSeriesAxisCorner(seriesIndex));
+    }
     else
-      {
+    {
       this->Internal->ColorButton->setChosenColor(Qt::white);
       this->Internal->Thickness->setValue(1);
       this->Internal->StyleList->setCurrentIndex(0);
       this->Internal->MarkerStyleList->setCurrentIndex(0);
       this->Internal->AxisList->setCurrentIndex(0);
-      }
+    }
 
     this->Internal->ColorButton->blockSignals(false);
     this->Internal->Thickness->blockSignals(false);
@@ -322,7 +322,7 @@ void pqCustomXYChartDisplayPanel::updateOptionsWidgets()
     this->Internal->StyleList->setEnabled(hasItems);
     this->Internal->MarkerStyleList->setEnabled(hasItems);
     this->Internal->AxisList->setEnabled(hasItems);
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -330,16 +330,16 @@ void pqCustomXYChartDisplayPanel::setCurrentSeriesColor(const QColor &color)
 {
   QItemSelectionModel *model = this->Internal->SeriesList->selectionModel();
   if(model)
-    {
+  {
     this->Internal->InChange = true;
     QModelIndexList indexes = model->selectedIndexes();
     QModelIndexList::Iterator iter = indexes.begin();
     for( ; iter != indexes.end(); ++iter)
-      {
+    {
       this->Internal->SettingsModel->setSeriesColor(iter->row(), color);
-      }
-    this->Internal->InChange = false;
     }
+    this->Internal->InChange = false;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -347,16 +347,16 @@ void pqCustomXYChartDisplayPanel::setCurrentSeriesThickness(int thickness)
 {
   QItemSelectionModel *model = this->Internal->SeriesList->selectionModel();
   if (model)
-    {
+  {
     this->Internal->InChange = true;
     QModelIndexList indexes = model->selectedIndexes();
     QModelIndexList::Iterator iter = indexes.begin();
     for( ; iter != indexes.end(); ++iter)
-      {
+    {
       this->Internal->SettingsModel->setSeriesThickness(iter->row(), thickness);
-      }
-    this->Internal->InChange = false;
     }
+    this->Internal->InChange = false;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -364,16 +364,16 @@ void pqCustomXYChartDisplayPanel::setCurrentSeriesStyle(int style)
 {
   QItemSelectionModel *model = this->Internal->SeriesList->selectionModel();
   if (model)
-    {
+  {
     this->Internal->InChange = true;
     QModelIndexList indexes = model->selectedIndexes();
     QModelIndexList::Iterator iter = indexes.begin();
     for( ; iter != indexes.end(); ++iter)
-      {
+    {
       this->Internal->SettingsModel->setSeriesStyle(iter->row(), style);
-      }
-    this->Internal->InChange = false;
     }
+    this->Internal->InChange = false;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -381,16 +381,16 @@ void pqCustomXYChartDisplayPanel::setCurrentSeriesMarkerStyle(int style)
 {
   QItemSelectionModel *model = this->Internal->SeriesList->selectionModel();
   if (model)
-    {
+  {
     this->Internal->InChange = true;
     QModelIndexList indexes = model->selectedIndexes();
     QModelIndexList::Iterator iter = indexes.begin();
     for( ; iter != indexes.end(); ++iter)
-      {
+    {
       this->Internal->SettingsModel->setSeriesMarkerStyle(iter->row(), style);
-      }
-    this->Internal->InChange = false;
     }
+    this->Internal->InChange = false;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -432,7 +432,7 @@ void pqCustomXYChartDisplayPanel::ignoreUnitsToggled(bool checked)
   this->Internal->AutoSelect->setEnabled(!checked);
   this->Internal->SettingsModel->SetIgnoreUnitsModeOn(checked);
   this->Internal->SettingsModel->SetAutoSelectModeOn(!checked && 
-						     this->Internal->AutoSelect->isChecked());
+      this->Internal->AutoSelect->isChecked());
 }
 
 //-----------------------------------------------------------------------------
@@ -447,65 +447,64 @@ void pqCustomXYChartDisplayPanel::updateViewOptions()
 {
   pqRepresentation* disp = this->getRepresentation();
   if (!disp || !this->Internal->ChartRepresentation)
+  {
+    return;
+  }
+
+  pqXYChartView* view = qobject_cast<pqXYChartView*>(disp->getView());
+  if (view && view->getProxy())
+  {
+    vtkSMProxy* proxy = view->getProxy();
+
+    QList<QVariant> values =
+        pqSMAdaptor::getMultipleElementProperty(proxy->GetProperty("AxisTitle"));
+    if (values.size() < 2)
     {
       return;
     }
 
-  pqXYChartView* view = qobject_cast<pqXYChartView*>(disp->getView());
-  if (view && view->getProxy())
+    if (!this->Internal->GenerateAxesTitles->isChecked())
     {
-      vtkSMProxy* proxy = view->getProxy();
-      
-      QList<QVariant> values = 
-	pqSMAdaptor::getMultipleElementProperty(proxy->GetProperty("AxisTitle"));
-      if (values.size() < 2)
-	{
-	  return;
-	}
-      
-      if (!this->Internal->GenerateAxesTitles->isChecked())
-	{
-	  values.insert(0, QVariant(""));
-	  values.insert(1, QVariant(""));
-	}
-      else
-	{
-	  // Set X axis title
-	  int useIndexForXAxis = vtkSMPropertyHelper(
-              this->Internal->ChartRepresentation, "UseIndexForXAxis").GetAsInt();
-	  
-	  QString xTitle("");
-	  if (!useIndexForXAxis) 
-	    {
-	      xTitle = vtkSMPropertyHelper(this->Internal->ChartRepresentation, "XArrayName")
-		.GetAsString();
-	    }
-      
-	  // Set Y axis title
-	  int nbRows = this->Internal->SettingsModel->rowCount(QModelIndex());
-	  int nbEnabled = 0;
-	  int row = 0;
-	  for (int i = 0; i < nbRows && nbEnabled < 2; i++)
-	    {
-	      if (this->Internal->SettingsModel->getSeriesEnabled(i))
-		{
-		  nbEnabled++;
-		  row = i;
-		}
-	    }
-	  
-	  QString yTitle("");
-	  if (nbEnabled == 1)
-	    {
-	      yTitle = this->Internal->SettingsModel->getSeriesName(row);
-	    }
-	  values.insert(0, QVariant(yTitle));
-	  values.insert(1, QVariant(xTitle));
-	}
-
-      pqSMAdaptor::setMultipleElementProperty(proxy->GetProperty("AxisTitle"), values);
-
-      view->getProxy()->UpdateVTKObjects();
-      view->render();
+      values.insert(0, QVariant(""));
+      values.insert(1, QVariant(""));
     }
+    else
+    {
+      // Set X axis title
+      int useIndexForXAxis = vtkSMPropertyHelper(
+          this->Internal->ChartRepresentation, "UseIndexForXAxis").GetAsInt();
+
+      QString xTitle("");
+      if (!useIndexForXAxis)
+      {
+        xTitle = vtkSMPropertyHelper(this->Internal->ChartRepresentation, "XArrayName").GetAsString();
+      }
+
+      // Set Y axis title
+      int nbRows = this->Internal->SettingsModel->rowCount(QModelIndex());
+      int nbEnabled = 0;
+      int row = 0;
+      for (int i = 0; i < nbRows && nbEnabled < 2; i++)
+      {
+        if (this->Internal->SettingsModel->getSeriesEnabled(i))
+        {
+          nbEnabled++;
+          row = i;
+        }
+      }
+
+      QString yTitle("");
+      if (nbEnabled == 1)
+      {
+        yTitle = this->Internal->SettingsModel->getSeriesName(row);
+      }
+      values.insert(0, QVariant(yTitle));
+      values.insert(1, QVariant(xTitle));
+    }
+
+    pqSMAdaptor::setMultipleElementProperty(proxy->GetProperty("AxisTitle"), values);
+
+    view->getProxy()->UpdateVTKObjects();
+    view->render();
+  }
 }

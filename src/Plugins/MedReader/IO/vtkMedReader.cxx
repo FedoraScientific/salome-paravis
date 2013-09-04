@@ -384,7 +384,7 @@ int vtkMedReader::RequestData(vtkInformation *request,
   else
     {
     vtkMultiProcessController* controller =
-    		vtkMultiProcessController::GetGlobalController();
+          vtkMultiProcessController::GetGlobalController();
     if(controller)
       {
       this->Internal->NumberOfPieces=controller->GetNumberOfProcesses();
@@ -403,7 +403,7 @@ int vtkMedReader::RequestData(vtkInformation *request,
     {
     this->Internal->CurrentPieceNumber=0;
     vtkMultiProcessController* controller =
-    		vtkMultiProcessController::GetGlobalController();
+            vtkMultiProcessController::GetGlobalController();
     if(controller)
       {
       this->Internal->CurrentPieceNumber= controller->GetLocalProcessId();
@@ -2317,7 +2317,7 @@ void vtkMedReader::SetVTKFieldOnSupport(vtkMedFieldOnProfile* fop,
       {
       if(vtkfield.DataArray->GetNumberOfTuples()!=ds->GetNumberOfPoints())
         {
-    	  vtkDebugMacro("the data array " << vtkfield.DataArray->GetName()
+          vtkDebugMacro("the data array " << vtkfield.DataArray->GetName()
                       << " do not have the good number of tuples");
         return;
         }

@@ -46,8 +46,8 @@ struct Table2D
 };
 
 std::vector<std::string> GetTableNames(const char* fname, const char* separator,
-				       const bool firstStringAsTitles);
+    const bool firstStringAsTitles);
 Table2D GetTable(const char* fname, const char* separator, const int tableNb,
-		 const bool firstStringAsTitles);
+    const bool firstStringAsTitles);
 
 #endif //__TableParser_h_

@@ -47,7 +47,7 @@ public:
   // Description:
   // Specify type of presentation: surface of contour.
   vtkSetClampMacro(PresentationType, int,
-		   TABLETO3D_SURFACE, TABLETO3D_CONTOUR);
+                   TABLETO3D_SURFACE, TABLETO3D_CONTOUR);
   vtkGetMacro(PresentationType, int);
 
   // Description:

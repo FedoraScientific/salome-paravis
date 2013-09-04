@@ -69,9 +69,6 @@ MARK_AS_ADVANCED(QT_HELP_GENERATOR)
 
 # Specific to ParaVis:
 FIND_PACKAGE(SalomeParaView)
-IF(TARGET vtkTools)
- message("bli !!")
-endif()
 
 # GUI has to be loaded AFTER ParaView: the ParaView config doesn't mix
 # well with the VTK one (and GUI loads VTK):
@@ -106,7 +103,7 @@ FIND_PACKAGE(SalomeMED REQUIRED)
 FIND_PACKAGE(SalomeMEDFile REQUIRED)
 
 # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
-MESSAGE(STATUS "Generating wrapped class list (??) ...")
+MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
 LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
 EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0}
     RESULT_VARIABLE _res)
@@ -153,7 +150,7 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/PARAVIS_version.h DESTINATION include/
 OPTION(BUILD_TESTING "Build ParaVis Testing" ON)
 IF(BUILD_TESTING)
    SET(PARAVIS_TEST_DIR ${ParaVis_BINARY_DIR}/Test/Temporary)
-   MAKE_DIRECTORY(${PARAVIS_TEST_DIR})
+   MAKE_DIRECTORY(${PARAVIS_TEST_DIR})  # TODO: replace with FILE(MAKE_DIRECTORY ...)
    ENABLE_TESTING()
    INCLUDE (CTest)
    ADD_SUBDIRECTORY(test)

@@ -102,7 +102,7 @@ int vtkMedFamilyOnEntityOnProfile::CanMapField(vtkMedFieldOnProfile* fop)
 
   int numProc = 1;
   vtkMultiProcessController* controller =
-		  vtkMultiProcessController::GetGlobalController();
+        vtkMultiProcessController::GetGlobalController();
   if (controller != NULL)
     {
     numProc = controller->GetNumberOfProcesses();
