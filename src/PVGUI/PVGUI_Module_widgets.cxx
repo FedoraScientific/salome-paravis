@@ -26,6 +26,7 @@
 
 #include <QtxActionToolMgr.h>
 #include <LightApp_Application.h>
+#include <SalomeApp_Application.h>
 #include <SUIT_Desktop.h>
 
 #include <QApplication>
@@ -340,5 +341,73 @@ void PVGUI_Module::restoreDockWidgetsState()
     QToolBar* tb = qobject_cast<QToolBar*>( it3.key() );
     tb->setVisible( it3.value() );
     tb->toggleViewAction()->setVisible( true );
+  }
+}
+
+
+
+/*!
+  \brief Store visibility of the common dockable windows (OB, PyConsole, ... etc.)
+*/
+void PVGUI_Module::storeCommonWindowsState() {  
+  //rnv: Make behaviour of the dockable windows and toolbars coherent with others
+  //     modules: if 'Save position of the windows' or 'Save position of the toolbars' 
+  //     in the General SALOME preferences are cheked, then properties of the windows and/or toolbars
+  //     are stored/restored using standard Qt saveState(...) and restoreState(...) methods.
+  //     Otherwise to the windows and toolbars applied default settins stored int the SalomeApp.xml
+  //     configuration file.
+  //
+  //     But in contrast to others modules ParaVis module default settings hide some dockable
+  //     windows, so to restore it at the moment of the ParaVis de-activation we call 
+  //     restoreCommonWindowsState() method, and at the moment of the ParaVis activation we call 
+  //     this method.
+
+  SalomeApp_Application* anApp = getApp();
+  if(!anApp)
+    return;
+
+  int begin = SalomeApp_Application::WT_ObjectBrowser;
+  int end = SalomeApp_Application::WT_NoteBook;
+  for( int i = begin; i <= end; i++ ) {
+    QWidget* wg = anApp->getWindow(i);
+    if(wg) {
+      QDockWidget* dock = 0;
+      QWidget* w = wg->parentWidget();
+      while ( w && !dock ) {
+	dock = ::qobject_cast<QDockWidget*>( w );
+	w = w->parentWidget();
+      }
+      if(dock){
+	if(!myCommonMap.contains(i)){
+	  myCommonMap.insert(i,dock->isVisible());
+	} else {
+	  myCommonMap[i] = dock->isVisible();
+	}
+      }
+    }
+  }
+}
+
+/*!
+  \brief Restore visibility of the common dockable windows (OB, PyConsole, ... etc.)
+*/
+void PVGUI_Module::restoreCommonWindowsState() {
+  SalomeApp_Application* anApp = getApp();
+  if(!anApp)
+    return;
+  DockWindowMap::const_iterator it = myCommonMap.begin();
+  for( ;it != myCommonMap.end(); it++ ) {
+    QWidget* wg = anApp->getWindow(it.key());
+    if(wg) {
+      QDockWidget* dock = 0;
+      QWidget* w = wg->parentWidget();
+      while ( w && !dock ) {
+	dock = ::qobject_cast<QDockWidget*>( w );
+	w = w->parentWidget();
+      }
+      if(dock) {
+	dock->setVisible(it.value());
+      }
+    }
   }
 }

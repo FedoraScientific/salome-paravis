@@ -211,6 +211,12 @@ private:
   //! update macros state
   void updateMacros();
 
+  //! store visibility of the common dockable windows (OB, PyConsole, ... etc.)
+  void storeCommonWindowsState();
+
+  //! restore visibility of the common dockable windows (OB, PyConsole, ... etc.)
+  void restoreCommonWindowsState();
+
 private slots:
 
   void showHelpForProxy( const QString&, const QString& );
@@ -272,6 +278,9 @@ private:
   WgMap                  myToolbars;
   WgMap                  myToolbarBreaks;
   QList<QMenu*>          myMenus;
+
+  typedef QMap<int, bool> DockWindowMap;         
+  DockWindowMap           myCommonMap; 
 
   QStringList            myTemporaryFiles;
 

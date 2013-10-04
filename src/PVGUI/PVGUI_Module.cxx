@@ -861,6 +861,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   
   SUIT_ExceptionHandler::addCleanUpRoutine( paravisCleanUp );
 
+  storeCommonWindowsState();
+
   bool isDone = SalomeApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
@@ -951,6 +953,8 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
   if (myOldMsgHandler)
     qInstallMsgHandler(myOldMsgHandler);
 
+  restoreCommonWindowsState();
+  
   return SalomeApp_Module::deactivateModule( study );
 }
 
