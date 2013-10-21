@@ -18,15 +18,20 @@
 #
 
 IF(SALOME_PARAVIS_MINIMAL_CORBA)
-  # Use another set of Python files
-  SET(_PYFILES_TO_INSTALL)
-  MESSAGE(WARNING "New Python scripts not impl !!!")
-ELSE()
+  # Use another set of Python files redirecting the API directly 
+  # to the original ParaView modules.
   SET(_PYFILES_TO_INSTALL
     paravis.py
-    paravisSM.py
     pvsimple.py
     presentations.py
+    paravisSM.py
+  )
+ELSE()
+  SET(_PYFILES_TO_INSTALL
+    VTKWrapping/paravis.py
+    VTKWrapping/paravisSM.py
+    VTKWrapping/pvsimple.py
+    VTKWrapping/presentations.py
   )
 ENDIF()
 
