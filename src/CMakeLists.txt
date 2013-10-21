@@ -17,20 +17,27 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-SET(SUBDIRS
+SET(_subdirs
   ENGINE
   PVGUI
   PV_SWIG
   Macro
   )
+  
+IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
+  # Append in first position  
+  LIST(INSERT _subdirs 0 VTKWrapping)
+  ADD_DEFINITIONS(-DPARAVIS_WITH_FULL_CORBA)
+ENDIF()
 
-IF(BUILD_PLUGINS)
-  SET(SUBDIRS
-    ${SUBDIRS}
-    Plugins
-    )
-ENDIF(BUILD_PLUGINS)
+IF(SALOME_PARAVIS_BUILD_PLUGINS)
+  LIST(APPEND _subdirs Plugins)
+ENDIF()
 
-FOREACH(dir ${SUBDIRS})
+FOREACH(dir ${_subdirs})
   ADD_SUBDIRECTORY(${dir})
-ENDFOREACH(dir ${SUBDIRS})
+ENDFOREACH()
+
+SET(WRAP_IDL_I_HH "${WRAP_IDL_I_HH}" PARENT_SCOPE)
+SET(WRAP_IDL_I_CC "${WRAP_IDL_I_CC}" PARENT_SCOPE)
+

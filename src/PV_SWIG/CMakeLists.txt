@@ -17,20 +17,17 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-SET(dist_salomescript_DATA
-  paravis.py
-  paravisSM.py
-  pvsimple.py
-  presentations.py
+IF(SALOME_PARAVIS_MINIMAL_CORBA)
+  # Use another set of Python files
+  SET(_PYFILES_TO_INSTALL)
+  MESSAGE(WARNING "New Python scripts not impl !!!")
+ELSE()
+  SET(_PYFILES_TO_INSTALL
+    paravis.py
+    paravisSM.py
+    pvsimple.py
+    presentations.py
   )
+ENDIF()
 
-FOREACH(f ${dist_salomescript_DATA})
-  INSTALL(FILES ${f} DESTINATION bin/salome)
-
-  INSTALL(CODE "SET(PYTHON_FILE ${f})")
-  INSTALL(CODE "SET(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})")
-  INSTALL(CODE "SET(DEST bin/salome)")
-  INSTALL(CODE "SET(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})")
-  INSTALL(SCRIPT ${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/install_and_compile_python_file.cmake)
-  
-ENDFOREACH(f ${dist_salomescript_DATA})
+INSTALL_AND_COMPILE_PYTHON_FILE("${_PYFILES_TO_INSTALL}" ${SALOME_INSTALL_SCRIPT_PYTHON})

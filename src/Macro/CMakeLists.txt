@@ -17,10 +17,8 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-#FILE(GLOB copy_FILES "*py")
-#INSTALL(FILES ${copy_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/salome/Macros)
-INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/src/Macro 
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/salome 
-        FILES_MATCHING PATTERN "*.py"
-        PATTERN "CVS" EXCLUDE
-        )
+SET(_PYFILES_TO_INSTALL
+  modes.py
+  )
+  
+INSTALL_AND_COMPILE_PYTHON_FILE("${_PYFILES_TO_INSTALL}" ${SALOME_INSTALL_SCRIPT_PYTHON})

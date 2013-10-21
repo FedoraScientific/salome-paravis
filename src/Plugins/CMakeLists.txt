@@ -17,16 +17,9 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-PROJECT(SamplePlugins)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
-IF(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
-ENDIF(COMMAND CMAKE_POLICY)
-
-FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
-SUBDIRS(
+SET(_subdirs
   #Filter 
   #ToolBar 
   MedReader 
@@ -36,4 +29,8 @@ SUBDIRS(
   IntegrationPoints
   ElevationSurface
   ScaleVector
-)
+  )
+
+FOREACH(_dir ${_subdirs})
+  ADD_SUBDIRECTORY(${_dir})
+ENDFOREACH()

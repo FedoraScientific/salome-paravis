@@ -257,6 +257,7 @@ namespace PARAVIS {
     return myParaVisGen->PasteInto(theStream,theObjectID,theObject);
   }
 
+#ifdef PARAVIS_WITH_FULL_CORBA
   //===========================================================================
   PARAVIS::string_array* PARAVIS_Gen_i::GetClassesList()
   {
@@ -268,6 +269,7 @@ namespace PARAVIS {
   {
     return myParaVisGen->CreateClass(theClassName);
   }
+#endif
 
   //===========================================================================
   void PARAVIS_Gen_i::GetConnectionParameters(CORBA::Long& theId, 

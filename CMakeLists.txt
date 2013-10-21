@@ -16,47 +16,105 @@
 #
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-
-PROJECT(PARAVIS C CXX)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8 FATAL_ERROR)
+PROJECT(SalomePARAVIS C CXX)
 
 IF(WINDOWS)
   STRING( REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags ${CMAKE_SHARED_LINKER_FLAGS_DEBUG} )
   SET( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${replacementFlags}" )
 ENDIF(WINDOWS)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.7 FATAL_ERROR)
-IF(COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
-ENDIF(COMMAND cmake_policy)            
+# Ensure a proper linker behavior:
+CMAKE_POLICY(SET CMP0003 NEW)
 
-SET(KERNEL_ROOT_DIR $ENV{KERNEL_ROOT_DIR} CACHE PATH "KERNEL_ROOT_DIR")
-SET(GUI_ROOT_DIR $ENV{GUI_ROOT_DIR} CACHE PATH "GUI_ROOT_DIR")
-SET(MODULE PARAVIS)
+# Versioning
+# ===========
+# Project name, upper case
+STRING(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UC)
 
-SET(CMAKE_MODULE_PATH 
-    "${KERNEL_ROOT_DIR}/salome_adm/cmake_files" 
-    "${GUI_ROOT_DIR}/adm_local/cmake_files"
-    "${PROJECT_SOURCE_DIR}/adm_local/cmake_files")
+SET(${PROJECT_NAME_UC}_MAJOR_VERSION 7)
+SET(${PROJECT_NAME_UC}_MINOR_VERSION 2)
+SET(${PROJECT_NAME_UC}_PATCH_VERSION 0)
+SET(${PROJECT_NAME_UC}_VERSION
+  ${${PROJECT_NAME_UC}_MAJOR_VERSION}.${${PROJECT_NAME_UC}_MINOR_VERSION}.${${PROJECT_NAME_UC}_PATCH_VERSION})
+SET(${PROJECT_NAME_UC}_VERSION_DEV 1)
 
-INCLUDE(SalomeMacros)
-INCLUDE(SalomeSetupPlatform)
+# Find KERNEL
+# ===========
+SET(KERNEL_ROOT_DIR $ENV{KERNEL_ROOT_DIR} CACHE PATH "Path to the Salome KERNEL")
+IF(EXISTS ${KERNEL_ROOT_DIR})
+  LIST(APPEND CMAKE_MODULE_PATH "${KERNEL_ROOT_DIR}/salome_adm/cmake_files")
+  INCLUDE(SalomeMacros)
+  FIND_PACKAGE(SalomeKERNEL REQUIRED)
+  ADD_DEFINITIONS(${KERNEL_DEFINITIONS})
+  INCLUDE_DIRECTORIES(${KERNEL_INCLUDE_DIRS})
+ELSE(EXISTS ${KERNEL_ROOT_DIR})
+  MESSAGE(FATAL_ERROR "We absolutely need a Salome KERNEL, please define KERNEL_ROOT_DIR")
+ENDIF(EXISTS ${KERNEL_ROOT_DIR})
 
-FIND_PACKAGE(SalomeKERNEL REQUIRED)
+# Platform setup
+# ==============
+INCLUDE(SalomeSetupPlatform)   # From KERNEL
+# Always build libraries as shared objects:
+SET(BUILD_SHARED_LIBS TRUE)
+# Local macros:
+LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/adm_local/cmake_files")
 
-# From KERNEL:
+# Detect GUI root dir (but doesn't find GUI yet! See below)
+# ===================
+SET(GUI_ROOT_DIR $ENV{GUI_ROOT_DIR} CACHE PATH "Path to the Salome GUI")
+IF(EXISTS ${GUI_ROOT_DIR})
+  LIST(APPEND CMAKE_MODULE_PATH "${GUI_ROOT_DIR}/adm_local/cmake_files")
+ELSE()
+  MESSAGE(FATAL_ERROR "We absolutely need a Salome GUI, please define GUI_ROOT_DIR")
+ENDIF()
+
+
+# User options
+# (some options have already been defined in KERNEL) 
+# ============
+OPTION(SALOME_BUILD_DOC "Generate SALOME GUI documentation" ${SALOME_BUILD_DOC})
+OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ${SALOME_BUILD_TESTS})
+OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF)
+OPTION(SALOME_PARAVIS_BUILD_PLUGINS "Build PARAVIS plugins (MEDReader, etc ...)" ON)
+
+
+# Prerequisites
+# =============
+# Find "big" prerequisites first - they reference themselves many others
+#   -> this can help finding the smaller prerequisites and detect conficts.
+# In our case KERNEL has already loaded many prereq which are also used in GUI:
+
+##
+## From KERNEL:
+##
+
 FIND_PACKAGE(SalomePython REQUIRED)
-FIND_PACKAGE(SalomeOmniORB REQUIRED)
-FIND_PACKAGE(SalomeOmniORBPy REQUIRED)
-SET(OMNIORB_IDL_PYTHON ${OMNIORB_IDL_COMPILER}) 
-FIND_PACKAGE(SalomePThread REQUIRED)
 FIND_PACKAGE(SalomeHDF5 REQUIRED)
-FIND_PACKAGE(SalomeBoost REQUIRED)
-FIND_PACKAGE(SalomeLibXml2 REQUIRED)
 FIND_PACKAGE(SalomeSWIG REQUIRED)
-FIND_PACKAGE(SalomeCppUnit REQUIRED)
-FIND_PACKAGE(SalomeDoxygen REQUIRED)
 
-# From GUI: part 1 (Qt must be checked before ParaView)
+IF(NOT SALOME_LIGHT_ONLY)
+  FIND_PACKAGE(SalomeOmniORB REQUIRED)
+  FIND_PACKAGE(SalomeOmniORBPy REQUIRED)
+ENDIF()
+
+#IF(SALOME_BUILD_TESTS)
+#  ENABLE_TESTING()
+#  FIND_PACKAGE(SalomeCppUnit)
+#  SALOME_LOG_OPTIONAL_PACKAGE(CppUnit SALOME_BUILD_TESTS)  
+#ENDIF()
+IF(SALOME_BUILD_DOC)
+  FIND_PACKAGE(SalomeDoxygen)
+  FIND_PACKAGE(SalomeGraphviz)
+  FIND_PACKAGE(SalomeSphinx)
+  SALOME_LOG_OPTIONAL_PACKAGE(Doxygen SALOME_BUILD_DOC)
+  SALOME_LOG_OPTIONAL_PACKAGE(Graphviz SALOME_BUILD_DOC)
+  SALOME_LOG_OPTIONAL_PACKAGE(Sphinx SALOME_BUILD_DOC)
+ENDIF()
+
+##
+## From GUI: part 1 (Qt must be checked before ParaView)
+##
 FIND_PACKAGE(SalomeQt4 REQUIRED COMPONENTS QtCore QtGui QtXml QtHelp)
 # This search for qhelpgenerator is required here
 # to avoid detecting native one due to bug in ParaViewMacros.cmake
@@ -67,91 +125,149 @@ FIND_PROGRAM(QT_HELP_GENERATOR
     DOC "qhelpgenerator used to compile Qt help project files")
 MARK_AS_ADVANCED(QT_HELP_GENERATOR)
 
-# Specific to ParaVis:
-FIND_PACKAGE(SalomeParaView)
+##
+## Specific to ParaViS:
+##
+FIND_PACKAGE(SalomeParaView REQUIRED)
 
-# GUI has to be loaded AFTER ParaView: the ParaView config doesn't mix
+# GUI itself has to be loaded AFTER ParaView: the ParaView config doesn't mix
 # well with the VTK one (and GUI loads VTK):
 FIND_PACKAGE(SalomeGUI REQUIRED)
+ADD_DEFINITIONS(${GUI_DEFINITIONS})
+INCLUDE_DIRECTORIES(${GUI_INCLUDE_DIRS})
 
-# From GUI: part 2
+##
+## From GUI: part 2
+##
 FIND_PACKAGE(SalomeCAS REQUIRED)
-FIND_PACKAGE(SalomeOpenGL REQUIRED)
-FIND_PACKAGE(SalomeVTK REQUIRED)
-FIND_PACKAGE(SalomeQwt REQUIRED)
-FIND_PACKAGE(SalomeSIP REQUIRED)
-FIND_PACKAGE(SalomePyQt4 REQUIRED)
 
-SET(VERSION_MAJOR 7)
-SET(VERSION_MINOR 2)
-SET(VERSION_MAINTENANCE 0)
-SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MAINTENANCE}")
-SET(XVERSION 0x0${VERSION_MAJOR}0${VERSION_MINOR}0${VERSION_MAINTENANCE})
-SET(VERSION_DEV 0)
-
-SET(BUILD_PLUGINS 1)
-
-#SET(VISU_ROOT_DIR $ENV{VISU_ROOT_DIR} CACHE PATH "VISU_ROOT_DIR")
-#IF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
-  #INCLUDE(${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
-  #SET(WITH_VISU 1)
-#ENDIF(EXISTS ${VISU_ROOT_DIR}/adm_local/cmake_files/FindVISU.cmake)
-
-SET(MED_ROOT_DIR "$ENV{MED_ROOT_DIR}" CACHE PATH "Path to the MED Salome module")
-LIST(APPEND CMAKE_MODULE_PATH "${MED_ROOT_DIR}/adm_local/cmake_files")
-FIND_PACKAGE(SalomeMED REQUIRED)
-FIND_PACKAGE(SalomeMEDFile REQUIRED)
-
-# TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
-MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
-LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
-EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0}
-    RESULT_VARIABLE _res)
-IF(NOT _res EQUAL 0)
-  MESSAGE(FATAL_ERROR "Unable to run the Python script retrieving the list of VTK classes.")
+##
+## From MED
+##
+IF(SALOME_PARAVIS_BUILD_PLUGINS)
+  SET(MED_ROOT_DIR $ENV{MED_ROOT_DIR} CACHE PATH "Path to the Salome MED module")
+  IF(EXISTS ${MED_ROOT_DIR})
+    LIST(APPEND CMAKE_MODULE_PATH "${MED_ROOT_DIR}/adm_local/cmake_files")
+    FIND_PACKAGE(SalomeMED REQUIRED)  # Should load MEDFile too
+  ELSE()
+    MESSAGE(FATAL_ERROR "We absolutely need the Salome MED module to build plugins, please define MED_ROOT_DIR")
+  ENDIF()
 ENDIF()
 
-SET(SUBDIRS
-  idl
-  adm_local
-  resources
-  src
-  doc
-  bin
-  )
+## Detection summary:
+SALOME_PACKAGE_REPORT_AND_CHECK()
 
-SET(DISTCLEANFILES
-  wrapfiles.txt
-  )
+# Directories
+# (default values taken from KERNEL)
+# ===========
+SET(SALOME_INSTALL_BINS "${SALOME_INSTALL_BINS}" CACHE PATH "Install path: SALOME binaries")
+SET(SALOME_INSTALL_LIBS "${SALOME_INSTALL_LIBS}" CACHE PATH "Install path: SALOME libs")
+SET(SALOME_INSTALL_IDLS "${SALOME_INSTALL_IDLS}" CACHE PATH "Install path: SALOME IDL files")
+SET(SALOME_INSTALL_HEADERS "${SALOME_INSTALL_HEADERS}" CACHE PATH "Install path: SALOME headers")
+SET(SALOME_INSTALL_SCRIPT_SCRIPTS "${SALOME_INSTALL_SCRIPT_SCRIPTS}" CACHE PATH 
+   "Install path: SALOME scripts")
+SET(SALOME_INSTALL_SCRIPT_DATA "${SALOME_INSTALL_SCRIPT_DATA}" CACHE PATH 
+   "Install path: SALOME script data")
+SET(SALOME_INSTALL_SCRIPT_PYTHON "${SALOME_INSTALL_SCRIPT_PYTHON}" CACHE PATH 
+   "Install path: SALOME Python scripts")
+SET(SALOME_INSTALL_PYTHON "${SALOME_INSTALL_PYTHON}" CACHE PATH "Install path: SALOME Python stuff")
+SET(SALOME_INSTALL_PYTHON_SHARED "${SALOME_INSTALL_PYTHON_SHARED}" CACHE PATH 
+   "Install path: SALOME Python shared modules")
+SET(SALOME_INSTALL_CMAKE "${SALOME_INSTALL_CMAKE}" CACHE PATH "Install path: SALOME CMake files")
+SET(SALOME_INSTALL_CMAKE_LOCAL "${SALOME_INSTALL_CMAKE_LOCAL}" CACHE PATH 
+    "Install path: local SALOME CMake files") 
+SET(SALOME_INSTALL_AMCONFIG_LOCAL "${SALOME_INSTALL_AMCONFIG_LOCAL}" CACHE PATH
+  "Install path: local SALOME config files (obsolete, to be removed)")
 
-INCLUDE(wrapfiles.cmake)
+SET(SALOME_INSTALL_RES "${SALOME_INSTALL_RES}" CACHE PATH "Install path: SALOME resources")
+SET(SALOME_INSTALL_DOC "${SALOME_INSTALL_DOC}" CACHE PATH "Install path: SALOME documentation")
 
-SET(input ${CMAKE_CURRENT_SOURCE_DIR}/PARAVIS_version.h.in)
-SET(output ${CMAKE_CURRENT_BINARY_DIR}/PARAVIS_version.h)
+# Specific to PARAVIS:
+SET(SALOME_PARAVIS_INSTALL_RES_DATA "${SALOME_INSTALL_RES}/paravis" CACHE PATH "Install path: SALOME PARAVIS specific data")
 
-MESSAGE(STATUS "Creation of ${output}")
-CONFIGURE_FILE(${input} ${output})
+MARK_AS_ADVANCED(SALOME_INSTALL_BINS SALOME_INSTALL_LIBS SALOME_INSTALL_IDLS SALOME_INSTALL_HEADERS)
+MARK_AS_ADVANCED(SALOME_INSTALL_SCRIPT_SCRIPTS SALOME_INSTALL_SCRIPT_DATA SALOME_INSTALL_SCRIPT_PYTHON)
+MARK_AS_ADVANCED(SALOME_INSTALL_APPLISKEL_SCRIPTS  SALOME_INSTALL_APPLISKEL_PYTHON SALOME_INSTALL_CMAKE SALOME_INSTALL_CMAKE_LOCAL SALOME_INSTALL_RES)
+MARK_AS_ADVANCED(SALOME_INSTALL_PYTHON SALOME_INSTALL_PYTHON_SHARED)
+MARK_AS_ADVANCED(SALOME_INSTALL_AMCONFIG_LOCAL SALOME_INSTALL_DOC SALOME_PARAVIS_INSTALL_RES_DATA)
 
-FOREACH(dir ${SUBDIRS})
-  ADD_SUBDIRECTORY(${dir})
-ENDFOREACH(dir ${SUBDIRS})
+# Sources 
+# ========
+ADD_SUBDIRECTORY(src)
 
-# Reset CMAKE_CONFIGURATION_TYPES to the good value defined by CMAKE_BUILD_TYPE
-IF(CMAKE_BUILD_TYPE)
-  IF(WINDOWS)
-    MARK_AS_ADVANCED(CLEAR CMAKE_CONFIGURATION_TYPES)
-    SET(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "compilation types" FORCE)
-  ENDIF(WINDOWS)
-ENDIF(CMAKE_BUILD_TYPE)
+IF(NOT SALOME_LIGHT_ONLY)
+  ADD_SUBDIRECTORY(idl)   # Order matters when using the wrapping - to be added AFTER src
+ENDIF()
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/PARAVIS_version.h DESTINATION include/salome)
+ADD_SUBDIRECTORY(adm_local)
+ADD_SUBDIRECTORY(resources)
 
-# Configure Testing
-OPTION(BUILD_TESTING "Build ParaVis Testing" ON)
-IF(BUILD_TESTING)
-   SET(PARAVIS_TEST_DIR ${ParaVis_BINARY_DIR}/Test/Temporary)
-   MAKE_DIRECTORY(${PARAVIS_TEST_DIR})  # TODO: replace with FILE(MAKE_DIRECTORY ...)
-   ENABLE_TESTING()
-   INCLUDE (CTest)
-   ADD_SUBDIRECTORY(test)
-ENDIF(BUILD_TESTING)
+IF(SALOME_BUILD_DOC)
+  ADD_SUBDIRECTORY(doc)
+ENDIF()
+ADD_SUBDIRECTORY(bin)
+
+# Header configuration
+# ====================
+SALOME_XVERSION(${PROJECT_NAME})
+SALOME_CONFIGURE_FILE(PARAVIS_version.h.in PARAVIS_version.h INSTALL ${SALOME_INSTALL_HEADERS})
+
+# Configuration export
+# (here only the level 1 prerequisites are exposed)
+# ====================
+INCLUDE(CMakePackageConfigHelpers)
+
+# List of targets in this project we want to make visible to the rest of the world.
+# They all have to be INSTALL'd with the option "EXPORT ${PROJECT_NAME}TargetGroup"
+SET(_${PROJECT_NAME}_exposed_targets 
+    SalomeIDLPARAVIS PARAVIS PARAVISEngine
+)
+
+# Add all targets to the build-tree export set
+EXPORT(TARGETS ${_${PROJECT_NAME}_exposed_targets}
+  FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake)
+
+# Create the configuration files:
+#   - in the build tree:
+
+#      Ensure the variables are always defined for the configure:
+SET(SIP_ROOT_DIR "${SIP_ROOT_DIR}")
+SET(QT4_ROOT_DIR "${QT4_ROOT_DIR}")
+SET(PYQT4_ROOT_DIR "${PYQT4_ROOT_DIR}")
+SET(CAS_ROOT_DIR "${CAS_ROOT_DIR}")
+SET(OPENGL_ROOT_DIR "${OPENGL_ROOT_DIR}")
+SET(VTK_ROOT_DIR "${VTK_ROOT_DIR}")
+SET(QWT_ROOT_DIR "${QWT_ROOT_DIR}")
+ 
+SET(CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}/include")
+CONFIGURE_PACKAGE_CONFIG_FILE(${PROJECT_NAME}Config.cmake.in 
+    ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    INSTALL_DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}"
+    PATH_VARS CONF_INCLUDE_DIRS SALOME_INSTALL_CMAKE_LOCAL CMAKE_INSTALL_PREFIX
+       KERNEL_ROOT_DIR SIP_ROOT_DIR QT4_ROOT_DIR PYQT4_ROOT_DIR CAS_ROOT_DIR 
+       OPENGL_ROOT_DIR VTK_ROOT_DIR QWT_ROOT_DIR)
+
+#   - in the install tree (VSR 16/08/2013: TEMPORARILY COMMENT THIS - TO REMOVE?):
+#       Get the relative path of the include directory so 
+#       we can register it in the generated configuration files:
+#SET(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR}")
+#CONFIGURE_PACKAGE_CONFIG_FILE(adm_local/cmake_files/${PROJECT_NAME}Config.cmake.in 
+#    ${PROJECT_BINARY_DIR}/to_install/${PROJECT_NAME}Config.cmake
+#    INSTALL_DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}"
+#    PATH_VARS CONF_INCLUDE_DIRS SALOME_INSTALL_CMAKE_LOCAL CMAKE_INSTALL_PREFIX 
+#       KERNEL_ROOT_DIR SIP_ROOT_DIR QT4_ROOT_DIR PYQT4_ROOT_DIR CAS_ROOT_DIR 
+#       OPENGL_ROOT_DIR VTK_ROOT_DIR QWT_ROOT_DIR)
+
+WRITE_BASIC_PACKAGE_VERSION_FILE(${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    VERSION ${${PROJECT_NAME_UC}_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+  
+# Install the CMake configuration files:
+INSTALL(FILES
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}")
+
+# Install the export set for use with the install-tree
+INSTALL(EXPORT ${PROJECT_NAME}TargetGroup DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}" 
+        FILE ${PROJECT_NAME}Targets.cmake)

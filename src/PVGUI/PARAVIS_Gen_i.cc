@@ -48,7 +48,10 @@
 #include "QDir"
 #include "QTextStream"
 
-#include "vtkWrapIDL.h"
+#ifdef PARAVIS_WITH_FULL_CORBA
+  // List of VTK classes wrapped into IDL:
+# include "vtkWrapIDL.h"
+#endif
 
 #include <pqServer.h>
 #include <pqServerResource.h>
@@ -593,6 +596,7 @@ namespace PARAVIS
     return SALOMEDS::SObject::_nil();
   }
 
+#ifdef PARAVIS_WITH_FULL_CORBA
   //----------------------------------------------------------------------------
   PARAVIS::string_array* PARAVIS_Gen_i::GetClassesList()
   {
@@ -611,6 +615,7 @@ namespace PARAVIS
     PARAVIS::PARAVIS_Base_i* aClass = CreateInstance(NULL, QString(theClassName));
     return aClass->_this();
   }
+#endif
 
   //----------------------------------------------------------------------------
   void PARAVIS_Gen_i::GetConnectionParameters(CORBA::Long& theId, 
@@ -729,7 +734,7 @@ namespace PARAVIS
   // Version information
   char* PARAVIS_Gen_i::getVersion()
   {
-#if PARAVIS_DEVELOPMENT
+#ifdef PARAVIS_DEVELOPMENT
     return CORBA::string_dup( PARAVIS_VERSION_STR"dev" );
 #else
     return CORBA::string_dup( PARAVIS_VERSION_STR );

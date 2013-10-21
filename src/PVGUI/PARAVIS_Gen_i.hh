@@ -182,11 +182,13 @@ namespace PARAVIS
     //! inherited methods from Engines::EngineComponent. Returns module version.
     virtual char* getVersion();
 
+#ifdef PARAVIS_WITH_FULL_CORBA
     //! Implementation of PARAVIS_Gen interface
     virtual PARAVIS::string_array* GetClassesList();
 
     //! Implementation of PARAVIS_Gen interface
     virtual PARAVIS_Base_ptr CreateClass(const char* theClassName);
+#endif
 
     //! Implementation of PARAVIS_Gen interface
     virtual void GetConnectionParameters(CORBA::Long& theId, 

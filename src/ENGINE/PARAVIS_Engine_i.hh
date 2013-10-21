@@ -103,9 +103,10 @@ namespace PARAVIS
     virtual SALOMEDS::SObject_ptr PasteInto(const SALOMEDS::TMPFile& theStream,
                                             CORBA::Long theObjectID, SALOMEDS::SObject_ptr theObject);
 
-
+#ifdef PARAVIS_WITH_FULL_CORBA
     virtual PARAVIS::string_array* GetClassesList();
     virtual PARAVIS_Base_ptr CreateClass(const char* theClassName);
+#endif
     virtual void GetConnectionParameters(CORBA::Long& theId, 
                                          CORBA::String_out theDHost, CORBA::Long& theDPort,
                                          CORBA::String_out theRHost, CORBA::Long& theRPort,
