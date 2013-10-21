@@ -73,8 +73,8 @@ ENDIF()
 # User options
 # (some options have already been defined in KERNEL) 
 # ============
-OPTION(SALOME_BUILD_DOC "Generate SALOME GUI documentation" ${SALOME_BUILD_DOC})
-OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ${SALOME_BUILD_TESTS})
+OPTION(SALOME_BUILD_DOC "Generate SALOME GUI documentation" ON)
+OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ON)
 OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF)
 OPTION(SALOME_PARAVIS_BUILD_PLUGINS "Build PARAVIS plugins (MEDReader, etc ...)" ON)
 
