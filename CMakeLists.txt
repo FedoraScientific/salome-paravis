@@ -191,14 +191,27 @@ MARK_AS_ADVANCED(SALOME_INSTALL_APPLISKEL_SCRIPTS  SALOME_INSTALL_APPLISKEL_PYTH
 MARK_AS_ADVANCED(SALOME_INSTALL_PYTHON SALOME_INSTALL_PYTHON_SHARED)
 MARK_AS_ADVANCED(SALOME_INSTALL_AMCONFIG_LOCAL SALOME_INSTALL_DOC SALOME_PARAVIS_INSTALL_RES_DATA)
 
+## Generation of the list of VTK classes (to be wrapped into IDLs) 
+## =====================================
+IF(NOT SALOME_LIGHT_ONLY)
+  # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
+  MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
+  LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
+  EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/VTKWrapping/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0}
+      RESULT_VARIABLE _res)
+  IF(NOT _res EQUAL 0)
+    MESSAGE(FATAL_ERROR "Unable to run the Python script retrieving the list of VTK classes.")
+  ENDIF()
+ENDIF()
+
+
 # Sources 
 # ========
-ADD_SUBDIRECTORY(src)
-
 IF(NOT SALOME_LIGHT_ONLY)
   ADD_SUBDIRECTORY(idl)   # Order matters when using the wrapping - to be added AFTER src
 ENDIF()
 
+ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(adm_local)
 ADD_SUBDIRECTORY(resources)
 

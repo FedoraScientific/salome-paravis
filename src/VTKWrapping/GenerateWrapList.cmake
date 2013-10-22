@@ -17,6 +17,9 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+#####
+# NOT USED ANYMORE ... to be deleted
+####
 ADD_CUSTOM_COMMAND(
  OUTPUT ${PROJECT_BINARY_DIR}/wrapfiles.txt
  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/getwrapclasses.py

@@ -82,4 +82,3 @@ ENDIF(EXISTS ${CMAKE_BINARY_DIR}/wrapfiles.txt)
 ADD_CUSTOM_TARGET(generate_txt DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt vtkWrapIDL.h hints)
 ADD_CUSTOM_TARGET(generate_idl ALL DEPENDS ${CMAKE_BINARY_DIR}/wrapfiles.txt vtkWrapIDL.h hints ${WRAP_IDL})
 
-

@@ -17,22 +17,6 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-
-## Generation of the list of VTK classes (to be wrapped into IDLs) 
-## =====================================
-IF(NOT SALOME_LIGHT_ONLY)
-  # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
-  MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
-  LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
-  EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0}
-      RESULT_VARIABLE _res)
-  IF(NOT _res EQUAL 0)
-    MESSAGE(FATAL_ERROR "Unable to run the Python script retrieving the list of VTK classes.")
-  ENDIF()
-ENDIF()
-
-INCLUDE(GenerateWrapList.cmake)
-
 ## Parser for VTK header files 
 ## ===========================
 ##
@@ -107,6 +91,8 @@ INCLUDE(wrap.cmake)
 ## SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 ADD_LIBRARY(VTK_IDL_Impl OBJECT ${WRAP_IDL_I_CC})
+# Ensure .hh files corresponding to IDL have been generated first:
+ADD_DEPENDENCIES(VTK_IDL_Impl omniorb_module_SalomeIDLPARAVIS)
 
 # Make the list of wrapped files visible from the top directory (will be used in PVGUI and idl):
 SET(WRAP_IDL_I_HH "${WRAP_IDL_I_HH}" PARENT_SCOPE)
