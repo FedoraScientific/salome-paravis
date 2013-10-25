@@ -66,6 +66,7 @@
 #include <SALOME_ListIO.hxx>
 #include <SALOMEDS_Tool.hxx>
 #include <PyInterp_Dispatcher.h>
+#include <PyConsole_Console.h>
 
 #include <QtxActionMenuMgr.h>
 #include <QtxActionToolMgr.h>
@@ -635,15 +636,16 @@ void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
   }
 }
 
-
-/*!
-  \brief Launches a tracing of current server
-*/
-void PVGUI_Module::timerEvent(QTimerEvent* te )
+void PVGUI_Module::execPythonCommand(const QString& cmd, bool inSalomeConsole)
 {
-#ifndef WNT
-  PyInterp_Dispatcher* aDispatcher = PyInterp_Dispatcher::Get();
-  if ( !aDispatcher->IsBusy() ) {
+  if ( inSalomeConsole ) {
+    SalomeApp_Application* app =
+      dynamic_cast< SalomeApp_Application* >(SUIT_Session::session()->activeApplication());
+    PyConsole_Console* pyConsole = app->pythonConsole();
+    if (pyConsole)
+      pyConsole->exec(cmd);
+  }
+  else {
     pqPythonManager* manager = qobject_cast<pqPythonManager*>
       ( pqApplicationCore::instance()->manager( "PYTHON_MANAGER" ) );
     if ( manager )  {
@@ -651,13 +653,21 @@ void PVGUI_Module::timerEvent(QTimerEvent* te )
       if ( pyDiag ) {
 	pqPythonShell* shell = pyDiag->shell();
 	if ( shell ) {
-	  QString script = "from paraview import smtrace\nsmtrace.start_trace()\n";
-	  shell->executeScript(script);
-	  killTimer( te->timerId() );
+	  shell->executeScript(cmd);
 	}
       }
     }
   }
+}
+
+/*!
+  \brief Launches a tracing of current server
+*/
+void PVGUI_Module::timerEvent(QTimerEvent* te )
+{
+#ifndef WNT
+  execPythonCommand("from paraview import smtrace\nsmtrace.start_trace()\n", false);
+  killTimer( te->timerId() );
 #endif
 }
   
@@ -1346,23 +1356,10 @@ void PVGUI_Module::onShowTrace()
 */
 void PVGUI_Module::onRestartTrace()
 {
-  PyInterp_Dispatcher* aDispatcher = PyInterp_Dispatcher::Get();
-  if ( !aDispatcher->IsBusy() ) {
-    pqPythonManager* manager = qobject_cast<pqPythonManager*>
-       ( pqApplicationCore::instance()->manager( "PYTHON_MANAGER" ) );
-    if ( manager )  {
-      pqPythonDialog* pyDiag = manager->pythonShellDialog();
-        if ( pyDiag ) {
-          pqPythonShell* shell = pyDiag->shell();
-            if ( shell ) {
-              QString script = "from paraview import smtrace\n";
-              script += "smtrace.stop_trace()\n";
-              script += "smtrace.start_trace()\n";
-              shell->executeScript(script);
-            }
-        }
-    }
-  }
+  QString script = "from paraview import smtrace\n";
+  script += "smtrace.stop_trace()\n";
+  script += "smtrace.start_trace()\n";
+  execPythonCommand(script, false);
 }
 
 /*!

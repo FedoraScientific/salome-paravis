@@ -217,6 +217,9 @@ private:
   //! restore visibility of the common dockable windows (OB, PyConsole, ... etc.)
   void restoreCommonWindowsState();
 
+  //! run Python command
+  void execPythonCommand(const QString& cmd, bool inSalomeConsole = false);
+
 private slots:
 
   void showHelpForProxy( const QString&, const QString& );
