@@ -195,7 +195,7 @@ MARK_AS_ADVANCED(SALOME_INSTALL_AMCONFIG_LOCAL SALOME_INSTALL_DOC SALOME_PARAVIS
 
 ## Generation of the list of VTK classes (to be wrapped into IDLs) 
 ## =====================================
-IF(NOT SALOME_LIGHT_ONLY)
+IF(NOT SALOME_LIGHT_ONLY AND NOT SALOME_PARAVIS_MINIMAL_CORBA)
   # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
   MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
   LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
