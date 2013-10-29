@@ -464,13 +464,14 @@ void vtkMedEntityArray::GetCellVertices(vtkIdType index, vtkIdList* ids)
         this->GetEntity().GeometryType));
     for (int sub = 0; sub<nsub; sub++)
       {
-      med_int subid = conn->GetValue(nsub*index+sub)-1;
+      med_int subid = conn->GetValue(nsub*index+sub);
       bool invert = false;
       if(subid < 0)
         {
         subid = -subid;
         invert = true;
         }
+      subid = subid-1;
 
       vtkMedEntity subentity;
       subentity.GeometryType = vtkMedUtilities::GetSubGeometry(
