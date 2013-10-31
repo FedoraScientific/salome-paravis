@@ -638,6 +638,7 @@ void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
 
 void PVGUI_Module::execPythonCommand(const QString& cmd, bool inSalomeConsole)
 {
+  if ( PyInterp_Dispatcher::Get()->IsBusy() ) return;
   if ( inSalomeConsole ) {
     SalomeApp_Application* app =
       dynamic_cast< SalomeApp_Application* >(SUIT_Session::session()->activeApplication());
