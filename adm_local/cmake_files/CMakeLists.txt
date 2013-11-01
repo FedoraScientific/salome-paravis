@@ -19,6 +19,7 @@
 
 SET(_adm_data
   FindSalomeParaView.cmake
+  FindSalomePARAVIS.cmake
   )
 
 INSTALL(FILES ${_adm_data} DESTINATION ${SALOME_INSTALL_CMAKE_LOCAL})
