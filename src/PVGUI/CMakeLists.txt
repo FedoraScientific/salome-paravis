@@ -88,6 +88,7 @@ SET(_ts_RESOURCES
   resources/PARAVIS_images.ts
   resources/PARAVIS_msg_en.ts
   resources/PARAVIS_msg_fr.ts
+  resources/PARAVIS_msg_ja.ts
 )
 
 # resource files / static
