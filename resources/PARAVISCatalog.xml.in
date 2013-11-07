@@ -30,7 +30,7 @@
             <component-username>ParaView</component-username>
             <component-type>PARAVIS</component-type>
             <component-author>vsv</component-author>
-            <component-version>@VERSION@</component-version>
+            <component-version>@SALOMEPARAVIS_VERSION@</component-version>
             <component-comment>ParaView module</component-comment>
             <component-multistudy>1</component-multistudy>
             <component-impltype>1</component-impltype>

@@ -24,7 +24,7 @@
     <!-- Major module parameters -->
     <parameter name="name" value="ParaViS"/>
     <parameter name="icon" value="pqAppIcon22.png"/>
-    <parameter name="version" value="@VERSION@"/>
+    <parameter name="version" value="@SALOMEPARAVIS_VERSION@"/>
     <parameter name="singleton" value="true"/>
     <!-- Lists all additional popup items separated by ':' -->
     <parameter name="popupitems" value="importmed"/>

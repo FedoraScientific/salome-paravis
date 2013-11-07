@@ -23,12 +23,22 @@
 #if !defined(__PARAVIS_VERSION_H__)
 #define __PARAVIS_VERSION_H__
 
-/*
-  PARAVIS_VERSION is (major << 16) + (minor << 8) + patch.
+/*!
+  Specify version of SALOME PARAVIS module, as follows
+
+  PARAVIS_VERSION_MAJOR       : (integer) number identifying major version
+  PARAVIS_VERSION_MINOR       : (integer) number identifying minor version
+  PARAVIS_VERSION_MAINTENANCE : (integer) number identifying maintenance version
+  PARAVIS_VERSION_STR         : (string)  complete version number "major.minor.maintenance"
+  PARAVIS_VERSION             : (hex)     complete version number (major << 16) + (minor << 8) + maintenance
+  PARAVIS_DEVELOPMENT         : (integer) indicates development version when set to 1
 */
 
-#define PARAVIS_VERSION_STR "@VERSION@"
-#define PARAVIS_VERSION     @XVERSION@
-#define PARAVIS_DEVELOPMENT @VERSION_DEV@
+#define PARAVIS_VERSION_MAJOR       @SALOMEPARAVIS_MAJOR_VERSION@
+#define PARAVIS_VERSION_MINOR       @SALOMEPARAVIS_MINOR_VERSION@
+#define PARAVIS_VERSION_MAINTENANCE @SALOMEPARAVIS_PATCH_VERSION@
+#define PARAVIS_VERSION_STR         "@SALOMEPARAVIS_VERSION@"
+#define PARAVIS_VERSION             @SALOMEPARAVIS_XVERSION@
+#define PARAVIS_DEVELOPMENT         @SALOMEPARAVIS_VERSION_DEV@
 
 #endif // __PARAVIS_VERSION_H__

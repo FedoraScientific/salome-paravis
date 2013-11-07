@@ -22,7 +22,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "ParaViS Module v.@VERSION@"
+PROJECT_NAME           = "ParaViS Module v.@SALOMEPARAVIS_VERSION@"
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = PARAVIS
 CREATE_SUBDIRS         = NO
@@ -34,7 +34,7 @@ ABBREVIATE_BRIEF       =
 ALWAYS_DETAILED_SEC    = YES
 INLINE_INHERITED_MEMB  = YES
 FULL_PATH_NAMES        = YES
-STRIP_FROM_PATH        = @top_srcdir@ @top_builddir@
+STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@ @CMAKE_BINARY_DIR@
 STRIP_FROM_INC_PATH    = 
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = YES
@@ -94,9 +94,9 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = @top_srcdir@/src \
-			 @top_srcdir@/bin \
-			 @top_builddir@/bin
+INPUT                  = @CMAKE_SOURCE_DIR@/src \
+			 @CMAKE_SOURCE_DIR@/bin \
+			 @CMAKE_BINARY_DIR@/bin
 FILE_PATTERNS          = *.hxx *.cxx *.h *.c *.hh *.cc @DOXYGEN_PYTHON_EXTENSION@
 RECURSIVE              = YES
 EXCLUDE                = 
@@ -105,7 +105,7 @@ EXCLUDE_PATTERNS       =
 EXAMPLE_PATH           = 
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
-IMAGE_PATH             = @srcdir@/images
+IMAGE_PATH             = @CMAKE_CURRENT_SOURCE_DIR@/images
 INPUT_FILTER           = 
 FILTER_PATTERNS        = 
 FILTER_SOURCE_FILES    = YES
@@ -134,9 +134,9 @@ IGNORE_PREFIX          =
 GENERATE_HTML          = YES
 HTML_OUTPUT            = .
 HTML_FILE_EXTENSION    = .html
-HTML_HEADER            = @srcdir@/static/myheader.html
-HTML_FOOTER            = @srcdir@/static/footer.html
-HTML_STYLESHEET        = @srcdir@/static/doxygen.css
+HTML_HEADER            = @CMAKE_CURRENT_SOURCE_DIR@/static/myheader.html
+HTML_FOOTER            = @CMAKE_CURRENT_SOURCE_DIR@/static/footer.html
+HTML_STYLESHEET        = @CMAKE_CURRENT_SOURCE_DIR@/static/doxygen.css
 HTML_ALIGN_MEMBERS     = YES
 GENERATE_HTMLHELP      = NO
 CHM_FILE               = 
