@@ -24,7 +24,7 @@ SET(READER_SRCS
 
 ADD_LIBRARY(vtkVisuTableReader ${READER_SRCS})
 
-TARGET_LINK_LIBRARIES(vtkVisuTableReader ${VTK_LIBRARIES} ${vtkInfovis} ${QT_LIBS})
+TARGET_LINK_LIBRARIES(vtkVisuTableReader ${VTK_LIBRARIES} ${vtkInfovis} ${QT_LIBRARIES})
 
 INSTALL(
     TARGETS vtkVisuTableReader
