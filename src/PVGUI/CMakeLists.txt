@@ -143,9 +143,20 @@ SET(_other_SOURCES
   )
 
 IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
+  # Generate headers and sources corresponding to the IDL implementations:
+  INCLUDE(${PROJECT_SOURCE_DIR}/src/VTKWrapping/wrap.cmake)
+
+  ## From 2.8.10, we should use:
+  ## SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+  # Make the list of wrapped files visible from the top directory (will be used in idl):
+  SET(WRAP_IDL_I_HH "${WRAP_IDL_I_HH}" PARENT_SCOPE)
+  SET(WRAP_IDL_I_CC "${WRAP_IDL_I_CC}" PARENT_SCOPE)
+
   SET(_VTK_wrap_SOURCES
     PARAVIS_CreateClass.cxx
-    $<TARGET_OBJECTS:VTK_IDL_Impl>
+    ${WRAP_IDL_I_CC}
   )
 ENDIF()
   
@@ -186,6 +197,11 @@ ADD_LIBRARY(PARAVIS ${PVGUI_SOURCES})
 IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
   # Make sure the generation of the VTK wrapping get executed first:
   ADD_DEPENDENCIES(PARAVIS PARAVIS_CreateClass.cxx)
+ENDIF()
+
+IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
+  # Ensure .hh files corresponding to IDL have been generated first:
+  ADD_DEPENDENCIES(PARAVIS omniorb_module_SalomeIDLPARAVIS)  
 ENDIF()
 
 TARGET_LINK_LIBRARIES(PARAVIS ${_link_LIBRARIES})

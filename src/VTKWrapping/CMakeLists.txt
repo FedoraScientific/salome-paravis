@@ -85,17 +85,3 @@ FOREACH(name ${_wrap_PROGRAMS})
   ENDIF(WIN32)
   INSTALL(FILES ${${name}_EXEFILE} DESTINATION bin/salome PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 ENDFOREACH(name ${_wrap_PROGRAMS})
-
-# Generate headers and sources corresponding to the IDL implementations:
-INCLUDE(wrap.cmake)
-
-## From 2.8.10, we should use:
-## SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-ADD_LIBRARY(VTK_IDL_Impl OBJECT ${WRAP_IDL_I_CC})
-# Ensure .hh files corresponding to IDL have been generated first:
-ADD_DEPENDENCIES(VTK_IDL_Impl omniorb_module_SalomeIDLPARAVIS)
-
-# Make the list of wrapped files visible from the top directory (will be used in PVGUI and idl):
-SET(WRAP_IDL_I_HH "${WRAP_IDL_I_HH}" PARENT_SCOPE)
-SET(WRAP_IDL_I_CC "${WRAP_IDL_I_CC}" PARENT_SCOPE)
