@@ -69,15 +69,16 @@ ELSE()
   MESSAGE(FATAL_ERROR "We absolutely need a Salome GUI, please define GUI_ROOT_DIR")
 ENDIF()
 
-
 # User options
-# (some options have already been defined in KERNEL) 
 # ============
 OPTION(SALOME_BUILD_DOC "Generate SALOME GUI documentation" ON)
 OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ON)
 OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF)
 OPTION(SALOME_PARAVIS_BUILD_PLUGINS "Build PARAVIS plugins (MEDReader, etc ...)" ON)
 
+IF(SALOME_BUILD_TESTS)
+  ENABLE_TESTING()
+ENDIF()
 
 # Prerequisites
 # =============
@@ -98,11 +99,6 @@ IF(NOT SALOME_LIGHT_ONLY)
   FIND_PACKAGE(SalomeOmniORBPy REQUIRED)
 ENDIF()
 
-#IF(SALOME_BUILD_TESTS)
-#  ENABLE_TESTING()
-#  FIND_PACKAGE(SalomeCppUnit)
-#  SALOME_LOG_OPTIONAL_PACKAGE(CppUnit SALOME_BUILD_TESTS)  
-#ENDIF()
 IF(SALOME_BUILD_DOC)
   FIND_PACKAGE(SalomeDoxygen)
   FIND_PACKAGE(SalomeGraphviz)
