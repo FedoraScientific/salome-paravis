@@ -147,29 +147,24 @@ directory:</SPAN></P>
 is generated automatically. The process of building PARAVIS module
 with generation of wrappers is performed in the following way:</P>
 <OL>
-	<LI><P>Call <B>build_configure</B> script. During performing of this
-	script it performs some standard steps of SALOME module building and
-	calls a Python command file <B>getwrapclasses.py</B> is called. This
-	procedure creates a list of ParaView and VTK class names what has to
-	be extracted. This list includes all <B>vtkSM*</B> classes and <B>vtk*
-	</B>classes what are referred by previous group of classes. Results
+	<LI><P>Execute <B>cmake</B> command from a build directory. 
+	During performing of this command it performs some standard steps 
+	of SALOME module building and calls a Python command file 
+	<B>getwrapclasses.py</B> is called. This procedure creates a list 
+	of ParaView and VTK class names what has to be extracted. 
+	This list includes all <B>vtkSM*</B> classes and <B>vtk*</B> classes 
+	what are referred by previous group of classes. Results
 	of build_configure step are:</P>
 	<OL TYPE=a>
-		<LI><P>idl/wrap.am – defines variables what lists all interfaces
+		<LI><P>idl/wrap.cmake – defines variables what lists all interfaces
 		(*.idl and *.cc files) what will be generated.</P>
-		<LI><P>idl/vtkWrapIDL.h – defines a list of extracted classes in
+		<LI><P>idl/vtkWrapIDL.c – defines a list of extracted classes in
 		form of char* array.</P>
-		<LI><P>src/PVGUI/wrap.am - defines variables what lists all servant
-		classes (*.hh and *.cc files) what will be generated.</P>
 		<LI><P>src/PVGUI/PARAVIS_CreateClass.cxx is a C++ file what
 		contains a one function CreateInstance. This function creates a
 		servant class which corresponds to a given name of original
 		ParaView/VTK class.</P>
 	</OL>
-	<LI><P>Launch <B>configure</B> script from a build directory. This
-	step is similar to the same steps in other SALOME modules and does
-	not have any special related to automatic generation of CORBA
-	interfaces.</P>
 	<LI><P>Call <B>make</B> command in build directory. This command
 	does following steps related to automatic generation:</P>
 	<OL TYPE=a>
