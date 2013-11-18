@@ -54,6 +54,8 @@
 #include "vtkMultiProcessController.h"
 
 #include <string>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
 // vtkCxxRevisionMacro(vtkMedDriver30, "$Revision$")
@@ -578,17 +580,57 @@ void vtkMedDriver30::ReadFamilyInformation(vtkMedMesh* mesh, vtkMedFamily* famil
 
   family->SetId(familyid);
 
-  if(familyid <= 0)
-    {
-    family->SetPointOrCell(vtkMedUtilities::OnCell);
-    mesh->AppendCellFamily(family);
+  // Fix for the issue "0021721: [CEA 590] Invalid groups on cells
+  if( familyid == 0 ) {
+    family->SetPointOrCell( vtkMedUtilities::OnCell );
+    mesh->AppendCellFamily( family );
+  } else {
+    //rnv: improve algorithm to determine entity of the family:
+    //     1) Read Nb nodes
+    //     2) Read families of the nodes
+    //     3) If list of the families of the nodes contains familyid => vtkMedUtilities::OnPoint
+    //     otherwise => vtkMedUtilities::OnCell
+    med_bool  v1, v2;
+    med_int size = MEDmeshnEntity(
+				  this->FileId,
+				  meshName,
+				  MED_NO_DT,
+				  MED_NO_IT,
+				  MED_NODE,
+				  MED_NO_GEOTYPE,
+				  MED_COORDINATE,
+				  MED_NO_CMODE,
+				  &v1,
+				  &v2 );
+    if( size < 0 ) {
+      vtkErrorMacro( "vtkMedDriver30::ReadInformation(vtkMedFamily* family)"
+		     <<" cannot read nb Nodes" );
+      return;
     }
-  else
-    {
-    family->SetPointOrCell(vtkMedUtilities::OnPoint);
-    mesh->AppendPointFamily(family);
-    }
+    
+    vector<med_int> n_fams;
+    n_fams.resize( size );
+    
+    med_int ret_val = MEDmeshEntityFamilyNumberRd( this->FileId,
+                                                   meshName,
+                                                   MED_NO_DT,
+                                                   MED_NO_IT,
+                                                   MED_NODE,
+                                                   MED_NO_GEOTYPE ,
+                                                   &n_fams[0] );
+    // Remove ZERO FAMILY
+    remove( n_fams.begin(),n_fams.end(), 0 );
 
+    bool isOnPoints = ( ret_val >= 0) && (find( n_fams.begin(), n_fams.end(), familyid ) != n_fams.end() );
+    if( isOnPoints ) {
+      family->SetPointOrCell(vtkMedUtilities::OnPoint);
+      mesh->AppendPointFamily(family);
+    } else {
+      family->SetPointOrCell(vtkMedUtilities::OnCell);	      
+      mesh->AppendCellFamily(family);	
+    }
+  }
+  
   family->AllocateNumberOfGroup(ngroup);
   // if there where no group, set the name to the default value
   if(has_no_group)
