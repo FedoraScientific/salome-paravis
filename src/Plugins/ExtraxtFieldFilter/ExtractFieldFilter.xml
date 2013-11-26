@@ -1,0 +1,52 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+   <SourceProxy name="ExtractFieldFilter" class="vtkExtractFieldFilter" label="Extract Field">
+     <Documentation
+        long_help="The filter extracts data sets from multiblock data set input which are used as a support for the selected field."
+        short_help="Extracting of mesh support for selected field">
+     </Documentation>
+     
+     <InputProperty
+        name="Input"
+        command="SetInputConnection">
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkMultiBlockDataSet"/>
+           </DataTypeDomain>
+           
+        <InputArrayDomain name="input_array">
+        </InputArrayDomain>
+     </InputProperty>
+     
+     <StringVectorProperty command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Field name"
+                            name="SelectInputScalars"
+                            number_of_elements="5">
+                            
+        <ArrayListDomain attribute_type="Scalars"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        
+        <FieldDataDomain name="field_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </FieldDataDomain>
+        
+        <Documentation>
+        This property lists the names of fields which can be used for extraction of mesh support.
+        </Documentation>
+      </StringVectorProperty>
+      
+   </SourceProxy>
+ </ProxyGroup>
+</ServerManagerConfiguration>

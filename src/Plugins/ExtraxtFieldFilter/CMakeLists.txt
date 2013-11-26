@@ -17,21 +17,24 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+# create a paraview plugin containing server manager xml and the server
+# manager classes to build
+# this plugin can be loaded on the server side
+
+
+cmake_minimum_required(VERSION 2.8)
+
+FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
-SET(_subdirs
-  #Filter 
-  #ToolBar 
-  MedReader 
-  ParaMEDCorba 
-  TableReader 
-  NavigationMode 
-  IntegrationPoints
-  ElevationSurface
-  ScaleVector
-  ExtraxtFieldFilter
-  )
+ADD_PARAVIEW_PLUGIN(ExtractFieldFilter "1.0"
+    SERVER_MANAGER_XML ExtractFieldFilter.xml 
+    SERVER_MANAGER_SOURCES vtkExtractFieldFilter.cxx
+    GUI_RESOURCES pqExtractField.qrc
+    GUI_RESOURCE_FILES ExtractFieldGUI.xml
+    )
 
-FOREACH(_dir ${_subdirs})
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
+INSTALL(
+	TARGETS ExtractFieldFilter 
+	DESTINATION lib/paraview
+)

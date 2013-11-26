@@ -1,0 +1,8 @@
+
+
+<ParaViewFilters>
+    <Category name="DataAnalysis" menu_label="&amp;Data Analysis">
+      <!-- adds a new category and then adds our filter to it -->
+      <Proxy group="filters" name="ExtractFieldFilter" icon=":/ExtractFieldIcons/resources/extract_field.png" />
+    </Category>
+</ParaViewFilters>
