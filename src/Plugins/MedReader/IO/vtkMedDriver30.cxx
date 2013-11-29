@@ -463,7 +463,7 @@ void vtkMedDriver30::ReadUnstructuredGridInformation(
     }
 
   this->ReadNumberOfEntity(grid, MED_CELL, MED_NODAL);
-  this->ReadNumberOfEntity(grid, MED_CELL, MED_DESCENDING);
+  //this->ReadNumberOfEntity(grid, MED_CELL, MED_DESCENDING);  // VSR: 29.11.2013: commented according to the issue 22327: descending connectivity is wrongly processed
   this->ReadNumberOfEntity(grid, MED_DESCENDING_FACE, MED_NODAL);
   this->ReadNumberOfEntity(grid, MED_DESCENDING_FACE, MED_DESCENDING);
   this->ReadNumberOfEntity(grid, MED_DESCENDING_EDGE, MED_NODAL);
