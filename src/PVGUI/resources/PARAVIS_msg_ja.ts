@@ -21,7 +21,7 @@
     </message>
     <message>
       <source>MEN_LIGHT</source>
-      <translation>レジェ</translation>
+      <translation>LIGHT</translation>
     </message>
     <message>
       <source>MEN_LOAD_FILE</source>
@@ -29,11 +29,11 @@
     </message>
     <message>
       <source>WRN_UNKNOWN_COMMAND</source>
-      <translation>認識されないコマンド ！</translation>
+      <translation>不明なコマンド ！</translation>
     </message>
     <message>
       <source>BUT_OK</source>
-      <translation>OK</translation>
+      <translation>わかりました(&amp;O)</translation>
     </message>
     <message>
       <source>WRN_ADD_FAILED</source>
@@ -73,7 +73,7 @@
     </message>
     <message>
       <source>WRN_DUMP_FAILED</source>
-      <translation>スナップショット ファイルが失敗しました。</translation>
+      <translation>ファイルを保存することはできません ！</translation>
     </message>
     <message>
       <source>WRN_LOAD_FAILED</source>
@@ -93,11 +93,11 @@
     </message>
     <message>
       <source>LIGHT_ROOT_TOOLTIP</source>
-      <translation>光モジュールのルート オブジェクト</translation>
+      <translation>LIGHTモジュール ルート オブジェクト</translation>
     </message>
     <message>
       <source>LIGHT_LIGHT</source>
-      <translation>レジェ</translation>
+      <translation>LIGHT</translation>
     </message>
     <message>
       <source>MEN_SAVE_FILE</source>
@@ -121,7 +121,7 @@
     </message>
     <message>
       <source>TOP_ADD_LINE</source>
-      <translation>行を追加</translation>
+      <translation>行を追加します。</translation>
     </message>
     <message>
       <source>MEN_DEL_LINE</source>
@@ -149,7 +149,7 @@
     </message>
     <message>
       <source>LIGHT_LINE</source>
-      <translation>線</translation>
+      <translation>Line</translation>
     </message>
     <message>
       <source>STB_DEL_LINE</source>
@@ -173,15 +173,15 @@
     </message>
     <message>
       <source>MEN_RESTART_TRACE</source>
-      <translation>MEN_RESTART_TRACE</translation>
+      <translation>トレースを再初期化します。</translation>
     </message>
     <message>
       <source>TOP_RESTART_TRACE</source>
-      <translation>TOP_RESTART_TRACE</translation>
+      <translation>トレースを再初期化します。</translation>
     </message>
     <message>
       <source>STB_RESTART_TRACE</source>
-      <translation>STB_RESTART_TRACE</translation>
+      <translation>トレースを再初期化します。</translation>
     </message>
   </context>
   <context>
