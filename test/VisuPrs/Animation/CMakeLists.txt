@@ -17,41 +17,10 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-IF (PYTHON_EXECUTABLE)
-  FOREACH ( tfile
-      A0
-      A1
-      A2
-      A4
-      A7
-      A8
-      B2
-      B5
-      B6  
-      C0
-      C1
-      C3
-      C8
-      D1
-      D2
-      D6
-      D9
-      E0
-      E4
-      E7
-      E8
-      F2
-      F5
-      F6
-      G0
-      G3
-      G4
-      G8
-      H1
-      H2
-      )
-    SET(TIMEOUT 10000)
-    ADD_TEST(ANIMATION_${tfile} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py)
-    SET_TESTS_PROPERTIES(ANIMATION_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
-  ENDFOREACH( tfile )
-ENDIF (PYTHON_EXECUTABLE)
+SET(TIMEOUT 10000)
+FOREACH(tfile A0 A1 A2 A4 A7 A8 B2 B5 B6 C0 C1 C3 C8 D1 D2 D6 D9 
+              E0 E4 E7 E8 F2 F5 F6 G0 G3 G4 G8 H1 H2)
+  ADD_TEST(ANIMATION_${tfile} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py)
+  SET_TESTS_PROPERTIES(ANIMATION_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
+  SET_TESTS_PROPERTIES(ANIMATION_${tfile} PROPERTIES ENVIRONMENT "${tests_env}")
+ENDFOREACH()

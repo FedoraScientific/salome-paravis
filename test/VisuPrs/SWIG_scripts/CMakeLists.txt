@@ -17,30 +17,9 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-IF (PYTHON_EXECUTABLE)
-  FOREACH ( tfile
-      A1
-      A3
-      A4
-      A5
-      A6
-      A7
-      A8
-      A9
-      B0
-      B1
-      B4
-      B5
-      B6
-      B7
-      B8
-      B9
-      C3
-      C6
-      C7
-      )
-    SET(TIMEOUT 10000)
-    ADD_TEST(SWIGSCRIPTS_${tfile} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py)
-    SET_TESTS_PROPERTIES(SWIGSCRIPTS_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
-  ENDFOREACH( tfile )
-ENDIF (PYTHON_EXECUTABLE)
+SET(TIMEOUT 10000)
+FOREACH(tfile A1 A3 A4 A5 A6 A7 A8 A9 B0 B1 B4 B5 B6 B7 B8 B9 C3 C6 C7)
+  ADD_TEST(SWIGSCRIPTS_${tfile} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py)
+  SET_TESTS_PROPERTIES(SWIGSCRIPTS_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
+  SET_TESTS_PROPERTIES(SWIGSCRIPTS_${tfile} PROPERTIES ENVIRONMENT "${tests_env}")
+ENDFOREACH()
