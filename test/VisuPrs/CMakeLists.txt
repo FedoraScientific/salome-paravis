@@ -17,7 +17,9 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-ADD_SUBDIRECTORY(
+SALOME_GENERATE_TESTS_ENVIRONMENT(tests_env)
+
+SET(TEST_DIRECTORIES 
   Util
   2D_viewer
   3D_viewer
@@ -41,3 +43,7 @@ ADD_SUBDIRECTORY(
   imps
   dump_study
 )
+
+FOREACH(test_dir ${TEST_DIRECTORIES})
+  ADD_SUBDIRECTORY(${test_dir})
+ENDFOREACH()

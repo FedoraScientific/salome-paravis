@@ -22,13 +22,4 @@ SET(dist_testscript_DATA
   paravistesthelper.py
   )
 
-FOREACH(f ${dist_testscript_DATA})
-  INSTALL(FILES ${f} DESTINATION bin/salome)
-
-  INSTALL(CODE "SET(PYTHON_FILE ${f})")
-  INSTALL(CODE "SET(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})")
-  INSTALL(CODE "SET(DEST bin/salome)")
-  INSTALL(CODE "SET(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})")
-  INSTALL(SCRIPT ${KERNEL_ROOT_DIR}/salome_adm/cmake_files/deprecated/install_and_compile_python_file.cmake)
-  
-ENDFOREACH(f ${dist_testscript_DATA})
+SALOME_INSTALL_SCRIPTS("${dist_testscript_DATA}" ${SALOME_INSTALL_SCRIPT_SCRIPTS})
