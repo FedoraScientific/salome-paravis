@@ -240,9 +240,11 @@ void PVGUI_Module::setupDockWidgets()
   // Memory inspector dock
   QDockWidget* memoryInspectorDock = new QDockWidget(tr( "TTL_MEMORY_INSPECTOR" ), desk);
   memoryInspectorDock->setObjectName("memoryInspectorDock");
+#ifndef WIN32
   pqMemoryInspectorPanel* dockWidgetContents = new pqMemoryInspectorPanel();
   dockWidgetContents->setObjectName("dockWidgetContents");
   memoryInspectorDock->setWidget(dockWidgetContents);
+#endif
   desk->addDockWidget(Qt::RightDockWidgetArea, memoryInspectorDock);
   myDockWidgets[memoryInspectorDock] = false; // hidden by default
 
