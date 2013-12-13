@@ -4,6 +4,18 @@
 <context>
     <name>@default</name>
     <message>
+        <source>STB_RESTART_TRACE</source>
+        <translation type="unfinished">Re-initialize Trace</translation>
+    </message>
+    <message>
+        <source>TOP_RESTART_TRACE</source>
+        <translation type="unfinished">Re-initialize Trace</translation>
+    </message>
+    <message>
+        <source>MEN_RESTART_TRACE</source>
+        <translation type="unfinished">Re-initialize Trace</translation>
+    </message>
+    <message>
         <source>TOP_CLEAR_ALL</source>
         <translation>Effacer tout</translation>
     </message>
@@ -181,6 +193,10 @@
 </context>
 <context>
     <name>PVGUI_Module</name>
+    <message>
+        <source>PREF_SHOW_COLOR_LEGEND</source>
+        <translation type="unfinished">Show Color Legend</translation>
+    </message>
     <message>
         <source>TTL_PIPELINE_BROWSER</source>
         <translation>Navigateur des conduites</translation>
