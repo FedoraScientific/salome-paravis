@@ -20,20 +20,19 @@
 ADD_SUBDIRECTORY(VisuPrs)
 
 SET(_demo_files
-  demo_0_med.py
-  demo_1_med.py
-  demo_2_med.py
-  demo_3_med.py
-  demo_4_med.py
-  demo_5_med.py
-  demo_6_med.py
-  demo_7_med.py
-  demo_8_med.py
-  demo_9_med.py
-  demo_10_med.py
-  demo_11_med.py
-  demo_12_med.py
-  demo_13_med.py
+  demo0.py
+  demo1.py
+  demo2.py
+  demo3.py
+  demo4.py
+  demo5.py
+  demo6.py
+  demo7.py
+  demo8.py
+  demo9.py
+  demo10.py
+  demo11.py
+  demo12.py
   demo_14_med.py
   demo_15_med.py
   )

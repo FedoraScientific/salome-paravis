@@ -17,19 +17,9 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-IF (PYTHON_EXECUTABLE)
-  FOREACH ( tfile
-      A1
-      A2
-      A3
-      A4
-      A6
-      A9
-      B1
-      B2
-      )
-    SET(TIMEOUT 10000)
-    ADD_TEST(IMPS_${tfile} ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py ${PARAVIS_TEST_OUTPUT_DIR})
-    SET_TESTS_PROPERTIES(IMPS_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
-  ENDFOREACH( tfile )
-ENDIF (PYTHON_EXECUTABLE)
+SET(TIMEOUT 10000)
+FOREACH(tfile A1 A2 A3 A4 A6 A9 B1 B2)
+  ADD_TEST(IMPS_${tfile} ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py ${TIMEOUT} ${CMAKE_CURRENT_SOURCE_DIR}/${tfile}.py ${PARAVIS_TEST_OUTPUT_DIR})
+  SET_TESTS_PROPERTIES(IMPS_${tfile} PROPERTIES FAIL_REGULAR_EXPRESSION "FAILED" TIMEOUT ${TIMEOUT})
+  SET_TESTS_PROPERTIES(IMPS_${tfile} PROPERTIES ENVIRONMENT "${tests_env}")
+ENDFOREACH()
