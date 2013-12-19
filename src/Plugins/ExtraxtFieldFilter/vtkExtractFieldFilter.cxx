@@ -30,22 +30,56 @@
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkDataArray.h>
+#include <vtkStringArray.h>
+#include <vtkCompositeDataToUnstructuredGridFilter.h>
+
 
 #include <string.h>
 
 using namespace std;
 
+
+
+bool isContainsName(const std::list<std::string>& aList, const std::string& theName)
+{
+	std::list<std::string>::const_iterator aIt;
+	for (aIt = aList.begin(); aIt != aList.end(); aIt++) {
+		if ((*aIt).compare(theName) == 0)
+			return true;
+	}
+	return false;
+}
+
+
+void appendIfNotExists(const std::list<std::string>& theSrc, std::list<std::string>& theDest)
+{
+	std::list<std::string>::const_iterator aIt;
+	for (aIt = theSrc.begin(); aIt != theSrc.end(); aIt++) {
+		if (!isContainsName(theDest, *aIt))
+			theDest.push_back(*aIt);
+	}
+}
+
+
+
+
 vtkStandardNewMacro(vtkExtractFieldFilter);
+
+
 
 vtkExtractFieldFilter::vtkExtractFieldFilter()
 :vtkMultiBlockDataSetAlgorithm()
 {
-	this->FieldName = NULL;
+	this->Field = NULL;
+	this->FieldList = vtkStringArray::New();
 }
 
 
 vtkExtractFieldFilter::~vtkExtractFieldFilter()
 {
+	this->FieldList->Delete();
+	if (this->Field)
+		delete [] this->Field;
 }
 
 //----------------------------------------------------------------------------
@@ -60,32 +94,87 @@ int vtkExtractFieldFilter::RequestData(vtkInformation* vtkNotUsed(request),
 	aOutput->CopyStructure(aInput);
 
 	// Copy selected blocks over to the output.
-	vtkDataObjectTreeIterator* aIter = aInput->NewTreeIterator();
-	aIter->VisitOnlyLeavesOff();
-	for (aIter->InitTraversal(); !aIter->IsDoneWithTraversal(); aIter->GoToNextItem()) {
-		this->CopySubTree(aIter, aOutput, aInput);
+	int i;
+	std::list<int> toDelList;
+	for (i = 0; i < aInput->GetNumberOfBlocks(); i++) {
+		this->CopySubTree(i, aOutput, aInput, toDelList);
 	}
-	aIter->Delete();
+	std::list<int>::const_reverse_iterator aIt;
+	for (aIt = toDelList.rbegin(); aIt != toDelList.rend(); ++aIt)
+		aOutput->RemoveBlock(*aIt);
 	return 1;
 }
 
+//----------------------------------------------------------------------------
+int vtkExtractFieldFilter::RequestInformation(vtkInformation* reqInfo,
+											  vtkInformationVector **theInputVector,
+											  vtkInformationVector *theOutputVector)
+{
+	// get the info objects
+	vtkMultiBlockDataSet* aInput = vtkMultiBlockDataSet::GetData(theInputVector[0], 0);
+	vtkMultiBlockDataSet* aOutput = vtkMultiBlockDataSet::GetData(theOutputVector, 0);
+
+	vtkDataObjectTreeIterator* aIter = aInput->NewTreeIterator();
+	aIter->VisitOnlyLeavesOff();
+	int i = 0;
+	std::list<std::string> aList;
+	for (aIter->InitTraversal(); !aIter->IsDoneWithTraversal(); aIter->GoToNextItem()) {
+		std::list<std::string> aSubList = this->GetListOfFields(aIter, aInput);
+		appendIfNotExists(aSubList, aList);
+	}
+	this->FieldList->SetNumberOfValues(aList.size());
+	std::list<std::string>::const_iterator aIt;
+	i = 0;
+	for (aIt = aList.begin(); aIt != aList.end(); aIt++) {
+		this->FieldList->SetValue(i, *aIt);
+		i++;
+	}
+
+	return this->Superclass::RequestInformation(reqInfo, theInputVector, theOutputVector);
+}
 
 //----------------------------------------------------------------------------
-void vtkExtractFieldFilter::CopySubTree(vtkDataObjectTreeIterator* theLoc,
+void vtkExtractFieldFilter::CopySubTree(int theLoc,
 										vtkMultiBlockDataSet* theOutput,
-										vtkMultiBlockDataSet* theInput)
+										vtkMultiBlockDataSet* theInput,
+										std::list<int>& toDel)
 {
-	vtkDataObject* aInputNode = theInput->GetDataSet(theLoc);
-	if (!aInputNode->IsA("vtkCompositeDataSet")) {
+	vtkDataObject* aInputNode = theInput->GetBlock(theLoc);
+	if (aInputNode->IsA("vtkCompositeDataSet")) {
+		vtkMultiBlockDataSet* aCInput = vtkMultiBlockDataSet::SafeDownCast(aInputNode);
+		vtkMultiBlockDataSet* aCOutput = vtkMultiBlockDataSet::SafeDownCast(theOutput->GetBlock(theLoc));
+		std::list<int> toDelList;
+		int i;
+		for (i = 0; i < aCInput->GetNumberOfBlocks(); i++) {
+			this->CopySubTree(i, aCOutput, aCInput, toDelList);
+		}
+		std::list<int>::const_reverse_iterator aIt;
+		for (aIt = toDelList.rbegin(); aIt != toDelList.rend(); ++aIt)
+			aCOutput->RemoveBlock(*aIt);
+		if (aCOutput->GetNumberOfBlocks() == 0)
+			toDel.push_back(theLoc);
+	} else {
 		if (IsToCopy(aInputNode)) {
 			vtkDataObject* aClone = aInputNode->NewInstance();
 			aClone->ShallowCopy(aInputNode);
-			theOutput->SetDataSet(theLoc, aClone);
+			theOutput->SetBlock(theLoc, aClone);
 			aClone->Delete();
+		} else {
+			toDel.push_back(theLoc);
 		}
+	}
+}
+
+//----------------------------------------------------------------------------
+std::list<std::string> vtkExtractFieldFilter::GetListOfFields(vtkDataObjectTreeIterator* theLoc, vtkMultiBlockDataSet* theInput)
+{
+	std::list<std::string> aList;
+	vtkDataObject* aInputNode = theInput->GetDataSet(theLoc);
+	if (!aInputNode->IsA("vtkCompositeDataSet")) {
+		std::list<std::string> aSubList = this->GetListOfFields(aInputNode);
+		appendIfNotExists(aSubList, aList);
 	} else {
 		vtkCompositeDataSet* aCInput = vtkCompositeDataSet::SafeDownCast(aInputNode);
-		vtkCompositeDataSet* aCOutput = vtkCompositeDataSet::SafeDownCast(theOutput->GetDataSet(theLoc));
 		vtkCompositeDataIterator* aIter = aCInput->NewIterator();
 		vtkDataObjectTreeIterator* aTreeIter = vtkDataObjectTreeIterator::SafeDownCast(aIter);
 		if (aTreeIter) {
@@ -93,23 +182,18 @@ void vtkExtractFieldFilter::CopySubTree(vtkDataObjectTreeIterator* theLoc,
 		}
 		for (aIter->InitTraversal(); !aIter->IsDoneWithTraversal(); aIter->GoToNextItem()) {
 			vtkDataObject* aCurNode = aIter->GetCurrentDataObject();
-			if (IsToCopy(aInputNode)) {
-				vtkDataObject* aClone = aCurNode->NewInstance();
-				aClone->ShallowCopy(aCurNode);
-				aCOutput->SetDataSet(aIter, aClone);
-				aClone->Delete();
-			}
+			std::list<std::string> aSubList = this->GetListOfFields(aCurNode);
+			appendIfNotExists(aSubList, aList);
 		}
 		aIter->Delete();
 	}
-
+	return aList;
 }
 
-
 //----------------------------------------------------------------------------
-void vtkExtractFieldFilter::GetListOfFields(vtkDataObject* theObject, std::list<std::string>& theList) const
+std::list<std::string> vtkExtractFieldFilter::GetListOfFields(vtkDataObject* theObject) const
 {
-	theList.clear();
+	std::list<std::string> aList;
 
 	if (theObject->IsA("vtkDataSet")) {
 		vtkDataSet* aDataSet = vtkDataSet::SafeDownCast(theObject);
@@ -117,30 +201,29 @@ void vtkExtractFieldFilter::GetListOfFields(vtkDataObject* theObject, std::list<
 		int aNbArrays = aPntData->GetNumberOfArrays();
 		for (int i = 0; i < aNbArrays; i++) {
 			const char* aName = aPntData->GetArrayName(i);
-			theList.push_back(aName);
+			aList.push_back(aName);
 		}
 		vtkCellData* aCellData = aDataSet->GetCellData();
 		aNbArrays = aCellData->GetNumberOfArrays();
 		for (int i = 0; i < aNbArrays; i++) {
 			const char* aName = aCellData->GetArrayName(i);
-			theList.push_back(aName);
+			aList.push_back(aName);
 		}
 	}
-
+	return aList;
 }
 
 
 //----------------------------------------------------------------------------
 bool vtkExtractFieldFilter::IsToCopy(vtkDataObject* theObject) const
 {
-	if (this->FieldName == NULL)
+	if (this->Field == NULL)
 		return true;
 
-	std::list<std::string> aList;
-	GetListOfFields(theObject, aList);
+	std::list<std::string> aList = this->GetListOfFields(theObject);
 
 	std::list<std::string>::const_iterator aIt;
-	std::string aTestStr = this->FieldName;
+	std::string aTestStr = this->Field;
 	for (aIt = aList.begin(); aIt != aList.end(); ++aIt)
 		if (aTestStr.compare(*aIt) == 0)
 			return true;
@@ -149,19 +232,11 @@ bool vtkExtractFieldFilter::IsToCopy(vtkDataObject* theObject) const
 }
 
 
-
-//----------------------------------------------------------------------------
-void vtkExtractFieldFilter::SetInputArrayToProcess(int idx, int port, int connection,
-		  	  	  	  	  	  	  	  	  	  	   int fieldAssociation, const char* name)
-{
-	this->SetFieldName(name);
-}
-
-
 //----------------------------------------------------------------------------
 void vtkExtractFieldFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-  os << indent << "Field name: " << FieldName << endl;
+  os << indent << "Field name: " << this->Field << endl;
+  this->FieldList->PrintSelf(os, indent);
 }
 

@@ -21,32 +21,22 @@
         </InputArrayDomain>
      </InputProperty>
      
-     <StringVectorProperty command="SetInputArrayToProcess"
-                            element_types="0 0 0 0 2"
-                            label="Field name"
-                            name="SelectInputScalars"
-                            number_of_elements="5">
-                            
-        <ArrayListDomain attribute_type="Scalars"
-                         name="array_list">
-          <RequiredProperties>
-            <Property function="Input"
-                      name="Input" />
-          </RequiredProperties>
-        </ArrayListDomain>
-        
-        <FieldDataDomain name="field_list">
-          <RequiredProperties>
-            <Property function="Input"
-                      name="Input" />
-          </RequiredProperties>
-        </FieldDataDomain>
-        
-        <Documentation>
-        This property lists the names of fields which can be used for extraction of mesh support.
-        </Documentation>
-      </StringVectorProperty>
+     <StringVectorProperty
+             name="FieldNameInfo"
+             command="GetFieldList"
+             information_only="1">
+             <StringArrayHelper/>
+     </StringVectorProperty>
       
+     <StringVectorProperty
+           name="FieldName"                                                                                                                                                                                                 command="SetField"
+           number_of_elements="1">                                                                                                                                                                                         <StringListDomain name="Input">
+             <RequiredProperties>
+               <Property name="FieldNameInfo" function="ArraySelection"/>
+             </RequiredProperties>
+          </StringListDomain>
+     </StringVectorProperty>
+     
    </SourceProxy>
  </ProxyGroup>
 </ServerManagerConfiguration>

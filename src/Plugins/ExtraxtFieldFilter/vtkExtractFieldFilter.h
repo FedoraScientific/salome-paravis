@@ -25,7 +25,7 @@
 #include <string>
 
 class vtkDataObjectTreeIterator;
-
+class vtkStringArray;
 
 /**
  * Implements a class of a filter which extract a support mesh of a data field.
@@ -44,13 +44,8 @@ public:
 	/// Prints current state of the objects
 	virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-	/// This method is used for definition of a field name for filtering from GUI
-	virtual void SetInputArrayToProcess(int idx, int port, int connection,
-		  	  	  	  	  	  	  	  	int fieldAssociation, const char* name);
-
-	/// Set and Get methods for FieldName
-	vtkSetStringMacro(FieldName);
-	vtkGetStringMacro(FieldName);
+	virtual vtkStringArray* GetFieldList() { return FieldList; }
+	vtkSetStringMacro(Field);
 
 protected:
 	/// Constructor
@@ -62,11 +57,17 @@ protected:
 	/// A method which is called on filtering data
 	virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
+	virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
 	/// Copies a sub-tree defined by a Data Set Block
-	void CopySubTree(vtkDataObjectTreeIterator* theLoc, vtkMultiBlockDataSet* theOutput, vtkMultiBlockDataSet* theInput);
+	void CopySubTree(int theLoc,
+					 vtkMultiBlockDataSet* theOutput,
+					 vtkMultiBlockDataSet* theInput,
+					 std::list<int>& toDel);
 
 	/// Returns a list of strings with names of fields defined in the given Data Object
-	void GetListOfFields(vtkDataObject* theObject, std::list<std::string>& theList) const;
+	std::list<std::string> GetListOfFields(vtkDataObject* theObject) const;
+	std::list<std::string> GetListOfFields(vtkDataObjectTreeIterator* theLoc, vtkMultiBlockDataSet* theInput);
 
 	/// Returns True if the given Data Object has to be copied into output
 	bool IsToCopy(vtkDataObject* theObject) const;
@@ -76,7 +77,8 @@ private:
 	vtkExtractFieldFilter(const vtkExtractFieldFilter&); // Not implemented
 	void operator=(const vtkExtractFieldFilter&); // Not implemented
 
-	char* FieldName;
+	char* Field;
+	vtkStringArray* FieldList;
 };
 
 #endif
