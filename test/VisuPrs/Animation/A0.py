@@ -84,6 +84,6 @@ scene.PlayMode = 1 #  set RealTime mode for animation performance
 # set period
 scene.Duration = 40 # correspond to set the speed of animation in VISU 
 scene.GoToFirst()
-scene.Loop = 1
+scene.Loop = 0
 print "Animation.................................",
 scene.Play()
