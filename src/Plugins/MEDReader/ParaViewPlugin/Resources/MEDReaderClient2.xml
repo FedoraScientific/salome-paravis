@@ -1,0 +1,10 @@
+<ParaViewFilters>
+    <Filter name="ExtractGroup"/>
+    <Filter name="ExtractCellType"/>
+    <Category name="Integration Points" menu_label="&amp;Integration Points" preserve_order="1">
+      <Filter name="ELNOPoints"/>
+      <Filter name="ELNOMesh"/>
+      <Filter name="ELNOSurface"/>
+      <Filter name="GaussPoints"/>
+    </Category>
+</ParaViewFilters>

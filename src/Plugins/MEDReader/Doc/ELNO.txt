@@ -1,0 +1,3 @@
+1-    ELNO Points: creates points on the vertices of the cells, with a shrink factor which allows you to make the distinction between the vertices of the adjacent cells
+2-    ELNO Surface: this filters starts by extracting the surface of the object, then project the ELNO field on it, slightly separating the cells one from the others (10-5 shrink factor compared to cell initial size)
+3-    ELNO Mesh: all the cells of the initial mesh are separated one from the others to be able to project the ELNO fields on them. Beware not to use this filter on big calculation cases as the memory used and the graphical performances are degraded. This filter allows to make operations such as Cut Planes keeping the ELNO fields correct. 

@@ -1,0 +1,423 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <SourceProxy name="MEDReader" class="vtkMEDReader" label="MED Reader">
+
+      <StringVectorProperty
+        name="FileName"
+        command="SetFileName"
+        number_of_elements="1"
+        animateable="0">
+        <FileListDomain name="files" />
+        <Documentation>
+          This property specifies the file name for the MED reader.
+        </Documentation>
+      </StringVectorProperty>
+      
+      <IntVectorProperty
+        name="ReloadReq"
+        command="Reload"
+        number_of_elements="1"
+        default_values="0"
+        animateable="0">
+        <SimpleIntInformationHelper />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="GenerateVectors"
+        command="GenerateVectors"
+        number_of_elements="1"
+        default_values="0"
+        animateable="0">
+        <SimpleIntInformationHelper />
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="TimeOrModal"
+        command="ChangeMode"
+        number_of_elements="1"
+        default_values="0"
+        animateable="0">
+        <SimpleIntInformationHelper />
+      </IntVectorProperty>
+
+      <!-- retrieves using GetNumberOf[FieldsTree]Arrays and GetFieldsTreeArrayName the keys used by FieldsStatus -->
+      <StringVectorProperty name="FieldsTreeInfo" information_only="1">
+        <ArraySelectionInformationHelper attribute_name="FieldsTree" />
+      </StringVectorProperty>
+      
+      <StringVectorProperty
+        name="FieldsStatus"
+        command="SetFieldsStatus"
+        label="All Arrays"
+        number_of_elements="0"
+        repeat_command="1"
+        number_of_elements_per_command="2"
+        element_types="2 0"
+        information_property="FieldsTreeInfo">
+        <ArraySelectionDomain name="array_list">
+          <RequiredProperties>
+            <Property name="FieldsTreeInfo" function="ArrayList" />
+          </RequiredProperties>
+        </ArraySelectionDomain>
+        <Documentation>
+          This property lists all the fields sorted by time steps then by mesh then by common support.
+       </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="TimesFlagsInfo" information_only="1">
+       <ArraySelectionInformationHelper attribute_name="TimesFlags" />
+     </StringVectorProperty>
+     
+     <StringVectorProperty name="TimesFlagsStatus" command="SetTimesFlagsStatus"
+                           label="All TimeSteps"
+                           number_of_elements="0"
+                           repeat_command="1"
+                           number_of_elements_per_command="2"
+                           element_types="2 0"
+                           information_property="TimesFlagsInfo">
+       <ArraySelectionDomain name="array_list">
+         <RequiredProperties>
+           <Property name="TimesFlagsInfo" function="ArrayList" />
+         </RequiredProperties>
+       </ArraySelectionDomain>
+       <Documentation>
+          This property lists all groups and families to select.
+       </Documentation>
+     </StringVectorProperty>
+
+      <StringVectorProperty
+        name="Separator"
+        command="GetSeparator"
+        number_of_elements="1"
+        animateable="0"
+        information_only="1">
+        <FileListDomain name="files" />
+        <Documentation>
+          This property specifies the file name for the MED reader.
+        </Documentation>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty
+        name="TimestepValues"
+        repeatable="1"
+        information_only="1">
+        <TimeStepsInformationHelper />
+        <Documentation>
+          Available timestep values.
+        </Documentation>
+      </DoubleVectorProperty>
+
+    </SourceProxy>
+  </ProxyGroup>
+
+  <ProxyGroup name="filters">
+    <SourceProxy name="ExtractGroup" class="vtkExtractGroup" label="Extract Group">
+     <InputProperty name="Input" command="SetInputConnection">
+       <ProxyGroupDomain name="groups">
+         <Group name="sources"/>
+         <Group name="filters"/>
+       </ProxyGroupDomain>
+       <DataTypeDomain name="input_type">
+         <DataType value="vtkDataSet"/>
+       </DataTypeDomain>
+       <Documentation>
+         This property specifies the input to the Level Scalars filter.
+       </Documentation>
+     </InputProperty>
+     
+     <IntVectorProperty name="SILUpdateStamp" command="GetSILUpdateStamp" information_only="1">
+       <SimpleIntInformationHelper />
+       <Documentation>
+         Information property indicating the update stamp of the SIL. Every
+         time the SIL is rebuild, this
+         time stamp is changed.
+       </Documentation>
+     </IntVectorProperty>
+     
+     <StringVectorProperty name="GroupsFlagsInfo" information_only="1">
+       <ArraySelectionInformationHelper attribute_name="GroupsFlags" />
+     </StringVectorProperty>
+     
+     <StringVectorProperty name="GroupsFlagsStatus" command="SetGroupsFlagsStatus"
+                           label="All Groups"
+                           number_of_elements="0"
+                           repeat_command="1"
+                           number_of_elements_per_command="2"
+                           element_types="2 0"
+                           information_property="GroupsFlagsInfo">
+       <ArraySelectionDomain name="array_list">
+         <RequiredProperties>
+           <Property name="GroupsFlagsInfo" function="ArrayList" />
+         </RequiredProperties>
+       </ArraySelectionDomain>
+       <Documentation>
+          This property lists all groups and families to select.
+       </Documentation>
+     </StringVectorProperty>
+
+     <IntVectorProperty command="SetInsideOut" default_values="0" name="InsideOut" number_of_elements="1">
+       <BooleanDomain name="bool"/>
+       <Documentation>Choose which part of the dataset to keep regarding the selected Groups/Families. When 0 (default) the direct selection
+       is kept. When 1 the complementary part is selected.
+       </Documentation>
+      </IntVectorProperty>
+    </SourceProxy>
+  </ProxyGroup>
+  
+  <ProxyGroup name="filters">
+    <SourceProxy name="ExtractCellType" class="vtkExtractCellType" label="Extract Cell Type">
+     <InputProperty name="Input" command="SetInputConnection">
+       <ProxyGroupDomain name="groups">
+         <Group name="sources"/>
+         <Group name="filters"/>
+       </ProxyGroupDomain>
+       <DataTypeDomain name="input_type">
+         <DataType value="vtkDataSet"/>
+       </DataTypeDomain>
+       <Documentation>
+         This property specifies the input to the Level Scalars filter.
+       </Documentation>
+     </InputProperty>
+     
+     <IntVectorProperty name="SILUpdateStamp" command="GetSILUpdateStamp" information_only="1">
+       <SimpleIntInformationHelper />
+       <Documentation>
+         Information property indicating the update stamp of the SIL. Every
+         time the SIL is rebuild, this
+         time stamp is changed.
+       </Documentation>
+     </IntVectorProperty>
+     
+     <StringVectorProperty name="GeoTypesInfo" information_only="1">
+       <ArraySelectionInformationHelper attribute_name="GeoTypes" />
+     </StringVectorProperty>
+     
+     <StringVectorProperty name="GeoTypesStatus" command="SetGeoTypesStatus"
+                           label="All GeoTypes"
+                           number_of_elements="0"
+                           repeat_command="1"
+                           number_of_elements_per_command="2"
+                           element_types="2 0"
+                           information_property="GeoTypesInfo">
+       <ArraySelectionDomain name="array_list">
+         <RequiredProperties>
+           <Property name="GeoTypesInfo" function="ArrayList" />
+         </RequiredProperties>
+       </ArraySelectionDomain>
+       <Documentation>
+          This property lists all the geometric types to select.
+       </Documentation>
+     </StringVectorProperty>
+     <IntVectorProperty command="SetInsideOut" default_values="0" name="InsideOut" number_of_elements="1">
+       <BooleanDomain name="bool"/>
+       <Documentation>Choose which part of the dataset to keep regarding the selected geometric types. When 0 (default) the direct selection
+       is kept. When 1 the complementary part is selected.
+       </Documentation>
+      </IntVectorProperty>
+    </SourceProxy>
+
+    <SourceProxy name="ELNOMesh" class="vtkELNOMeshFilter" label="ELNO Mesh">
+      <Documentation
+          long_help="Create a Mesh with ELNO values mapped at each vertex."
+          short_help="Create a Mesh with ELNO values mapped at each vertex.">
+        "Create a Mesh with ELNO values mapped at each vertex."
+      </Documentation>
+      <InputProperty name="Input" command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkUnstructuredGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array" attribute_type="cell" />
+      </InputProperty>
+    </SourceProxy>
+
+    <SourceProxy name="ELNOSurface" class="vtkELNOSurfaceFilter" label="ELNO Surface">
+      <Documentation
+        long_help="Extract the surface of a dataset with ELNO values."
+        short_help="Extract the surface of a dataset with ELNO values.">
+        "Extract the surface of a dataset with ELNO values."
+      </Documentation>
+      <OutputPort name="ELNO Surface" index="0" />
+      <InputProperty name="Input" command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkUnstructuredGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array" attribute_type="cell" />
+      </InputProperty>
+
+      <!-- Source Array -->
+      <StringVectorProperty
+        name="SelectSourceArray"
+        command="SetInputArrayToProcess"
+        number_of_elements="5"
+        element_types="0 0 0 0 2"
+        animateable="0">
+        <Documentation>
+          Specifies the offset array from which we generate ELNO points.
+        </Documentation>
+
+        <ArrayListDomain
+          name="array_list"
+          key_locations="MEDUtilities"
+          key_names="ELNO"
+          key_strategies="need_key">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+      <Hints> 
+        <Property name="SelectSourceArray" show="0"/>
+      </Hints>
+    </SourceProxy>
+
+    <SourceProxy name="GaussPoints" class="vtkQuadraturePointsGenerator" label="Gauss Points">
+      <Documentation
+        long_help="Create a point set with data at Gauss points."
+        short_help="Create a point set with data at Gauss points.">
+        "Create a point set with data at quadrature points."
+      </Documentation>
+
+      <OutputPort
+        name="Gauss Points"
+        index="0" />
+
+      <InputProperty
+        name="Input"
+        command="SetInputConnection">
+        <ProxyGroupDomain
+          name="groups">
+          <Group
+            name="sources" />
+          <Group
+            name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain
+          name="input_type">
+          <DataType
+            value="vtkUnstructuredGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain
+          name="input_array"
+          attribute_type="cell" />
+      </InputProperty>
+
+      <!-- Source Array -->
+      <StringVectorProperty
+        name="SelectSourceArray"
+        command="SetInputArrayToProcess"
+        number_of_elements="5"
+        element_types="0 0 0 0 2"
+        animateable="0">
+        <Documentation>
+          Specifies the offset array from which we generate Gauss points.
+        </Documentation>
+
+        <ArrayListDomain
+          name="array_list"
+          key_locations="MEDUtilities"
+          key_names="ELGA"
+          key_strategies="need_key">
+          <RequiredProperties>
+            <Property
+              name="Input"
+              function="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <Hints>
+        <Property name="SelectSourceArray" show="0"/>
+      </Hints>
+
+    </SourceProxy>
+    
+    <SourceProxy name="ELNOPoints" class="vtkELNOFilter" label="ELNO Points">
+      <Documentation
+        long_help="Create a point set with data at ELNO points. Cells are shrinked by a given factor towards the cell center."
+        short_help="Create a point set with data at ELNO points. Cells are shrinked by a given factor towards the cell center.">
+        "Create a point set with data at quadrature points."
+      </Documentation>
+
+      <OutputPort name="ELNO Points" index="0" />
+
+      <InputProperty name="Input" command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain
+          name="input_type">
+          <DataType value="vtkUnstructuredGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array" attribute_type="cell" />
+      </InputProperty>
+
+      <!-- Source Array -->
+      <StringVectorProperty
+        name="SelectSourceArray"
+        command="SetInputArrayToProcess"
+        number_of_elements="5"
+        element_types="0 0 0 0 2"
+        animateable="0">
+        <Documentation>
+          Specifies the offset array from which we generate ELNO points.
+        </Documentation>
+
+        <ArrayListDomain
+          name="array_list"
+          key_locations="MEDUtilities"
+          key_names="ELNO"
+          key_strategies="need_key"
+          input_domain_name="input_array">
+          <RequiredProperties>
+            <Property name="Input" function="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+
+      <DoubleVectorProperty
+        name="ShrinkFactor"
+        command="SetShrinkFactor"
+        label="Shrink Factor"
+        number_of_elements="1"
+        default_values="0.5">
+        <DoubleRangeDomain name="range" min="0" max="1" />
+      </DoubleVectorProperty>
+
+      <Hints>
+        <Property name="SelectSourceArray" show="0"/>
+      </Hints>
+    </SourceProxy>
+
+
+    <SourceProxy
+      name="GenerateStructuralElement"
+      class="vtkGenerateStructElement"
+      label="Generate Structural Element">
+
+     <InputProperty
+        name="Input"
+        command="SetInputConnection">
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkUnstructuredGrid"/>
+           </DataTypeDomain>
+           <Documentation>
+             This property specifies the input to the Generate Structural Element filter.
+           </Documentation>
+     </InputProperty>
+
+    </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>
