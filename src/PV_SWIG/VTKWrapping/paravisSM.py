@@ -1893,8 +1893,8 @@ def InitFromGUI():
     Method used to initialize the Python Shell from the ParaView GUI.
     """
     global fromGUI, ActiveConnection
-    if not fromGUI:
-       print "from paraview.simple import *"
+#     if not fromGUI:
+#        print "from paraview.simple import *"
     fromGUI = True
     # ToggleProgressPrinting() ### FIXME COLLABORATION
     enableMultiServer(vtkProcessModule.GetProcessModule().GetMultipleSessionsSupport())
