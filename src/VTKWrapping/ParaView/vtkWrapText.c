@@ -835,7 +835,7 @@ const char *vtkWrapText_PythonSignature(
   const char **delims;
   int i, n;
 
-  n = vtkWrap_CountWrappedArgs(currentFunction);
+  n = vtkWrap_CountWrappedParameters(currentFunction);
 
   result = &staticString;
   result->len = 0;
@@ -849,7 +849,7 @@ const char *vtkWrapText_PythonSignature(
 
   for (i = 0; i < n; i++)
     {
-    arg = currentFunction->Arguments[i];
+    arg = currentFunction->Parameters[i];
 
     if (i != 0)
       {
@@ -931,22 +931,20 @@ static void vtkWrapText_PythonTypeSignature(
     classname = "int";
     }
 
-  if (vtkWrap_IsArray(arg))
+  if ((vtkWrap_IsArray(arg) && arg->CountHint) ||
+      vtkWrap_IsPODPointer(arg))
     {
-    if (arg->CountHint)
-      {
-      vtkWPString_Append(result, braces[0]);
-      vtkWPString_Append(result, classname);
-      vtkWPString_Append(result, ", ...");
-      vtkWPString_Append(result, braces[1]);
-      }
-    else
-      {
-      sprintf(text, "%d", arg->Count);
-      dimension = text;
-      vtkWrapText_PythonArraySignature(result, classname, braces,
-        1, &dimension);
-      }
+    vtkWPString_Append(result, braces[0]);
+    vtkWPString_Append(result, classname);
+    vtkWPString_Append(result, ", ...");
+    vtkWPString_Append(result, braces[1]);
+    }
+  else if (vtkWrap_IsArray(arg))
+    {
+    sprintf(text, "%d", arg->Count);
+    dimension = text;
+    vtkWrapText_PythonArraySignature(result, classname, braces,
+      1, &dimension);
     }
   else if (vtkWrap_IsNArray(arg))
     {
