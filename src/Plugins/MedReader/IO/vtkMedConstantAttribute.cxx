@@ -31,7 +31,7 @@
 #include <vector>
 using namespace std;
 
-// vtkCxxRevisionMacro(vtkMedConstantAttribute, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedConstantAttribute, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedConstantAttribute);
 
 vtkCxxSetObjectMacro(vtkMedConstantAttribute, Values, vtkAbstractArray);

@@ -30,7 +30,7 @@
 #include <vector>
 using namespace std;
 
-// vtkCxxRevisionMacro(vtkMedVariableAttribute, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedVariableAttribute, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedVariableAttribute);
 
 vtkCxxSetObjectMacro(vtkMedVariableAttribute, ParentStructElement, vtkMedStructElement);

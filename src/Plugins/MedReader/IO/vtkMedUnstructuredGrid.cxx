@@ -45,7 +45,7 @@
 
 vtkCxxSetObjectMacro(vtkMedUnstructuredGrid,Coordinates,vtkDataArray);
 
-// vtkCxxRevisionMacro(vtkMedUnstructuredGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedUnstructuredGrid, "$Revision: 1.2.2.3 $")
 vtkStandardNewMacro(vtkMedUnstructuredGrid)
 
 vtkMedUnstructuredGrid::vtkMedUnstructuredGrid()

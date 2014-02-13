@@ -61,7 +61,7 @@ public :
   vtkTypeMacro(vtkMedIntArray,vtkMedIntArraySuperclass);
   void PrintSelf(ostream& os, vtkIndent indent);
 protected:
-  vtkMedIntArray(vtkIdType numComp=1);
+  vtkMedIntArray();  // (vtkIdType numComp=1)
   ~vtkMedIntArray();
 };
 

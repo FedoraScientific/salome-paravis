@@ -45,7 +45,7 @@
 vtkCxxSetObjectMacro(vtkMedFamilyOnEntityOnProfile,FamilyOnEntity, vtkMedFamilyOnEntity);
 vtkCxxSetObjectMacro(vtkMedFamilyOnEntityOnProfile, Profile, vtkMedProfile);
 
-// vtkCxxRevisionMacro(vtkMedFamilyOnEntityOnProfile, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedFamilyOnEntityOnProfile, "$Revision: 1.2.2.4 $");
 vtkStandardNewMacro(vtkMedFamilyOnEntityOnProfile)
 
 vtkMedFamilyOnEntityOnProfile::vtkMedFamilyOnEntityOnProfile()

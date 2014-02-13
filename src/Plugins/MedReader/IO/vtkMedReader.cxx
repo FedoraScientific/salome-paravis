@@ -204,7 +204,7 @@ public:
 
 };
 
-//vtkCxxRevisionMacro(vtkMedReader, "$Revision$");
+//vtkCxxRevisionMacro(vtkMedReader, "$Revision: 1.2.2.4 $");
 vtkStandardNewMacro(vtkMedReader);
 
 vtkMedReader::vtkMedReader()

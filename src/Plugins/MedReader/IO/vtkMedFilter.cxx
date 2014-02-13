@@ -21,7 +21,7 @@
 
 #include "vtkObjectFactory.h"
 
-// vtkCxxRevisionMacro(vtkMedFilter, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedFilter, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFilter)
 
 vtkMedFilter::vtkMedFilter()

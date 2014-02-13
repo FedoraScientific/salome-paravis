@@ -24,7 +24,7 @@
 #include "vtkMedUtilities.h"
 #include "vtkMedFraction.h"
 
-// vtkCxxRevisionMacro(vtkMedInterpolation, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedInterpolation, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedInterpolation)
 
 vtkCxxGetObjectVectorMacro(vtkMedInterpolation, BasisFunction,

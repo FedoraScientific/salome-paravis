@@ -40,7 +40,7 @@ vtkCxxSetObjectMacro(vtkMedGrid, PointGlobalIds, vtkMedIntArray);
 vtkCxxSetObjectMacro(vtkMedGrid, ParentMesh, vtkMedMesh);
 vtkCxxSetObjectMacro(vtkMedGrid, PreviousGrid, vtkMedGrid);
 
-// vtkCxxRevisionMacro(vtkMedGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedGrid, "$Revision: 1.2.2.2 $")
 
 vtkMedGrid::vtkMedGrid()
 {

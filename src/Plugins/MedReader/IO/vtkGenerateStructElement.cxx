@@ -77,7 +77,7 @@ protected :
   std::map<std::string, vtkDataArray*> varAttribute;
 };
 
-// vtkCxxRevisionMacro(vtkGenerateStructElement, "$Revision$");
+// vtkCxxRevisionMacro(vtkGenerateStructElement, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkGenerateStructElement);
 
 vtkGenerateStructElement::vtkGenerateStructElement()

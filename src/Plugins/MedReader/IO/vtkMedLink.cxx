@@ -26,7 +26,7 @@
 #include <string>
 using namespace std;
 
-// vtkCxxRevisionMacro(vtkMedLink, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedLink, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedLink)
 
 vtkMedLink::vtkMedLink()

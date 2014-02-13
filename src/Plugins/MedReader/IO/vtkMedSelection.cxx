@@ -34,7 +34,7 @@ public :
   vector< string > Keys;
 };
 
-// vtkCxxRevisionMacro(vtkMedSelection, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedSelection, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedSelection)
 
 vtkMedSelection::vtkMedSelection()

@@ -372,7 +372,7 @@ static const char* PYRA13_functions[PYRA13_nnode] =
 vtkCxxSetObjectMacro(vtkMedLocalization, ParentFile, vtkMedFile);
 vtkCxxSetObjectMacro(vtkMedLocalization, Interpolation, vtkMedInterpolation);
 
-// vtkCxxRevisionMacro(vtkMedLocalization, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedLocalization, "$Revision: 1.2.2.3 $")
 vtkStandardNewMacro(vtkMedLocalization)
 
 vtkMedLocalization::vtkMedLocalization()

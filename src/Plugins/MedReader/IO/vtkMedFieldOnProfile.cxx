@@ -33,7 +33,7 @@ vtkCxxSetObjectMacro(vtkMedFieldOnProfile, Data, vtkDataArray);
 vtkCxxSetObjectMacro(vtkMedFieldOnProfile, Profile, vtkMedProfile);
 vtkCxxSetObjectMacro(vtkMedFieldOnProfile, ParentFieldOverEntity, vtkMedFieldOverEntity);
 
-// vtkCxxRevisionMacro(vtkMedFieldOnProfile, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedFieldOnProfile, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFieldOnProfile)
 
 vtkMedFieldOnProfile::vtkMedFieldOnProfile()

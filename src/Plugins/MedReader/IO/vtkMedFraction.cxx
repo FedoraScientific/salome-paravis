@@ -24,7 +24,7 @@
 #include "vtkIntArray.h"
 #include "vtkDoubleArray.h"
 
-// vtkCxxRevisionMacro(vtkMedFraction, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedFraction, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFraction)
 
 vtkMedFraction::vtkMedFraction()

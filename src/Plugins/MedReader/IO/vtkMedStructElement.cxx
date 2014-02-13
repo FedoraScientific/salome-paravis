@@ -39,7 +39,7 @@ vtkCxxSetObjectVectorMacro(vtkMedStructElement, ConstantAttribute, vtkMedConstan
 vtkCxxSetObjectMacro(vtkMedStructElement, ParentFile, vtkMedFile);
 vtkCxxSetObjectMacro(vtkMedStructElement, SupportMesh, vtkMedMesh);
 
-// vtkCxxRevisionMacro(vtkMedStructElement, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedStructElement, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedStructElement)
 
 vtkMedStructElement::vtkMedStructElement()

@@ -28,7 +28,7 @@
 vtkCxxGetObjectVectorMacro(vtkMedFamily, Group, vtkMedGroup);
 vtkCxxSetObjectVectorMacro(vtkMedFamily, Group, vtkMedGroup);
 
-// vtkCxxRevisionMacro(vtkMedFamily, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedFamily, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFamily)
 
 vtkMedFamily::vtkMedFamily()

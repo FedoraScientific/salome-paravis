@@ -44,7 +44,7 @@
 //#include <vtkstd/map>
 //#include <vtkstd/deque>
 
-// vtkCxxRevisionMacro(vtkExtractGroup, "$Revision$");
+// vtkCxxRevisionMacro(vtkExtractGroup, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkExtractGroup);
 
 vtkCxxSetObjectMacro(vtkExtractGroup, SIL, vtkMutableDirectedGraph);

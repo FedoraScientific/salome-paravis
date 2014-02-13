@@ -52,7 +52,7 @@
 
 vtkCxxSetObjectMacro(vtkMedDriver, MedFile, vtkMedFile);
 
-//vtkCxxRevisionMacro(vtkMedDriver, "$Revision$")
+//vtkCxxRevisionMacro(vtkMedDriver, "$Revision: 1.2.2.3 $")
 vtkStandardNewMacro(vtkMedDriver)
 
 vtkMedDriver::vtkMedDriver()

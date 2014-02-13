@@ -23,7 +23,7 @@
 
 #include "vtkMedDriver30.h"
 
-// vtkCxxRevisionMacro(vtkMedFactory, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedFactory, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFactory)
 
 vtkMedFactory::vtkMedFactory()

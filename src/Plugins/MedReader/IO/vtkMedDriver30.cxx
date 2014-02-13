@@ -58,7 +58,7 @@
 #include <algorithm>
 using namespace std;
 
-// vtkCxxRevisionMacro(vtkMedDriver30, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedDriver30, "$Revision: 1.2.2.5 $")
 vtkStandardNewMacro(vtkMedDriver30)
 
 vtkMedDriver30::vtkMedDriver30() : vtkMedDriver()

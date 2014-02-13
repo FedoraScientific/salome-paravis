@@ -32,7 +32,7 @@ vtkCxxSetObjectMacro(vtkMedFamilyOnEntity, EntityArray, vtkMedEntityArray);
 
 vtkCxxSetObjectMacro(vtkMedFamilyOnEntity, ParentGrid,vtkMedGrid);
 
-// vtkCxxRevisionMacro(vtkMedFamilyOnEntity, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedFamilyOnEntity, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkMedFamilyOnEntity)
 
 vtkMedFamilyOnEntity::vtkMedFamilyOnEntity()

@@ -34,7 +34,7 @@ vtkCxxSetObjectVectorMacro(vtkMedFieldOverEntity, FieldOnProfile, vtkMedFieldOnP
 
 vtkCxxSetObjectMacro(vtkMedFieldOverEntity, ParentStep, vtkMedFieldStep);
 
-// vtkCxxRevisionMacro(vtkMedFieldOverEntity, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedFieldOverEntity, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFieldOverEntity)
 
 vtkMedFieldOverEntity::vtkMedFieldOverEntity()

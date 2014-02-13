@@ -21,7 +21,7 @@
 
 #include "vtkObjectFactory.h"
 
-// vtkCxxRevisionMacro(vtkMedPolarGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedPolarGrid, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedPolarGrid)
 
 vtkMedPolarGrid::vtkMedPolarGrid()

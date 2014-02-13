@@ -45,7 +45,7 @@ vtkCxxSetObjectVectorMacro(vtkMedMesh, CellGroup, vtkMedGroup);
 
 vtkCxxSetObjectMacro(vtkMedMesh, ParentFile, vtkMedFile);
 
-// vtkCxxRevisionMacro(vtkMedMesh, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedMesh, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedMesh)
 
 vtkMedMesh::vtkMedMesh()

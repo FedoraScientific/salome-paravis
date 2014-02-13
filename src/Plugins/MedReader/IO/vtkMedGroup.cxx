@@ -23,7 +23,7 @@
 
 #include "vtkMedUtilities.h"
 
-// vtkCxxRevisionMacro(vtkMedGroup, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedGroup, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedGroup)
 
 vtkMedGroup::vtkMedGroup()

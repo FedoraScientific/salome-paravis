@@ -21,7 +21,7 @@
 
 #include "vtkObjectFactory.h"
 
-// vtkCxxRevisionMacro(vtkMedCartesianGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedCartesianGrid, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedCartesianGrid)
 
 vtkMedCartesianGrid::vtkMedCartesianGrid()

@@ -38,7 +38,7 @@ vtkCxxSetObjectVectorMacro(vtkMedField, Interpolation, vtkMedInterpolation);
 
 vtkCxxSetObjectMacro(vtkMedField, ParentFile, vtkMedFile);
 
-// vtkCxxRevisionMacro(vtkMedField, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedField, "$Revision: 1.2.2.3 $")
 vtkStandardNewMacro(vtkMedField)
 
 vtkMedField::vtkMedField()

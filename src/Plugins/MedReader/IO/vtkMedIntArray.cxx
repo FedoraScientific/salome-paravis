@@ -22,11 +22,12 @@
 #include "vtkObjectFactory.h"
 
 //----------------------------------------------------------------------------
-// vtkCxxRevisionMacro(vtkMedIntArray, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedIntArray, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkMedIntArray);
 
 //----------------------------------------------------------------------------
-vtkMedIntArray::vtkMedIntArray(vtkIdType numComp): Superclass(numComp)
+//vtkMedIntArray::vtkMedIntArray(vtkIdType numComp): Superclass(numComp)
+vtkMedIntArray::vtkMedIntArray(): Superclass()
 {
 }
 

@@ -29,7 +29,7 @@
 vtkCxxSetObjectMacro(vtkMedProfile,Ids,vtkMedIntArray);
 vtkCxxSetObjectMacro(vtkMedProfile,ParentFile,vtkMedFile);
 
-// vtkCxxRevisionMacro(vtkMedProfile, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedProfile, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkMedProfile);
 
 vtkMedProfile::vtkMedProfile()

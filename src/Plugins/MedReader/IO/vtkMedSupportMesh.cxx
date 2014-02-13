@@ -32,7 +32,7 @@ using namespace std;
 
 vtkCxxSetObjectMacro(vtkMedSupportMesh, ParentFile, vtkMedFile);
 
-// vtkCxxRevisionMacro(vtkMedSupportMesh, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedSupportMesh, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedSupportMesh)
 
 vtkMedSupportMesh::vtkMedSupportMesh()

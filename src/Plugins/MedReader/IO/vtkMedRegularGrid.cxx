@@ -36,7 +36,7 @@
 vtkCxxGetObjectVectorMacro(vtkMedRegularGrid, AxisCoordinate, vtkDataArray);
 vtkCxxSetAbstractObjectVectorMacro(vtkMedRegularGrid, AxisCoordinate, vtkDataArray);
 
-// vtkCxxRevisionMacro(vtkMedRegularGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedRegularGrid, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedRegularGrid)
 
 vtkMedRegularGrid::vtkMedRegularGrid()

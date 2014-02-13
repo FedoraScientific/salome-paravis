@@ -33,11 +33,12 @@ VTK_ARRAY_ITERATOR_TEMPLATE_INSTANTIATE(med_int);
 
 #include "vtkObjectFactory.h"
 
-// vtkCxxRevisionMacro(vtkMedIntArrayInternal, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedIntArrayInternal, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkMedIntArrayInternal);
 
 //----------------------------------------------------------------------------
-vtkMedIntArrayInternal::vtkMedIntArrayInternal(vtkIdType numComp): RealSuperclass(numComp)
+//vtkMedIntArrayInternal::vtkMedIntArrayInternal(vtkIdType numComp): RealSuperclass(numComp)
+vtkMedIntArrayInternal::vtkMedIntArrayInternal(): RealSuperclass()
 {
 }
 

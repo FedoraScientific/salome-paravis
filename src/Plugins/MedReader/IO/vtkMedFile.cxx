@@ -56,7 +56,7 @@ vtkCxxSetObjectVectorMacro(vtkMedFile, SupportMesh, vtkMedMesh);
 
 vtkCxxSetObjectMacro(vtkMedFile, MedDriver, vtkMedDriver);
 
-//vtkCxxRevisionMacro(vtkMedFile, "$Revision$")
+//vtkCxxRevisionMacro(vtkMedFile, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedFile)
 
 vtkMedFile::vtkMedFile()

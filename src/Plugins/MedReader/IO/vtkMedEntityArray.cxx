@@ -49,7 +49,7 @@ vtkCxxSetObjectMacro(vtkMedEntityArray,NodeIndex,vtkMedIntArray);
 vtkCxxSetObjectMacro(vtkMedEntityArray,ParentGrid,vtkMedGrid);
 vtkCxxSetObjectMacro(vtkMedEntityArray,StructElement,vtkMedStructElement);
 
-// vtkCxxRevisionMacro(vtkMedEntityArray, "$Revision$");
+// vtkCxxRevisionMacro(vtkMedEntityArray, "$Revision: 1.2.2.4 $");
 vtkStandardNewMacro(vtkMedEntityArray);
 
 vtkMedEntityArray::vtkMedEntityArray()

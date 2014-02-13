@@ -34,7 +34,7 @@
 
 vtkCxxSetObjectMacro(vtkMedCurvilinearGrid, Coordinates, vtkDataArray);
 
-// vtkCxxRevisionMacro(vtkMedCurvilinearGrid, "$Revision$")
+// vtkCxxRevisionMacro(vtkMedCurvilinearGrid, "$Revision: 1.2.2.2 $")
 vtkStandardNewMacro(vtkMedCurvilinearGrid)
 
 vtkMedCurvilinearGrid::vtkMedCurvilinearGrid()
