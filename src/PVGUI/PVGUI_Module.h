@@ -47,6 +47,7 @@ class pqPVApplicationCore;
 class pqDataRepresentation;
 class pqRepresentation;
 
+class PyConsole_Interp;
 
 class PVGUI_Module : public SalomeApp_Module
 {
@@ -54,85 +55,85 @@ class PVGUI_Module : public SalomeApp_Module
    
   //! Menu actions
   enum { // Menu "File"
-         OpenFileId,
+     OpenFileId,
 
-	 LoadStateId,
-	 SaveStateId,
+     LoadStateId,
+     SaveStateId,
 
-	 SaveDataId,
-	 SaveScreenshotId,
-	 ExportId,
+     SaveDataId,
+     SaveScreenshotId,
+     ExportId,
 
-	 SaveAnimationId,
-	 SaveGeometryId,
+     SaveAnimationId,
+     SaveGeometryId,
 
-	 ConnectId,
-	 DisconnectId,
+     ConnectId,
+     DisconnectId,
 
-	 // Menu "Edit"
-	 UndoId,
-	 RedoId,
+     // Menu "Edit"
+     UndoId,
+     RedoId,
 
-	 CameraUndoId,
-	 CameraRedoId,
+     CameraUndoId,
+     CameraRedoId,
 
-   FindDataId,   
-	 ChangeInputId,
-   IgnoreTimeId, 
-	 DeleteId,
-	 DeleteAllId,
+     FindDataId,
+     ChangeInputId,
+     IgnoreTimeId,
+     DeleteId,
+     DeleteAllId,
 
-	 SettingsId,
-	 ViewSettingsId,
+     SettingsId,
+     ViewSettingsId,
 
-	 // Menu "View"
-   FullScreenId, 
+     // Menu "View"
+     FullScreenId,
 
-	 // Menu "Animation"
-	 FirstFrameId,
-	 PreviousFrameId,
-	 PlayId,
-	 NextFrameId,
-	 LastFrameId,
-	 LoopId,
+     // Menu "Animation"
+     FirstFrameId,
+     PreviousFrameId,
+     PlayId,
+     NextFrameId,
+     LastFrameId,
+     LoopId,
 
-	 // Menu "Tools" 
-	 CreateCustomFilterId,
-	 ManageCustomFiltersId,
-	 CreateLookmarkId,
-	 ManageLinksId,
-	 AddCameraLinkId,
-	 ManagePluginsExtensionsId,
-	 DumpWidgetNamesId,
-	 RecordTestId,
-	 RecordTestScreenshotId,
-	 PlayTestId,
-	 MaxWindowSizeId,
-	 CustomWindowSizeId,
-	 TimerLogId,
-	 OutputWindowId,
-	 PythonShellId,
-	 ShowTraceId,
-	 RestartTraceId,
+     // Menu "Tools"
+     CreateCustomFilterId,
+     ManageCustomFiltersId,
+     CreateLookmarkId,
+     ManageLinksId,
+     AddCameraLinkId,
+     ManagePluginsExtensionsId,
+     DumpWidgetNamesId,
+     RecordTestId,
+     RecordTestScreenshotId,
+     PlayTestId,
+     MaxWindowSizeId,
+     CustomWindowSizeId,
+     TimerLogId,
+     OutputWindowId,
+     PythonShellId,
+     ShowTraceId,
+     RestartTraceId,
 
-	 // Menu "Help" 
-	 AboutParaViewId,
-	 ParaViewHelpId,
-	 EnableTooltipsId,
+     // Menu "Help"
+     AboutParaViewId,
+     ParaViewHelpId,
+     EnableTooltipsId,
 
-	 // Menu "Window" - "New Window"
-	 ParaViewNewWindowId,
+     // Menu "Window" - "New Window"
+     ParaViewNewWindowId,
 
-	 // "Save state" ParaVis module root object popup
-	 SaveStatePopupId,
+     // "Save state" ParaVis module root object popup
+     SaveStatePopupId,
 
-	 // "Add state" and "Reload state" popups
-	 AddStatePopupId,
-	 CleanAndAddStatePopupId,
+     // "Add state" and "Reload state" popups
+     AddStatePopupId,
+     CleanAndAddStatePopupId,
 
-	 // "Rename" and "Delete" popups (Object Browser)
-	 ParaVisRenameId,
-	 ParaVisDeleteId
+     // "Rename" and "Delete" popups (Object Browser)
+     ParaVisRenameId,
+     ParaVisDeleteId
   };
 
 public:
@@ -217,8 +218,8 @@ private:
   //! restore visibility of the common dockable windows (OB, PyConsole, ... etc.)
   void restoreCommonWindowsState();
 
-  //! run Python command
-  void execPythonCommand(const QString& cmd, bool inSalomeConsole = false);
+  //! run Python command (either in SALOME's Python interpreter, or in ParaView's Python's interpreter)
+  void execPythonCommand(const QString& cmd, bool inSalomeConsole=false);
 
 private slots:
 

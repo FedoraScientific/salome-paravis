@@ -202,6 +202,14 @@
         <translation>Properties</translation>
     </message>
     <message>
+        <source>TTL_MUTLI_BLOCK_INSPECTOR</source>
+        <translation>Multi-block Inspector</translation>
+    </message>
+    <message>
+        <source>TTL_COLOR_MAP_EDITOR</source>
+        <translation>Color Map Editor</translation>
+    </message>           
+    <message>
         <source>TTL_DISPLAY</source>
         <translation>Display</translation>
     </message>
@@ -211,7 +219,7 @@
     </message>
     <message>
         <source>TTL_STATISTICS_VIEW</source>
-        <translation>Statistics View</translation>
+        <translation>Statistics Inspector</translation>
     </message>
     <message>
         <source>TTL_ANIMATION_INSPECTOR</source>
@@ -235,17 +243,17 @@
     </message>
     <message>
         <source>TTL_SELECTION_INSPECTOR</source>
-        <translation>Selection Inspector</translation>
+        <translation>Selection Display Inspector</translation>
     </message>
-     <message>
+    <message>
         <source>TTL_COLLABORATIVE_DOCK</source>
         <translation>Collaboration Panel</translation>
     </message>
-     <message>
+    <message>
         <source>TTL_MEMORY_INSPECTOR</source>
         <translation>Memory Inspector</translation>
     </message>
-   <message>
+    <message>
         <source>TOP_OPEN_FILE</source>
         <translation>Open Paraview File</translation>
     </message>

@@ -71,7 +71,7 @@ SET(_moc_HEADERS
 SET(_other_HEADERS
   PVGUI_OutputWindowAdapter.h
   PVGUI_Tools.h
-  PVGUI_MatplotlibMathTextUtilities.h
+  #PVGUI_MatplotlibMathTextUtilities.h
   PV_I.h
   PARAVIS_Gen_i.hh
   PV_Events.h
@@ -137,7 +137,7 @@ SET(_other_SOURCES
   PVGUI_OutputWindowAdapter.cxx
   PVGUI_Tools.cxx
   PVGUI_ParaViewSettingsPane.cxx
-  PVGUI_MatplotlibMathTextUtilities.cxx
+  #PVGUI_MatplotlibMathTextUtilities.cxx
   PARAVIS_Gen_i.cc
   PV_Tools.cxx
   )

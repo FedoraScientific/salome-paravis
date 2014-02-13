@@ -39,7 +39,7 @@
 #include <QFile>
 
 #include <pqApplicationCore.h>
-#include <pqColorScaleToolbar.h>
+// #include <pqColorScaleToolbar.h>
 #include <pqProgressManager.h>
 #include <pqRubberBandHelper.h>
 #include <pqScalarBarVisibilityAdaptor.h>
