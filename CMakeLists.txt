@@ -73,6 +73,7 @@ ENDIF()
 # ============
 OPTION(SALOME_BUILD_DOC "Generate SALOME GUI documentation" ON)
 OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ON)
+OPTION(SALOME_PARAVIS_ALL_TEST "Add all tests for Salome PARAVIS module" OFF)
 OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF)
 OPTION(SALOME_PARAVIS_BUILD_PLUGINS "Build PARAVIS plugins (MEDReader, etc ...)" ON)
 
