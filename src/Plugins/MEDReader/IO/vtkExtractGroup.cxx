@@ -117,6 +117,7 @@ public:
   void printMySelf(std::ostream& os) const;
   std::set<int> getIdsToKeep() const;
   int getIdOfFamily(const std::string& famName) const;
+  static bool IsInformationOK(vtkInformation *info);
 private:
   std::map<std::string,int> computeFamStrIdMap() const;
   const ExtractGroupStatus& getEntry(const char *entry) const;
@@ -156,6 +157,27 @@ bool ExtractGroupGrp::isSameAs(const ExtractGroupGrp& other) const
     return _fams==other._fams;
   else
     return false;
+}
+
+bool vtkExtractGroup::vtkExtractGroupInternal::IsInformationOK(vtkInformation *info)
+{
+  if(!info->Has(vtkDataObject::SIL()))
+    return false;
+  vtkMutableDirectedGraph *sil(vtkMutableDirectedGraph::SafeDownCast(info->Get(vtkDataObject::SIL())));
+  if(!sil)
+    return false;
+  int idNames(0);
+  vtkAbstractArray *verticesNames(sil->GetVertexData()->GetAbstractArray("Names",idNames));
+  vtkStringArray *verticesNames2(vtkStringArray::SafeDownCast(verticesNames));
+  if(!verticesNames2)
+    return false;
+  for(int i=0;i<verticesNames2->GetNumberOfValues();i++)
+    {
+      vtkStdString &st(verticesNames2->GetValue(i));
+      if(st=="MeshesFamsGrps")
+        return true;
+    }
+  return false;
 }
 
 void vtkExtractGroup::vtkExtractGroupInternal::loadFrom(vtkMutableDirectedGraph *sil)
@@ -406,7 +428,7 @@ int vtkExtractGroup::RequestInformation(vtkInformation *request, vtkInformationV
       vtkExecutive *exe(GetExecutive());
       vtkAlgorithm *alg(this);
       vtkInformation *infoOnSIL(alg->GetOutputInformation(0));
-      while(!infoOnSIL->Has(vtkDataObject::SIL()))// skipping vtkPVPostFilter
+      while(!vtkExtractGroup::vtkExtractGroupInternal::IsInformationOK(infoOnSIL))// skipping vtkPVPostFilter
 	{
 	  if(exe->GetNumberOfInputConnections(0)<1)
 	    {
