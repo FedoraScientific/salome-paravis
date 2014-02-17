@@ -463,10 +463,32 @@ int MEDFileFieldRepresentationLeaves::getNumberOfTS() const
   return _arrays[0]->getNumberOfTS();
 }
 
-void MEDFileFieldRepresentationLeaves::feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& comSupStr, std::vector<std::string>& names) const
+/*!
+ * \param [in] ms is the meshes pointer. It can be used only for information of geometric types. No special processing will be requested on ms.
+ */
+void MEDFileFieldRepresentationLeaves::feedSIL(const ParaMEDMEM::MEDFileMeshes *ms, vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& comSupStr, std::vector<std::string>& names) const
 {
+  vtkIdType root2(sil->AddChild(root,edge));
+  names.push_back(std::string("Arrs"));
   for(std::vector<MEDFileFieldRepresentationLeavesArrays>::const_iterator it=_arrays.begin();it!=_arrays.end();it++)
-    (*it).feedSIL(sil,root,edge,tsName,meshName,comSupStr,names);
+    (*it).feedSIL(sil,root2,edge,tsName,meshName,comSupStr,names);
+  //
+  vtkIdType root3(sil->AddChild(root,edge));
+  names.push_back(std::string("InfoOnGeoType"));
+  const ParaMEDMEM::MEDFileMesh *m(0);
+  if(ms)
+    m=ms->getMeshWithName(meshName);
+  const ParaMEDMEM::MEDFileFastCellSupportComparator *fsp(_fsp);
+  if(!fsp || fsp->getNumberOfTS()==0)
+    return ;
+  std::vector< INTERP_KERNEL::NormalizedCellType > gts(fsp->getGeoTypesAt(0,m));
+  for(std::vector< INTERP_KERNEL::NormalizedCellType >::const_iterator it2=gts.begin();it2!=gts.end();it2++)
+    {
+      const INTERP_KERNEL::CellModel& cm(INTERP_KERNEL::CellModel::GetCellModel(*it2));
+      std::string cmStr(cm.getRepr()); cmStr=cmStr.substr(5);//skip "NORM_"
+      sil->AddChild(root3,edge);
+      names.push_back(cmStr);
+    }
 }
 
 bool MEDFileFieldRepresentationLeaves::containId(int id) const
@@ -910,7 +932,7 @@ void MEDFileFieldRepresentationTree::feedSIL(vtkMutableDirectedGraph* sil, vtkId
               std::string comSupStr(oss2.str());
               vtkIdType typeId2(sil->AddChild(typeId1,edge));
               names.push_back(comSupStr);
-              (*it2).feedSIL(sil,typeId2,edge,tsName,meshName,comSupStr,names);
+              (*it2).feedSIL(_ms,sil,typeId2,edge,tsName,meshName,comSupStr,names);
             } 
         }
     }

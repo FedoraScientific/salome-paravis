@@ -210,16 +210,17 @@ void pqMEDReaderPanel::initAll()
             {
               vtkIdType id3(it2->Next());
               QString name2(QString::fromStdString((const char *)verticesNames2->GetValue(id3))); QList<QString> strs2; strs2.append(name2);
-              QString toolTipName2(name2);
               pqTreeWidgetItemObject *item2(new pqTreeWidgetItemObject(item1,strs2));
               item2->setData(0,Qt::UserRole,name2);
-              item2->setData(0,Qt::ToolTipRole,toolTipName2);
               item2->setData(0,Qt::CheckStateRole,0);
               vtkAdjacentVertexIterator *it3(vtkAdjacentVertexIterator::New());//fields !
               g2->GetAdjacentVertices(id3,it3);
-              while(it3->HasNext())
+              vtkIdType id3Arrs(it3->Next());
+              vtkAdjacentVertexIterator *it3Arrs(vtkAdjacentVertexIterator::New());//arrs in fields !
+              g2->GetAdjacentVertices(id3Arrs,it3Arrs);
+              while(it3Arrs->HasNext())
                 {
-                  vtkIdType id4(it3->Next());
+                  vtkIdType id4(it3Arrs->Next());
                   std::string name3CppFull((const char *)verticesNames2->GetValue(id4));
                   std::size_t pos(name3CppFull.find_first_of(ZE_SEP));
                   std::string name3Only(name3CppFull.substr(0,pos)); std::string spatialDiscr(name3CppFull.substr(pos+sizeof(ZE_SEP)-1));
@@ -253,7 +254,20 @@ void pqMEDReaderPanel::initAll()
                   connect(item3,SIGNAL(checkedStateChanged(bool)),this,SLOT(aLev4HasBeenFired()));
                   ll++;
                 }
+              vtkIdType id3Gts(it3->Next());
+              vtkAdjacentVertexIterator *it3Gts(vtkAdjacentVertexIterator::New());//geo types in fields !
+              g2->GetAdjacentVertices(id3Gts,it3Gts);
+              QString toolTipName2(name2);
+              while(it3Gts->HasNext())
+                {
+                  vtkIdType idGt(it3Gts->Next());
+                  std::string gtName((const char *)verticesNames2->GetValue(idGt));
+                  toolTipName2=QString("%1\n- %2").arg(toolTipName2).arg(QString(gtName.c_str()));
+                }
+              item2->setData(0,Qt::ToolTipRole,toolTipName2);
+              it3Gts->Delete();
               it3->Delete();
+              it3Arrs->Delete();
               if(kk==0)
                 item2->setChecked(true);
               kk++;

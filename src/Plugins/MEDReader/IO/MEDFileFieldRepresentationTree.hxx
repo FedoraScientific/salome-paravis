@@ -101,7 +101,7 @@ public:
   std::string getMeshName() const;
   int getNumberOfArrays() const;
   int getNumberOfTS() const;
-  void feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& compSupStr, std::vector<std::string>& names) const;
+  void feedSIL(const ParaMEDMEM::MEDFileMeshes *ms, vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& compSupStr, std::vector<std::string>& names) const;
   bool containId(int id) const;
   bool containZeName(const char *name, int& id) const;
   bool isActivated() const;
