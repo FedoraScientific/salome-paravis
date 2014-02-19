@@ -195,16 +195,24 @@
     <name>PVGUI_Module</name>
     <message>
         <source>PREF_SHOW_COLOR_LEGEND</source>
-        <translation type="unfinished">Show Color Legend</translation>
+        <translation>Afficher la légende couleur</translation>
     </message>
     <message>
         <source>TTL_PIPELINE_BROWSER</source>
-        <translation>Navigateur des conduites</translation>
+        <translation>Navigateur du pipeline</translation>
     </message>
     <message>
         <source>TTL_OBJECT_INSPECTOR</source>
         <translation>Inspecteur d&apos;objets</translation>
     </message>
+    <message>
+        <source>TTL_MUTLI_BLOCK_INSPECTOR</source>
+        <translation>Navigateur multi-blocs</translation>
+    </message>
+    <message>
+        <source>TTL_COLOR_MAP_EDITOR</source>
+        <translation>Editeur de carte de couleurs</translation>
+    </message>             
     <message>
         <source>TTL_DISPLAY</source>
         <translation>Affichage</translation>
@@ -215,7 +223,7 @@
     </message>
     <message>
         <source>TTL_STATISTICS_VIEW</source>
-        <translation>Vue Statistique</translation>
+        <translation>Navigateur de statistiques</translation>
     </message>
     <message>
         <source>TTL_ANIMATION_INSPECTOR</source>
