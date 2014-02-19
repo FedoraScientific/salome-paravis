@@ -1,4 +1,4 @@
-# Copyright (C) 2010-2013  CEA/DEN, EDF R&D
+# Copyright (C) 2010-2014  CEA/DEN, EDF R&D
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,27 +17,21 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+PROJECT(EllipseBuilder)
+
+cmake_minimum_required(VERSION 2.8)
+
+FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
-IF(WIN32)
-  REMOVE_DEFINITIONS(-D_SECURE_SCL=0 -D_SECURE_SCL_THROWS=0)
-  IF(NOT CMAKE_BUILD_TYPE STREQUAL "RELEASE" AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
-    REMOVE_DEFINITIONS(-D_HAS_ITERATOR_DEBUGGING=0)  
-  ENDIF() 
-ENDIF() 
+ADD_PARAVIEW_PLUGIN(EllipseBuilderFilter "1.0"
+    SERVER_MANAGER_XML EllipseBuilderFilter.xml 
+    SERVER_MANAGER_SOURCES vtkEllipseBuilderFilter.cxx
+    GUI_RESOURCES pqEllipseBuilder.qrc
+    GUI_RESOURCE_FILES EllipseBuilderGUI.xml
+    )
 
-SET(_subdirs
-  #Filter 
-  #ToolBar 
-  MEDReader 
-  ParaMEDCorba 
-  TableReader 
-  NavigationMode 
-  ElevationSurface
-  ScaleVector
-  EllipseBuilder
-  )
-
-FOREACH(_dir ${_subdirs})
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
+INSTALL(
+	TARGETS EllipseBuilderFilter
+	DESTINATION lib/paraview
+)

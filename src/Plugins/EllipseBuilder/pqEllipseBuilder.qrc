@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/EllipseBuilderIcons" >
+      <file>resources/ellipse-icon.png</file>
+    </qresource>
+</RCC>

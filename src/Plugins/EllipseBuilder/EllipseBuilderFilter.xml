@@ -1,0 +1,115 @@
+<ServerManagerConfiguration>
+    <ProxyGroup name="filters">
+        <SourceProxy name="EllipseBuilderFilter" class="vtkEllipseBuilderFilter" label="Ellipse Builder">
+            <Documentation
+                long_help="The filter builds data sets from multiblock data set with the ellipses around each input node on base of the displacement fields (real and image parts)"
+                short_help="Builds ellipses around each input node">
+            </Documentation>
+
+            <InputProperty name="Input" command="SetInputConnection">
+                <ProxyGroupDomain name="groups">
+                    <Group name="sources"/>
+                    <Group name="filters"/>
+                </ProxyGroupDomain>
+                <DataTypeDomain name="input_type">
+                    <DataType value="vtkMultiBlockDataSet"/>
+                </DataTypeDomain>
+                <InputArrayDomain 
+		    name="input_array"
+		    attribute_type="point"
+		    number_of_components="3"
+		    optional="1"/>
+            </InputProperty>
+
+            <StringVectorProperty
+                name="FieldNameInfo"
+                command="GetFieldList"
+                information_only="1">
+                <StringArrayHelper/>
+            </StringVectorProperty>
+
+            <StringVectorProperty
+                name="RealFieldName"
+                command="SetRealField"
+                number_of_elements="1">
+                <StringListDomain name="Input">
+                    <RequiredProperties>
+                        <Property name="FieldNameInfo" function="ArraySelection"/>
+                    </RequiredProperties>
+                </StringListDomain>
+		<Documentation>
+		  This property specifies the name of the real field.
+		</Documentation>
+            </StringVectorProperty>
+            
+            <StringVectorProperty
+                name="ImagFieldName"
+                command="SetImagField"
+                number_of_elements="1">
+                <StringListDomain name="Input">
+                    <RequiredProperties>
+                        <Property name="FieldNameInfo" function="ArraySelection"/>
+                    </RequiredProperties>
+                </StringListDomain>
+		<Documentation>
+		  This property specifies the name of the image field.
+		</Documentation>
+            </StringVectorProperty>
+
+            <IntVectorProperty
+                name="Axis"
+                command="SetAxis"
+                number_of_elements="1"
+                default_values="2">
+                <EnumerationDomain name="EnumAxis">
+                    <Entry value="0" text="X"/>
+                    <Entry value="1" text="Y"/>
+                    <Entry value="2" text="Z"/>
+                </EnumerationDomain>
+            </IntVectorProperty>
+
+            <DoubleVectorProperty
+                name="ScaleFactor"
+                command="SetScaleFactor"
+                number_of_elements="1"
+                default_values="1">
+	      <Documentation>
+		This property specifies the scale factor to scale every ellipse by.
+	      </Documentation>
+            </DoubleVectorProperty>
+
+            <IntVectorProperty
+                name="Resolution"
+                command="SetResolution"
+                number_of_elements="1"
+                default_values="200">
+              <IntRangeDomain name="range" min="1"/>
+	      <Documentation>
+		This property sets the number of the points for every ellipse.
+	      </Documentation>
+            </IntVectorProperty>
+
+            <DoubleVectorProperty
+                name="StartAngle"
+                command="SetStartAngle"
+                number_of_elements="1"
+                default_values="0.0">
+                <DoubleRangeDomain name="range" min="0.0" max="360.0" />
+	      <Documentation>
+		This property sets the start angle for every ellipse.
+	      </Documentation>
+            </DoubleVectorProperty>
+
+            <DoubleVectorProperty
+                name="EndAngle"
+                command="SetEndAngle"
+                number_of_elements="1"
+                default_values="360.0">
+                <DoubleRangeDomain name="range" min="0.0" max="360.0" />
+	      <Documentation>
+		This property sets the end angle for every ellipse.
+	      </Documentation>
+            </DoubleVectorProperty>
+        </SourceProxy>
+    </ProxyGroup>
+</ServerManagerConfiguration>

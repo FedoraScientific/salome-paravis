@@ -1,0 +1,5 @@
+<ParaViewFilters>
+    <Category name="DataAnalysis" menu_label="&amp;Data Analysis">
+      <Proxy group="filters" name="EllipseBuilderFilter" icon=":/EllipseBuilderIcons/resources/ellipse-icon.png" />
+    </Category>
+</ParaViewFilters>
