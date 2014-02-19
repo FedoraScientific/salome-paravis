@@ -29,14 +29,12 @@ ENDIF()
 SET(_subdirs
   #Filter 
   #ToolBar 
-  MedReader 
+  MEDReader 
   ParaMEDCorba 
   TableReader 
   NavigationMode 
-  IntegrationPoints
   ElevationSurface
   ScaleVector
-  ExtraxtFieldFilter
   )
 
 FOREACH(_dir ${_subdirs})

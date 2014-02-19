@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/ExtractFieldIcons" >
-      <file>resources/extract_field.png</file>
-    </qresource>
-</RCC>

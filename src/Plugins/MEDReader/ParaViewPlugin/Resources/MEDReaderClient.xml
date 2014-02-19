@@ -1,0 +1,6 @@
+<ParaViewReaders>
+    <Reader name="MEDReader"
+            extensions="med rmed sauv sauve"
+            file_description="MED Files">
+    </Reader>
+</ParaViewReaders>

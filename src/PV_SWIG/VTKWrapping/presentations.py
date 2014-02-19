@@ -783,61 +783,6 @@ def select_cells_with_data(proxy, on_points=None, on_cells=None):
     proxy.Entity = cell_types_on
     proxy.UpdatePipeline()
 
-
-def extract_groups_for_field(proxy, field_name, field_entity, force=False):
-    """Exctract only groups which have the field.
-
-    Arguments:
-      proxy: the pipeline object, containig data
-      field_name: the field name
-      field_entity: the field entity
-      force: if True - ExtractGroup object will be created in any case
-
-    Returns:
-      ExtractGroup object: if not all groups have the field or
-      the force argument is true
-      The initial proxy: if no groups had been filtered.
-
-    """
-    source = proxy
-
-    # Remember the state
-    initial_groups = list(proxy.Groups)
-
-    # Get data information for the field entity
-    entity_data_info = None
-    field_data = proxy.GetFieldDataInformation()
-
-    if field_name in field_data.keys():
-        entity_data_info = field_data
-    elif field_entity == EntityType.CELL:
-        entity_data_info = proxy.GetCellDataInformation()
-    elif field_entity == EntityType.NODE:
-        entity_data_info = proxy.GetPointDataInformation()
-
-    # Collect groups for extraction
-    groups_to_extract = []
-
-    for group in initial_groups:
-        proxy.Groups = [group]
-        proxy.UpdatePipeline()
-        if field_name in entity_data_info.keys():
-            groups_to_extract.append(group)
-
-    # Restore state
-    proxy.Groups = initial_groups
-    proxy.UpdatePipeline()
-
-    # Extract groups if necessary
-    if force or (len(groups_to_extract) < len(initial_groups)):
-        extract_group = pv.ExtractGroup(proxy)
-        extract_group.Groups = groups_to_extract
-        extract_group.UpdatePipeline()
-        source = extract_group
-
-    return source
-
-
 def if_possible(proxy, field_name, entity, prs_type):
     """Check if the presentation creation is possible on the given field."""
     result = True
@@ -1074,12 +1019,8 @@ def ScalarMapOnField(proxy, entity, field_name, timestamp_nb,
     pv.GetRenderView().ViewTime = time_value
     pv.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity,
-                                         force=True)
-
     # Get Scalar Map representation object
-    scalarmap = pv.GetRepresentation(new_proxy)
+    scalarmap = pv.GetRepresentation(proxy)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1423,8 +1364,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
     pv.UpdatePipeline(time_value, proxy)
 
     # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-    source = new_proxy
+    source = proxy
 
     # Cell centers
     if is_data_on_cells(proxy, field_name):
@@ -1467,7 +1407,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
         glyph.SetScaleFactor = scale_factor
     else:
         def_scale = get_default_scale(PrsTypeEnum.DEFORMEDSHAPE,
-                                      new_proxy, entity, field_name)
+                                      proxy, entity, field_name)
         glyph.SetScaleFactor = def_scale
 
     glyph.UpdatePipeline()
@@ -1542,11 +1482,8 @@ def DeformedShapeOnField(proxy, entity, field_name,
     pv.GetRenderView().ViewTime = time_value
     pv.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pv.MergeBlocks(new_proxy)
+    source = pv.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
@@ -1660,11 +1597,8 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         scalar_field_entity = entity
         scalar_field = field_name
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pv.MergeBlocks(new_proxy)
+    source = pv.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
@@ -1686,7 +1620,7 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         warp_vector.ScaleFactor = scale_factor
     else:
         def_scale = get_default_scale(PrsTypeEnum.DEFORMEDSHAPE,
-                                      new_proxy, entity, field_name)
+                                      proxy, entity, field_name)
         warp_vector.ScaleFactor = def_scale
 
     # Get Defromed Shape And Scalar Map representation object
@@ -1767,11 +1701,8 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
     pv.GetRenderView().ViewTime = time_value
     pv.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    merge_blocks = pv.MergeBlocks(new_proxy)
+    merge_blocks = pv.MergeBlocks(proxy)
     merge_blocks.UpdatePipeline()
 
     poly_data = None
@@ -1927,11 +1858,8 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
     pv.GetRenderView().ViewTime = time_value
     pv.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pv.MergeBlocks(new_proxy)
+    source = pv.MergeBlocks(proxy)
 
     # Transform cell data into point data if necessary
     if is_data_on_cells(proxy, field_name):
@@ -2049,8 +1977,7 @@ def GaussPointsOnField(proxy, entity, field_name,
     pv.GetRenderView().ViewTime = time_value
     proxy.UpdatePipeline(time=time_value)
 
-    # Extract only groups with data for the field
-    source = extract_groups_for_field(proxy, field_name, entity)
+    source = proxy
 
     # Quadrature point arrays
     qp_arrays = proxy.QuadraturePointArrays.Available
@@ -2348,11 +2275,8 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
     pv.GetRenderView().ViewTime = time_value
     pv.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pv.MergeBlocks(new_proxy)
+    source = pv.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
@@ -2387,7 +2311,7 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
 
     # Set field range if necessary
-    data_range = get_data_range(new_proxy, entity,
+    data_range = get_data_range(proxy, entity,
                                 field_name, vector_mode)
     lookup_table.LockScalarRange = 1
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]

@@ -1,0 +1,42 @@
+TODO :
+------
+
+
+
+3 - propagate the update of filters connected directly or not (typically ExtractGroup) to the MEDReader when the groups have been updated.
+UC : ForMEDReader16.med, then extractgroup, then return to MEDReader properties and select zeField3_1 & zeField4_1 -> ExtractGroup filter is out of date and "Apply" button not green.
+
+
+Known bug :
+-----------
+
+- Extract cell type + Extract Group
+
+
+TODO in MED:
+------------
+
+- Manage degenerated cases.
+
+DONE
+----
+
+0- Sur le time quand tout a echouer prendre le plus grand < (07/01/2014)
+
+1 - Load ForMEDReader8.med, Load ForMEDReader17.med
+-> throw because of missynchronization of time. -> Alejandro (07/01/2014)
+
+1 - ELNO to be added only once not for each GAUSS_NE -> To test a file having > 1 field with GAUSS_NE
+
+1 - Keep tracks of built support to accelerate rendering in MEDFileFieldRepresentation. 
+
+2 - in branch EDF1 : adm_local_without_kernel to put in install of MED_SRC
+when in STANDALONE mode.
+
+0 - test22 doit etre sur les seg2 et tri3
+
+1 - When Reload Applied it is possible with gui to unselect all !
+
+0 - protect ExtractGroup against throw
+
+0 - protect ExctractCellType against throw
