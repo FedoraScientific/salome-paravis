@@ -18,15 +18,7 @@
 //
 // Author : Anthony Geay
 
-#define private public
-#define protected public
-#include "MEDFileFieldRepresentationTree.hxx"
-
 int main(int argc, char *argv[])
 {
-  MEDFileFieldRepresentationTree *tree(new MEDFileFieldRepresentationTree);
-  tree->loadMainStructureOfFile("/export/home/geay/Salome7/V7_main/ForMEDReader1.med",true);
-  std::cerr << tree->_data_structure[0][0][0].getMeshName() << std::endl;
-  delete tree;
   return 0;
 }
