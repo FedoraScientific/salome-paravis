@@ -2,6 +2,12 @@
   <ProxyGroup name="sources">
     <SourceProxy name="MEDReader" class="vtkMEDReader" label="MED Reader">
 
+      <Hints>
+	<ReaderFactory extensions="med rmed sauv sauve"
+		       file_description="MED Files">
+	</ReaderFactory>
+      </Hints>
+
       <StringVectorProperty
         name="FileName"
         command="SetFileName"
