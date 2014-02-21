@@ -140,21 +140,36 @@ const char *vtkMEDReader::GetSeparator()
 
 void vtkMEDReader::SetFileName(const char *fname)
 {
-  this->Internal->FileName=fname;
-  std::size_t pos(this->Internal->FileName.find_last_of('.'));
-  if(pos!=std::string::npos)
+  try
     {
-      std::string ext(this->Internal->FileName.substr(pos));
-      if(ext.find("sauv")!=std::string::npos)
-        this->Internal->IsMEDOrSauv=false;
+      this->Internal->FileName=fname;
+      std::size_t pos(this->Internal->FileName.find_last_of('.'));
+      if(pos!=std::string::npos)
+        {
+          std::string ext(this->Internal->FileName.substr(pos));
+          if(ext.find("sauv")!=std::string::npos)
+            this->Internal->IsMEDOrSauv=false;
+        }
+      if(this->Internal->Tree.getNumberOfLeavesArrays()==0)
+        {
+          this->Internal->Tree.loadMainStructureOfFile(this->Internal->FileName.c_str(),this->Internal->IsMEDOrSauv);
+          this->Internal->Tree.activateTheFirst();//This line manually initialize the status of server (this) with the remote client.
+          this->Internal->TK.setMaxNumberOfTimeSteps(this->Internal->Tree.getMaxNumberOfTimeSteps());
+        }
+      this->Modified();
     }
-  if(this->Internal->Tree.getNumberOfLeavesArrays()==0)
+  catch(INTERP_KERNEL::Exception& e)
     {
-      this->Internal->Tree.loadMainStructureOfFile(this->Internal->FileName.c_str(),this->Internal->IsMEDOrSauv);
-      this->Internal->Tree.activateTheFirst();//This line manually initialize the status of server (this) with the remote client.
-      this->Internal->TK.setMaxNumberOfTimeSteps(this->Internal->Tree.getMaxNumberOfTimeSteps());
+      delete this->Internal;
+      this->Internal=0;
+      std::ostringstream oss;
+      oss << "Exception has been thrown in vtkMEDReader::SetFileName : " << e.what() << std::endl;
+      if(this->HasObserver("ErrorEvent") )
+        this->InvokeEvent("ErrorEvent",const_cast<char *>(oss.str().c_str()));
+      else
+        vtkOutputWindowDisplayErrorText(const_cast<char *>(oss.str().c_str()));
+      vtkObject::BreakOnError();
     }
-  this->Modified();
 }
 
 char *vtkMEDReader::GetFileName()
@@ -165,6 +180,8 @@ char *vtkMEDReader::GetFileName()
 int vtkMEDReader::RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
   //std::cerr << "########################################## RequestInformation ##########################################" << std::endl;
+  if(!this->Internal)
+    return 0;
   try
     {
       vtkInformation *outInfo(outputVector->GetInformationObject(0));
@@ -186,6 +203,8 @@ int vtkMEDReader::RequestInformation(vtkInformation *request, vtkInformationVect
 int vtkMEDReader::RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
   //std::cerr << "########################################## RequestData        ##########################################";
+  if(!this->Internal)
+    return 0;
   try
     {
       vtkInformation *outInfo(outputVector->GetInformationObject(0));
@@ -219,6 +238,8 @@ void vtkMEDReader::SetFieldsStatus(const char* name, int status)
 
 int vtkMEDReader::GetNumberOfFieldsTreeArrays()
 {
+  if(!this->Internal)
+    return 0;
   int ret(this->Internal->Tree.getNumberOfLeavesArrays());
   //std::cerr << "vtkMEDReader::GetNumberOfFieldsTreeArrays called ! " << ret << std::endl;
   return ret;
@@ -253,6 +274,8 @@ void vtkMEDReader::SetTimesFlagsStatus(const char *name, int status)
 
 int vtkMEDReader::GetNumberOfTimesFlagsArrays()
 {
+  if(!this->Internal)
+    return 0;
   return (int)this->Internal->TK.getTimesFlagArray().size();
 }
 
@@ -270,6 +293,8 @@ int vtkMEDReader::GetTimesFlagsArrayStatus(const char *name)
 
 void vtkMEDReader::UpdateSIL(vtkInformation *info)
 {
+  if(!this->Internal)
+      return ;
   vtkMutableDirectedGraph *sil(vtkMutableDirectedGraph::New());
   std::string meshName(this->BuildSIL(sil));
   if(meshName!=this->Internal->DftMeshName)

@@ -135,6 +135,8 @@ void pqMEDReaderPanel::initAll()
   vtkPVSILInformation *info(vtkPVSILInformation::New());
   reader->GatherInformation(info);
   vtkGraph *g(info->GetSIL());
+  if(!g)//something wrong server side...
+    return ;
   vtkMutableDirectedGraph *g2(vtkMutableDirectedGraph::SafeDownCast(g));
   int idNames(0);
   vtkAbstractArray *verticesNames(g2->GetVertexData()->GetAbstractArray("Names",idNames));
