@@ -47,8 +47,7 @@ vtkELNOSurfaceFilter::~vtkELNOSurfaceFilter()
 {
 }
 
-int vtkELNOSurfaceFilter::RequestData(vtkInformation *request,
-    vtkInformationVector **input, vtkInformationVector *output)
+int vtkELNOSurfaceFilter::RequestData(vtkInformation *request, vtkInformationVector **input, vtkInformationVector *output)
 {
   vtkUnstructuredGrid *usgIn=vtkUnstructuredGrid::SafeDownCast(
       input[0]->GetInformationObject(0)->Get(vtkDataObject::DATA_OBJECT()));
@@ -92,7 +91,7 @@ int vtkELNOSurfaceFilter::RequestData(vtkInformation *request,
 
   if(originalPointIds==NULL)
   {
-    vtkErrorMacro("vtkPVGeometryFilter return NULL 'vtkOriginalPointIds' array");
+    vtkErrorMacro("It appears that your dataset is not reduced using vtkPVGeometryFilter (NULL 'vtkOriginalPointIds).\n==================================================================================================\nProbably your dataset is not 3D.\nIf it is not a 3D dataset you are expected to use ELNO Mesh filter instead of ELNO Surface filter.\n==================================================================================================\n");
     return 0;
   }
 
