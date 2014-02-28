@@ -30,13 +30,18 @@ SET(_subdirs
   #Filter 
   #ToolBar 
   MEDReader 
-  ParaMEDCorba 
   TableReader 
   NavigationMode 
   ElevationSurface
   ScaleVector
   EllipseBuilder
   )
+  
+IF(NOT SALOME_LIGHT_ONLY)
+  LIST(APPEND _subdirs
+    ParaMEDCorba 
+  )
+ENDIF()   
 
 FOREACH(_dir ${_subdirs})
   ADD_SUBDIRECTORY(${_dir})

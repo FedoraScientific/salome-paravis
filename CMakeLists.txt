@@ -17,6 +17,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8 FATAL_ERROR)
+INCLUDE(CMakeDependentOption)
 PROJECT(SalomePARAVIS C CXX)
 
 IF(WIN32)
@@ -74,8 +75,11 @@ ENDIF()
 OPTION(SALOME_BUILD_DOC "Generate SALOME GUI documentation" ON)
 OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ON)
 OPTION(SALOME_PARAVIS_ALL_TEST "Add all tests for Salome PARAVIS module" OFF)
-OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF)
 OPTION(SALOME_PARAVIS_BUILD_PLUGINS "Build PARAVIS plugins (MEDReader, etc ...)" ON)
+CMAKE_DEPENDENT_OPTION(SALOME_LIGHT_ONLY "Build SALOME Light only (no CORBA)" OFF
+                       "NOT SALOME_KERNEL_LIGHT_ONLY" ON)
+CMAKE_DEPENDENT_OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF
+                       "NOT SALOME_LIGHT_ONLY" ON)
 
 IF(SALOME_BUILD_TESTS)
   ENABLE_TESTING()
@@ -130,6 +134,7 @@ FIND_PACKAGE(SalomeParaView REQUIRED)
 # GUI itself has to be loaded AFTER ParaView: the ParaView config doesn't mix
 # well with the VTK one (and GUI loads VTK):
 FIND_PACKAGE(SalomeGUI REQUIRED)
+FULL_GUI(TRUE) # check whether GUI builded in full mode and with CORBA
 ADD_DEFINITIONS(${GUI_DEFINITIONS})
 INCLUDE_DIRECTORIES(${GUI_INCLUDE_DIRS})
 
@@ -149,10 +154,11 @@ IF(SALOME_PARAVIS_BUILD_PLUGINS)
   ELSE()
     MESSAGE(FATAL_ERROR "We absolutely need the Salome MED module to build plugins, please define MED_ROOT_DIR")
   ENDIF()
-  IF(SALOME_MED_STANDALONE)
-    MESSAGE(FATAL_ERROR "We absolutely need a Salome MED with KERNEL, please set SALOME_MED_STANDALONE=OFF in MED module
+  IF(SALOME_MED_STANDALONE OR SALOME_MED_MICROMED)
+    MESSAGE(FATAL_ERROR "We absolutely need a Salome MED with KERNEL and with MED file dependancy, 
+                         please set SALOME_MED_STANDALONE=OFF and SALOME_MED_MICROMED=OFF in MED module
                          or SALOME_PARAVIS_BUILD_PLUGINS=OFF in PARAVIS module")
-  ENDIF(SALOME_MED_STANDALONE)
+  ENDIF()
   FIND_PACKAGE(SalomeMEDFile)
   SALOME_LOG_OPTIONAL_PACKAGE(MEDFile SALOME_PARAVIS_BUILD_PLUGINS)
 ENDIF()
@@ -197,6 +203,7 @@ MARK_AS_ADVANCED(SALOME_INSTALL_AMCONFIG_LOCAL SALOME_INSTALL_DOC SALOME_PARAVIS
 ## Generation of the list of VTK classes (to be wrapped into IDLs) 
 ## =====================================
 IF(NOT SALOME_LIGHT_ONLY AND NOT SALOME_PARAVIS_MINIMAL_CORBA)
+  ADD_DEFINITIONS(-DPARAVIS_WITH_FULL_CORBA)
   # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
   MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
   LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
@@ -225,7 +232,7 @@ ADD_SUBDIRECTORY(resources)
 IF(SALOME_BUILD_DOC)
   ADD_SUBDIRECTORY(doc)
 ENDIF()
-IF(SALOME_BUILD_TESTS)
+IF(SALOME_BUILD_TESTS AND NOT SALOME_LIGHT_ONLY)
   ADD_SUBDIRECTORY(test)
 ENDIF()
 ADD_SUBDIRECTORY(bin)
@@ -242,13 +249,13 @@ INCLUDE(CMakePackageConfigHelpers)
 
 # List of targets in this project we want to make visible to the rest of the world.
 # They all have to be INSTALL'd with the option "EXPORT ${PROJECT_NAME}TargetGroup"
-SET(_${PROJECT_NAME}_exposed_targets 
-    SalomeIDLPARAVIS PARAVIS PARAVISEngine
-)
+IF(NOT SALOME_LIGHT_ONLY)
+  SET(_${PROJECT_NAME}_exposed_targets SalomeIDLPARAVIS PARAVISEngine PARAVIS)
 
-# Add all targets to the build-tree export set
-EXPORT(TARGETS ${_${PROJECT_NAME}_exposed_targets}
-  FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake)
+  # Add all targets to the build-tree export set
+  EXPORT(TARGETS ${_${PROJECT_NAME}_exposed_targets}
+    FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake)
+ENDIF()
 
 # Create the configuration files:
 #   - in the build tree:
@@ -290,6 +297,8 @@ INSTALL(FILES
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
   DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}")
 
-# Install the export set for use with the install-tree
-INSTALL(EXPORT ${PROJECT_NAME}TargetGroup DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}" 
-        FILE ${PROJECT_NAME}Targets.cmake)
+IF(NOT SALOME_LIGHT_ONLY)
+  # Install the export set for use with the install-tree
+  INSTALL(EXPORT ${PROJECT_NAME}TargetGroup DESTINATION "${SALOME_INSTALL_CMAKE_LOCAL}" 
+          FILE ${PROJECT_NAME}Targets.cmake)
+ENDIF()

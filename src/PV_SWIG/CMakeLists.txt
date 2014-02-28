@@ -17,22 +17,31 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-IF(SALOME_PARAVIS_MINIMAL_CORBA)
-  # Use another set of Python files redirecting the API directly 
-  # to the original ParaView modules.
-  SET(_PYFILES_TO_INSTALL
-    paravis.py
+SET(_PYFILES_TO_INSTALL)
+
+IF(SALOME_LIGHT_ONLY)
+  LIST(APPEND _PYFILES_TO_INSTALL
     pvsimple.py
     presentations.py
-    paravisSM.py
   )
-ELSE()
-  SET(_PYFILES_TO_INSTALL
-    VTKWrapping/paravis.py
-    VTKWrapping/paravisSM.py
-    VTKWrapping/pvsimple.py
-    VTKWrapping/presentations.py
-  )
-ENDIF()
+ELSE(SALOME_LIGHT_ONLY)
+  IF(SALOME_PARAVIS_MINIMAL_CORBA)
+    # Use another set of Python files redirecting the API directly 
+    # to the original ParaView modules.
+    LIST(APPEND _PYFILES_TO_INSTALL
+      paravis.py
+      pvsimple.py
+      presentations.py
+      paravisSM.py
+    )
+  ELSE()
+    LIST(APPEND _PYFILES_TO_INSTALL
+      VTKWrapping/paravis.py
+      VTKWrapping/paravisSM.py
+      VTKWrapping/pvsimple.py
+      VTKWrapping/presentations.py
+    )
+  ENDIF()
+ENDIF(SALOME_LIGHT_ONLY)
 
 INSTALL_AND_COMPILE_PYTHON_FILE("${_PYFILES_TO_INSTALL}" ${SALOME_INSTALL_SCRIPT_PYTHON})

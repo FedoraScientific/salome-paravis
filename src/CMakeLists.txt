@@ -18,17 +18,20 @@
 #
 
 SET(_subdirs
-  ENGINE
-  PVGUI
   PV_SWIG
   Macro
+)
+
+IF(NOT SALOME_LIGHT_ONLY)
+  LIST(APPEND _subdirs
+    ENGINE
+    PVGUI
   )
-  
-IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
-  # Append in first position  
-  LIST(INSERT _subdirs 0 VTKWrapping)
-  ADD_DEFINITIONS(-DPARAVIS_WITH_FULL_CORBA)
-ENDIF()
+  IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
+    # Append in first position  
+    LIST(INSERT _subdirs 0 VTKWrapping)
+  ENDIF()
+ENDIF(NOT SALOME_LIGHT_ONLY)
 
 IF(SALOME_PARAVIS_BUILD_PLUGINS)
   LIST(APPEND _subdirs Plugins)
