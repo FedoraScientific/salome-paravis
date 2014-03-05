@@ -136,7 +136,13 @@ vtkIdTypeArray *ELGACmp::createNew(const ParaMEDMEM::MEDFileFieldGlobsReal *glob
       for(int i=0;i<nbGaussPt;i++)
         {
           const double *pt0(calculator.getFunctionValues(i));
-          std::copy(pt0,pt0+nbPtsPerCell,shape+nbPtsPerCell*i);
+          if(ct!=INTERP_KERNEL::NORM_HEXA27)
+            std::copy(pt0,pt0+nbPtsPerCell,shape+nbPtsPerCell*i);
+          else
+            {
+              for(int j=0;j<27;j++)
+                shape[nbPtsPerCell*i+j]=pt0[MEDMeshMultiLev::HEXA27_PERM_ARRAY[j]];
+            }
         }
       unsigned char vtkType(MEDMeshMultiLev::PARAMEDMEM_2_VTKTYPE[ct]);
       m[vtkType]=nbGaussPt;
