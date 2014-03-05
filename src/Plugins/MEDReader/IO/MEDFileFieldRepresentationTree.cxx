@@ -1069,6 +1069,7 @@ void MEDFileFieldRepresentationTree::loadMainStructureOfFile(const char *fileNam
     {
       AppendFieldFromMeshes(_ms,_fields);
     }
+  _fields->removeFieldsWithoutAnyTimeStep();
   std::vector<std::string> meshNames(_ms->getMeshesNames());
   std::vector< MEDCouplingAutoRefCountObjectPtr<MEDFileFields> > fields_per_mesh(meshNames.size());
   for(std::size_t i=0;i<meshNames.size();i++)
