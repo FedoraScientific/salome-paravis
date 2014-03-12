@@ -464,12 +464,9 @@ int pqMEDReaderPanel::getMaxNumberOfTS() const
   int ret(0);
   for(std::vector<pqTreeWidgetItemObject *>::const_iterator it=_all_lev4.begin();it!=_all_lev4.end();it++)
     {
-      if((*it)->property("checked").toInt())
-        {
-          QTreeWidgetItem *obj((*it)->QTreeWidgetItem::parent()->QTreeWidgetItem::parent()->QTreeWidgetItem::parent());
-          pqTreeWidgetItemObject *objC(dynamic_cast<pqTreeWidgetItemObject *>(obj));
-          ret=std::max(ret,objC->property("NbOfTS").toInt());
-        }
+      QTreeWidgetItem *obj((*it)->QTreeWidgetItem::parent()->QTreeWidgetItem::parent()->QTreeWidgetItem::parent());
+      pqTreeWidgetItemObject *objC(dynamic_cast<pqTreeWidgetItemObject *>(obj));
+      ret=std::max(ret,objC->property("NbOfTS").toInt());
     }
   return ret;
 }
