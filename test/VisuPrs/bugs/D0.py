@@ -28,7 +28,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/D0")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/D0")
 
 # Aux method
 def get_group_full_name(source, group_name):

@@ -37,11 +37,6 @@ aXYPlot.ChartTitle = 'title of XY plot'
 print "Chart title for xyplot ...", aXYPlot.ChartTitle
 
 error = 0
-try:
-    aXYPlot.ShowAxis = [1, 1, 0, 0]
-except:
-    print "Error: ShowAxis property is not avaliable for XYPlotView"
-    error = error + 1
 
 aXYPlot.AxisUseCustomRange = [1, 1, 0, 0]
 

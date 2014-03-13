@@ -27,7 +27,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/C7")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/C7")
 
 # 1. Import MED file
 med_file_path = datadir + "Bug583-Quadratique.resu.med"

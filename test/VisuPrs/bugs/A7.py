@@ -25,7 +25,8 @@ from presentations import CreatePrsForFile, PrsTypeEnum
 import paravis
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/A7")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/A7")
 
 med_file_path = datadir + "hexa_28320_ELEM.med"
 CreatePrsForFile(my_paravis, med_file_path, [PrsTypeEnum.MESH], picturedir, pictureext)

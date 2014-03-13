@@ -75,7 +75,13 @@ INCLUDE(SalomeSetupPlatform)
 INCLUDE(SalomeMEDConfig)
 FIND_PACKAGE(SalomePython REQUIRED)
 FIND_PACKAGE(SalomeHDF5 REQUIRED)
+FIND_PACKAGE(SalomeMED REQUIRED)
 FIND_PACKAGE(SalomeMEDFile REQUIRED)
+
+# Accumulate environment variables for PARAVIS module
+SALOME_ACCUMULATE_ENVIRONMENT(PYTHONPATH NOCHECK ${CMAKE_INSTALL_PREFIX}/${SALOME_INSTALL_BINS}
+                                                 ${CMAKE_INSTALL_PREFIX}/${SALOME_INSTALL_PYTHON})
+SALOME_ACCUMULATE_ENVIRONMENT(LD_LIBRARY_PATH NOCHECK ${CMAKE_INSTALL_PREFIX}/${SALOME_INSTALL_LIBS}) 
 
 #
 # process all vtk-modules defined in this plugin. This generates the necessary

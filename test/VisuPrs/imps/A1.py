@@ -27,7 +27,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "imps/A1")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("imps/A1")
 
 
 def set_prs_colored(prs, proxy, entity, field_name, vector_mode, timestamp_nb):

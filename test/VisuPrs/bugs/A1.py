@@ -28,7 +28,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/A1")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/A1")
 
 med_file_path = datadir + "fra1.med"
 pic_path = os.path.join(picturedir, "A1." + pictureext)

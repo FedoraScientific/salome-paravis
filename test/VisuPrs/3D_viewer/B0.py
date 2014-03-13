@@ -67,7 +67,7 @@ shrinked_sm = None
 field_name = 'VITESSE'
 
 print "\nCreating scalar map.......",
-scalar_map = ScalarMapOnField(proxy, EntityType.CELL, field_name, 1)
+scalar_map = ScalarMapOnField(proxy, EntityType.NODE, field_name, 1)
 if scalar_map is None:
     raise RuntimeError("Error!!! Presentation wasn't created...")
 
