@@ -59,7 +59,7 @@ calc = get_add_component_calc(source, EntityType.NODE, field_name)
 vector_array = calc.ResultArrayName
 calc.UpdatePipeline()
 source = calc
-stream = pv.StreamTracer(source)
+stream = pvs.StreamTracer(source)
 
 # 3. Apply settings
 RenameSource(settings['name'], stream)
