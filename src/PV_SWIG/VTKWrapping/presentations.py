@@ -2440,26 +2440,6 @@ def CreatePrsForFile(paravis_instance, file_name, prs_types,
         CreatePrsForProxy(proxy, view, prs_types,
                           picture_dir, picture_ext)
 
-def GetFieldsInfo(proxy):
-    """Extracts names of fields from tree info.
-    """
-    fields_info = proxy.GetProperty("FieldsTreeInfo")
-    print fields_info
-    keys = [fields_info[::2][i] for i in range(len(fields_info[::2])) if fields_info[1::2][i]!='0']
-    print keys
-    # list all the names of arrays that can be seen (including their spatial discretization)
-    arr_names_with_dis = [elt.split("/")[-1] for elt in keys]
-    # split items by spatial discretization (point or cell)
-    # and put (field_name, field_path) pairs into corresponding dictionaries
-    points_dict = dict(); cells_dict = dict()
-    for (i, elt) in enumerate(arr_names_with_dis):
-        arr_item = elt.split(proxy.GetProperty("Separator").GetData())
-        if arr_item[1] == 'P0':
-            cells_dict[arr_item[0]] = keys[i]
-        elif arr_item[1] == 'P1':
-            points_dict[arr_item[0]] = keys[i]
-    return points_dict, cells_dict
-
 def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
     """Build presentations of the given types for all fields of the proxy.
 
@@ -2475,16 +2455,8 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
     """
     # List of the field names
-    point_fields, cell_fields = GetFieldsInfo(proxy)
-    print 'point_fields: ', point_fields
-    print 'cell_fields: ', cell_fields
-    field_names = list(point_fields.keys())
-    nb_on_nodes = len(field_names)
-    field_names.extend(cell_fields.keys())
-    print 'field_names: ', field_names
-    field_paths = list(point_fields.values())
-    field_paths.extend(cell_fields.values())
-    print 'field_paths: ', field_paths
+    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+    print fields_info
 
     # Add path separator to the end of picture path if necessery
     if not picture_dir.endswith(os.sep):
@@ -2541,25 +2513,30 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
         extGrp.UpdatePipelineInformation()
 
     # Presentations on fields
-    for (i, field_name) in enumerate(field_names):
+    for field in fields_info:
+        # Restore fields selection state
+        proxy.AllArrays = []
+        proxy.UpdatePipelineInformation()
         # Select only the current field:
         # necessary for getting the right timestamps
+        field_item = field.split("/")[-1].split(proxy.GetProperty("Separator").GetData())
+        field_name = field_item[0]
         field_entity = None
-        if (i >= nb_on_nodes):
+        if field_item[1] == 'P0':
             field_entity = EntityType.CELL
-            proxy.AllArrays = [cell_fields[field_name]]
-        else:
+            print "set cell: ", field
+        elif field_item[1] == 'P1':
             field_entity = EntityType.NODE
-            proxy.AllArrays = [point_fields[field_name]]
+            print "set point: ", field
+        proxy.AllArrays = field
+        proxy.UpdatePipelineInformation()
+        print "arrays: ", proxy.GetProperty("FieldsTreeInfo")
 
         # Get timestamps
-        proxy.UpdatePipelineInformation()
+        entity_data_info = proxy.GetCellDataInformation()
+        print "state:", entity_data_info.keys()
         timestamps = proxy.TimestepValues.GetData()
-        print timestamps
-
-        # Restore fields selection state
-        proxy.AllArrays = field_paths
-        proxy.UpdatePipelineInformation()
+        print 'timestamps: ', timestamps
 
         for prs_type in prs_types:
             # Ignore mesh presentation
