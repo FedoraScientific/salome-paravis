@@ -36,8 +36,9 @@ if not picturedir.endswith(os.sep):
     
 # MED file
 file_name = datadir + "pointe.med"
-field_name = "fieldcelldouble"
-timestamp_nb = 1
+field_name = "fieldcelldoublescalar"
+#field_name = "fieldcelldoublevector"
+timestamp_nb = -1 # last timestamp
 
 paravis.myParavis.ImportFile(file_name)
 med_reader = pvsimple.GetActiveSource()
