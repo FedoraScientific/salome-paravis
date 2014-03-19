@@ -37,7 +37,7 @@ if not picturedir.endswith(os.sep):
 # MED file
 file_name = datadir + "test_55_solid_concentr_dom.med"
 field_name = "RN_precipite_restr"
-timestamp_nb = 1
+timestamp_nb = -1 # last timestamp
 
 paravis.myParavis.ImportFile(file_name)
 med_reader = pvsimple.GetActiveSource()

@@ -967,12 +967,15 @@ def get_time(proxy, timestamp_nb):
     elif (hasattr(proxy.Input, 'TimestepValues')):
         timestamps = proxy.Input.TimestepValues.GetData()
 
-    if ((timestamp_nb - 1) not in xrange(len(timestamps))):
+    length = len(timestamps)
+    if (timestamp_nb > 0 and (timestamp_nb - 1) not in xrange(length) ) or (timestamp_nb < 0 and -timestamp_nb > length):
         raise ValueError("Timestamp number is out of range: " + str(timestamp_nb))
 
     # Return time value
-    return timestamps[timestamp_nb - 1]
-
+    if timestamp_nb > 0:
+        return timestamps[timestamp_nb - 1]
+    else:
+        return timestamps[timestamp_nb]
 
 def create_prs(prs_type, proxy, field_entity, field_name, timestamp_nb):
     """Auxiliary function.
@@ -2010,11 +2013,15 @@ def GaussPointsOnField(proxy, entity, field_name,
 
     source = proxy
 
-    # Quadrature point arrays
-    qp_arrays = proxy.QuadraturePointArrays.Available
+    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+    arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
+    gauss_name=field_name+proxy.GetProperty("Separator").GetData()+'GAUSS'
 
     # If no quadrature point array is passed, use cell centers
-    if field_name in qp_arrays:
+    if arr_name_with_dis.count(gauss_name) > 0:
+        index = arr_name_with_dis.index(gauss_name)
+        field = fields_info[index]
+        source.AllArrays = [field]
         generate_qp = pvs.GenerateQuadraturePoints(source)
         generate_qp.SelectSourceArray = ['CELLS', 'ELGA_Offset']
         source = generate_qp
