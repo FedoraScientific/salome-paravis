@@ -2174,6 +2174,15 @@ def GaussPointsOnField1(proxy, entity, field_name,
     # Get time value
     time_value = get_time(proxy, timestamp_nb)
 
+    # Select field_name
+    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+    arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
+    gauss_name=field_name+proxy.GetProperty("Separator").GetData()+'GAUSS'
+    if arr_name_with_dis.count(gauss_name) > 0:
+        index = arr_name_with_dis.index(gauss_name)
+        field = fields_info[index]
+        proxy.AllArrays = [field]
+
     # Set timestamp
     pvs.GetRenderView().ViewTime = time_value
     proxy.UpdatePipeline(time=time_value)
