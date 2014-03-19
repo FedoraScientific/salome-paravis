@@ -53,6 +53,7 @@ GAP_COEFFICIENT = 0.0001
 
 # Globals
 _current_bar = None
+_med_field_sep = '@@][@@'
 
 
 # Enumerations
@@ -97,11 +98,11 @@ class EntityType:
     NODE = 0
     CELL = 1
 
-    _type2name = {NODE: 'OnPoint',
-                  CELL: 'OnCell'}
+    _type2name = {NODE: 'P1',
+                  CELL: 'P0'}
 
-    _name2type = {'OnPoint': NODE,
-                  'OnCell': CELL}
+    _name2type = {'P1': NODE,
+                  'P0': CELL}
 
     _type2pvtype = {NODE: 'POINT_DATA',
                     CELL: 'CELL_DATA'}
@@ -171,6 +172,33 @@ class GaussType:
 
 
 # Auxiliary functions
+
+def get_field_mesh_name(full_field_name):
+    """Return mesh name of the field by its full name."""
+    aList = full_field_name.split('/')
+    if len(aList) >= 2 :
+        field_name = full_field_name.split('/')[1]
+        return field_name
+
+
+def get_field_entity(full_field_name):
+    """Return entity type of the field by its full name."""
+    aList = full_field_name.split(_med_field_sep)
+    if len(aList) == 2 :
+        entity_name = full_field_name.split(_med_field_sep)[-1]
+        entity = EntityType.get_type(entity_name)
+        return entity
+
+
+def get_field_short_name(full_field_name):
+    """Return short name of the field by its full name."""
+    aList = full_field_name.split('/')
+    if len(aList) == 4 :
+        short_name_with_type = full_field_name.split('/')[-1]
+        short_name = short_name_with_type.split(_med_field_sep)[0]
+        return short_name
+
+
 def process_prs_for_test(prs, view, picture_name, show_bar=True):
     """Show presentation and record snapshot image.
 
@@ -243,9 +271,13 @@ def hide_all(view, to_remove=False):
 
 def display_only(prs, view=None):
     """Display only the given presentation in the view."""
-    hide_all(view)
-    if (hasattr(prs, 'Visibility') and prs.Visibility != 1):
-        prs.Visibility = 1
+    if not view:
+        view = pvs.GetRenderView()
+
+    rep_list = view.Representations
+    for rep in rep_list:
+        if hasattr(rep, 'Visibility'):
+            rep.Visibility = (rep == prs)
     pvs.Render(view=view)
 
 
@@ -902,9 +934,8 @@ def get_group_short_name(full_group_name):
 
 def get_mesh_names(proxy):
     """Return all mesh names in the given proxy as a set."""
-    groups = proxy.Groups.Available
-    mesh_names = set([get_group_mesh_name(item) for item in groups])
-
+    fields = proxy.GetProperty("FieldsTreeInfo")[::2]
+    mesh_names = set([get_field_mesh_name(item) for item in fields])
     return mesh_names
 
 
@@ -2429,6 +2460,7 @@ def CreatePrsForFile(paravis_instance, file_name, prs_types,
             print "FAILED"
         else:
             proxy.UpdatePipeline()
+            _med_field_sep = proxy.GetProperty("Separator")
             print "OK"
     except:
         print "FAILED"
@@ -2519,24 +2551,14 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
         proxy.UpdatePipelineInformation()
         # Select only the current field:
         # necessary for getting the right timestamps
-        field_item = field.split("/")[-1].split(proxy.GetProperty("Separator").GetData())
-        field_name = field_item[0]
-        field_entity = None
-        if field_item[1] == 'P0':
-            field_entity = EntityType.CELL
-            print "set cell: ", field
-        elif field_item[1] == 'P1':
-            field_entity = EntityType.NODE
-            print "set point: ", field
+        field_name = get_field_short_name(field)
+        field_entity = get_field_entity(field)
         proxy.AllArrays = field
         proxy.UpdatePipelineInformation()
-        print "arrays: ", proxy.GetProperty("FieldsTreeInfo")
 
         # Get timestamps
         entity_data_info = proxy.GetCellDataInformation()
-        print "state:", entity_data_info.keys()
         timestamps = proxy.TimestepValues.GetData()
-        print 'timestamps: ', timestamps
 
         for prs_type in prs_types:
             # Ignore mesh presentation
