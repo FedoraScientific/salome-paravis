@@ -64,9 +64,10 @@ if not picturedir.endswith(os.sep):
     picturedir += os.sep
 
 # Select only the current field:
-aProxy.CellArrays.DeselectAll()
-aProxy.PointArrays.DeselectAll()
-aProxy.PointArrays = ['vitesse']
+aProxy.AllArrays = []
+aProxy.UpdatePipeline()
+aProxy.AllArrays = ['TS0/dom/ComSup0/vitesse@@][@@P1']
+aProxy.UpdatePipeline()
    
 # Animation creation and saving into set of files into picturedir
 scene = AnimateReader(aProxy,aView,picturedir+"C1_dom."+my_format)
