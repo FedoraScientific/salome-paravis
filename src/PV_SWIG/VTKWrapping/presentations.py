@@ -763,7 +763,7 @@ def select_all_cells(proxy):
     extractCT.AllGeoTypes = extractCT.GetProperty("GeoTypesInfo")[::2]
 
 
-def select_cells_with_data(proxy, on_points=None, on_cells=None):
+def select_cells_with_data(proxy, on_points=[], on_cells=[], on_gauss=[]):
     """Select cell types with data.
 
     Only cell types with data for the given fields will be selected.
@@ -772,7 +772,32 @@ def select_cells_with_data(proxy, on_points=None, on_cells=None):
 
     """
     if not hasattr(proxy, 'Entity'):
-        return
+        separator = proxy.GetProperty("Separator").GetData()
+
+        fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+        arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
+
+        proxy.AllArrays = []
+        
+        fields = []
+        for name in on_gauss:
+            fields.append(name+separator+'GAUSS')
+        for name in on_cells:
+            fields.append(name+separator+'P0')
+        for name in on_points:
+            fields.append(name+separator+'P1')
+
+        field_list = []
+        for name in fields:
+            if arr_name_with_dis.count(name) > 0:
+                index = arr_name_with_dis.index(name)
+                field_list.append(fields_info[index])
+                
+        proxy.AllArrays = field_list
+        proxy.UpdatePipeline()
+        return len(field_list) != 0
+
+    # TODO: VTN. Looks like this code is out of date.
     
     #all_cell_types = proxy.CellTypes.Available
     all_cell_types = proxy.Entity.Available
@@ -1106,6 +1131,11 @@ def CutPlanesOnField(proxy, entity, field_name, timestamp_nb,
       Cut Planes as representation object.
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1196,6 +1226,11 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
       (Cut Lines as representation object, list of 'PlotOverLine') otherwise
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1318,6 +1353,11 @@ def CutSegmentOnField(proxy, entity, field_name, timestamp_nb,
       Cut Segment as 3D representation object.
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1386,6 +1426,11 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
       Vectors as representation object.
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1995,10 +2040,12 @@ def GaussPointsOnField(proxy, entity, field_name,
 
     """
     # We don't need mesh parts with no data on them
-    if entity == EntityType.NODE:
-        select_cells_with_data(proxy, on_points=[field_name])
-    else:
-        select_cells_with_data(proxy, on_cells=[field_name])
+    on_gauss = select_cells_with_data(proxy, on_gauss=[field_name])
+    if not on_gauss:
+        if entity == EntityType.NODE:
+            select_cells_with_data(proxy, on_points=[field_name])
+        else:
+            select_cells_with_data(proxy, on_cells=[field_name])
 
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
@@ -2013,17 +2060,10 @@ def GaussPointsOnField(proxy, entity, field_name,
 
     source = proxy
 
-    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
-    arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
-    gauss_name=field_name+proxy.GetProperty("Separator").GetData()+'GAUSS'
-
     # If no quadrature point array is passed, use cell centers
-    if arr_name_with_dis.count(gauss_name) > 0:
-        index = arr_name_with_dis.index(gauss_name)
-        field = fields_info[index]
-        source.AllArrays = [field]
+    if on_gauss:
         generate_qp = pvs.GenerateQuadraturePoints(source)
-        generate_qp.SelectSourceArray = ['CELLS', 'ELGA_Offset']
+        generate_qp.QuadratureSchemeDef = ['CELLS', 'ELGA@0']
         source = generate_qp
     else:
         # Cell centers
@@ -2171,17 +2211,12 @@ def GaussPointsOnField1(proxy, entity, field_name,
       Gauss Points as representation object.
 
     """
+    select_cells_with_data(proxy, on_gauss=[field_name])
+
+    nb_components = get_nb_components(proxy, entity, field_name)
+
     # Get time value
     time_value = get_time(proxy, timestamp_nb)
-
-    # Select field_name
-    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
-    arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
-    gauss_name=field_name+proxy.GetProperty("Separator").GetData()+'GAUSS'
-    if arr_name_with_dis.count(gauss_name) > 0:
-        index = arr_name_with_dis.index(gauss_name)
-        field = fields_info[index]
-        proxy.AllArrays = [field]
 
     # Set timestamp
     pvs.GetRenderView().ViewTime = time_value
@@ -2195,14 +2230,6 @@ def GaussPointsOnField1(proxy, entity, field_name,
     gausspnt = pvs.GetRepresentation(source)
 
     # Get lookup table
-    entity_data_info = None
-    point_data_info = source.GetPointDataInformation()
-    if field_name in point_data_info.keys():
-        entity_data_info = point_data_info
-    else:
-        entity_data_info = source.GetCellDataInformation()
-    nb_components = entity_data_info[field_name].GetNumberOfComponents()
-    
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
 
     # Set field range if necessary

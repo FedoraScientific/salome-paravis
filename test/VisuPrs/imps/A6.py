@@ -37,7 +37,7 @@ if med_reader is None:
     error = error+1
 
 # Create Scalar Map
-scalarmap = ScalarMapOnField(med_reader, EntityType.NODE, 'RESUMECAEQUI_ELGA_SIGM', 1)
+scalarmap = ScalarMapOnField(med_reader, EntityType.NODE, 'RESUMECAEQUI_ELGA_SIGM__________', 1)
 if scalarmap is None:
     print "Error!!! ScalarMap is not created"
     error = error+1
