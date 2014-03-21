@@ -340,7 +340,7 @@
       </StringVectorProperty>
 
       <Hints>
-        <Property name="SelectSourceArray" show="0"/>
+        <Property name="SelectSourceArray" show="1"/>
       </Hints>
 
     </SourceProxy>

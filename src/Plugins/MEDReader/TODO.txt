@@ -1,3 +1,6 @@
+
+
+
 TODO :
 ------
 
@@ -10,7 +13,12 @@ UC : ForMEDReader16.med, then extractgroup, then return to MEDReader properties 
 Known bug :
 -----------
 
-- Extract cell type + Extract Group
+
+Warning for users :
+-------------------
+
+Try to avoid to change the localization along time on a same field
+because it leads to an unfriendly behavior when playing. (bug seen in EDF2420 in ssnp121.rmed when applying GaussPoint filter and running different time steps.
 
 
 TODO in MED:
@@ -40,3 +48,11 @@ when in STANDALONE mode.
 0 - protect ExtractGroup against throw
 
 0 - protect ExctractCellType against throw
+
+0 - Extract cell type + Extract Group
+
+0 - bug client side when the field having the max number of TS is not first.
+
+0 - ELGA arrays choice of GaussPoints filter
+
+0 - Manage file containing only cartesian meshes.
