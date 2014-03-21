@@ -46,12 +46,8 @@ else: print "OK"
 # Get viewScalarMap
 aView = GetRenderView()
 
-aFieldNames = aProxy.PointArrays.GetData()
-aNbOnNodes = len(aFieldNames)
-aFieldNames.extend(aProxy.CellArrays.GetData())
-aTimeStamps = aProxy.TimestepValues.GetData()
 aFieldEntity = EntityType.NODE
-aFieldName = "MODES_DEPL"
+aFieldName = "MODES___DEPL____________________"
 
 #create Plot 3D presentations for 10 timestamps
 for i in range(1,11):

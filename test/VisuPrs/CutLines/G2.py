@@ -47,12 +47,8 @@ aView = GetRenderView()
 
 # Create required presentations for the proxy
 # CreatePrsForProxy(aProxy, aView, thePrsTypeList, thePictureDir, thePictureExt, theIsAutoDelete)
-aFieldNames = aProxy.PointArrays.GetData()
-aNbOnNodes = len(aFieldNames)
-aFieldNames.extend(aProxy.CellArrays.GetData())
-aTimeStamps = aProxy.TimestepValues.GetData()
 aFieldEntity = EntityType.NODE
-aFieldName = "MODES_DEPL"
+aFieldName = "MODES___DEPL____________________"
 
 #create Cut Lines presentations for 10 timestamps
 for i in range(1,11):

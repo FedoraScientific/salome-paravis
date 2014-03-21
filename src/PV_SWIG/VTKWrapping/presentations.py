@@ -2589,15 +2589,18 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
     # Presentations on fields
     for field in fields_info:
-        # Restore fields selection state
+        field_name = get_field_short_name(field)
+        # Ignore mesh presentation
+        if field_name == get_field_mesh_name(field):
+            continue
+        field_entity = get_field_entity(field)
+        # Clear fields selection state
         proxy.AllArrays = []
-        proxy.UpdatePipelineInformation()
+        proxy.UpdatePipeline()
         # Select only the current field:
         # necessary for getting the right timestamps
-        field_name = get_field_short_name(field)
-        field_entity = get_field_entity(field)
         proxy.AllArrays = field
-        proxy.UpdatePipelineInformation()
+        proxy.UpdatePipeline()
 
         # Get timestamps
         entity_data_info = proxy.GetCellDataInformation()
