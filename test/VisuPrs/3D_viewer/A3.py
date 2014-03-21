@@ -62,7 +62,7 @@ opacities = [1.0, 0.5, 0.0]
 linewidths = [1.0, 3.0, 10.0]
 compare_prec = 0.00001
 
-field_name = 'vectoriel_field'
+field_name = 'vectoriel field'
 
 print "\nCreating stream_lines......."
 stream_lines = StreamLinesOnField(proxy, EntityType.CELL,

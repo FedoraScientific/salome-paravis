@@ -47,7 +47,7 @@ print "**** Stage2: Creating Deformed Shape"
 print "Creating Deformed Shape...............",
 
 cell_entity = EntityType.CELL
-field_name = 'vectoriel_field'
+field_name = 'vectoriel field'
 defshape = DeformedShapeOnField(med_reader, cell_entity, field_name, 1)
 pvsimple.ResetCamera()
 

@@ -36,7 +36,7 @@ if med_reader is None:
 view = pvsimple.GetRenderView()
 
 # Creation of colored "DeformedShape" presentations, based on time stamps of "RESU_DEPL" field
-presentation = DeformedShapeOnField(med_reader, EntityType.NODE, 'RESU_DEPL', 1, is_colored=True)
+presentation = DeformedShapeOnField(med_reader, EntityType.NODE, 'RESU____DEPL____________________', 1, is_colored=True)
 if presentation is None : 
     raise RuntimeError, "DeformedShapeOnField Presentation is None!!!"
 
@@ -44,7 +44,7 @@ display_only(presentation, view)
 reset_view(view)
   
 # Creation of colored "Vectors" presentations, based on time stamps of "RESU_DEPL" field
-presentation = VectorsOnField(med_reader, EntityType.NODE, 'RESU_DEPL', 1, is_colored=True)
+presentation = VectorsOnField(med_reader, EntityType.NODE, 'RESU____DEPL____________________', 1, is_colored=True)
 if presentation is None : 
     raise RuntimeError, "Vectors Presentation is None!!!"
 
@@ -52,7 +52,7 @@ display_only(presentation, view)
 reset_view(view)
 
 # Creation of colored "DeformedShapeAndScalarMap" presentations, based on time stamps of "RESU_DEPL" field
-presentation = DeformedShapeAndScalarMapOnField(med_reader, EntityType.NODE, 'RESU_DEPL', 1)
+presentation = DeformedShapeAndScalarMapOnField(med_reader, EntityType.NODE, 'RESU____DEPL____________________', 1)
 if presentation is None : 
     raise RuntimeError, "DeformedShapeAndScalarMap Presentation is None!!!"
 
@@ -60,7 +60,7 @@ display_only(presentation, view)
 reset_view(view)
 
 # Creation of colored "CutPlanes" presentations, based on time stamps of "RESU_DEPL" field
-presentation = CutPlanesOnField(med_reader, EntityType.NODE, 'RESU_DEPL', 1)
+presentation = CutPlanesOnField(med_reader, EntityType.NODE, 'RESU____DEPL____________________', 1)
 if presentation is None : 
     raise RuntimeError, "CutPlanes Presentation is None!!!"
 

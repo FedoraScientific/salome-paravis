@@ -27,9 +27,7 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
 picturedir = get_picture_dir("imps/A1")
-
 
 def set_prs_colored(prs, proxy, entity, field_name, vector_mode, timestamp_nb):
     # Get time value
@@ -72,7 +70,7 @@ view = pvsimple.GetRenderView()
 
 # 2. Creation of "CutPlanes" presentation, based on time stamp of "scalar field" field
 print 'Creation of "CutPlanes" presentation, based on time stamp of "scalar field" field....'
-cutplanes = CutPlanesOnField(med_reader, EntityType.CELL, "scalar_field", 1)
+cutplanes = CutPlanesOnField(med_reader, EntityType.CELL, "scalar field", 1)
 if cutplanes is None : 
     raise RuntimeError, "Presentation is None!!!"
 else:
@@ -80,21 +78,21 @@ else:
 
 print "Setting of deformation:"
 warp_vector = pvsimple.WarpByVector(cutplanes.Input)
-warp_vector.Vectors = ["vectoriel_field"]
+warp_vector.Vectors = ["scalar field"]
 warp_vector.ScaleFactor = 5.0
 
 print "Got scale     : ", warp_vector.ScaleFactor
 print "Got field name: ", warp_vector.Vectors
 
 presentation = pvsimple.GetRepresentation(warp_vector)
-set_prs_colored(presentation, med_reader, EntityType.CELL, "scalar_field", 'Magnitude', 1)
+set_prs_colored(presentation, med_reader, EntityType.CELL, "scalar field", 'Magnitude', 1)
 
 pic_path = os.path.join(picturedir, "deformed_cut_planes_scalar" + "." + pictureext)
 process_prs_for_test(presentation, view, pic_path)
 
 # 3. Creation of "CutPlanes" presentation, based on time stamp of "vectoriel field" field
 print 'Creation of "CutPlanes" presentation, based on time stamp of "vectoriel field" field....'
-cutplanes = CutPlanesOnField(med_reader, EntityType.CELL, "vectoriel_field", 1)
+cutplanes = CutPlanesOnField(med_reader, EntityType.CELL, "vectoriel field", 1)
 
 if cutplanes is None : 
     raise RuntimeError, "Presentation is None!!!"
@@ -103,14 +101,14 @@ else:
 
 print "Setting of deformation:"
 warp_vector = pvsimple.WarpByVector(cutplanes.Input)
-warp_vector.Vectors = ["vectoriel_field"]
+warp_vector.Vectors = ["vectoriel field"]
 warp_vector.ScaleFactor = 5.0
 
 print "Got scale     : ", warp_vector.ScaleFactor
 print "Got field name: ", warp_vector.Vectors
 
 presentation = pvsimple.GetRepresentation(warp_vector)
-set_prs_colored(presentation, med_reader, EntityType.CELL, "vectoriel_field", 'Magnitude', 1)
+set_prs_colored(presentation, med_reader, EntityType.CELL, "vectoriel field", 'Magnitude', 1)
 
 pic_path = os.path.join(picturedir, "deformed_cut_planes_vectorial" + "." + pictureext)
 process_prs_for_test(presentation, view, pic_path)

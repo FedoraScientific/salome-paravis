@@ -44,7 +44,7 @@ else:
 
 # 2. Creation of GaussPoints presentations
 mesh_name = "Maillage"
-field_name = "Result_EQUI_ELGA_SIGM"
+field_name = "Result__EQUI_ELGA_SIGM__________"
 timestamp_list = range(1, 5)
 
 for timestamp in timestamp_list:

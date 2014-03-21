@@ -49,7 +49,7 @@ else:
 # 2. Displaying scalar field
 print "Creating Scalar Map.......",
 
-scalarmap = ScalarMapOnField(med_reader, EntityType.CELL, 'scalar_field', 1)
+scalarmap = ScalarMapOnField(med_reader, EntityType.CELL, 'scalar field', 1)
 if scalarmap is None:
     print "FAILED"
 else:
