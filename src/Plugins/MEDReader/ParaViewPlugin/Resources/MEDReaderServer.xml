@@ -167,6 +167,17 @@
        is kept. When 1 the complementary part is selected.
        </Documentation>
       </IntVectorProperty>
+
+      <StringVectorProperty
+          name="MeshName"
+          command="GetMeshName"
+          number_of_elements="1"
+          animateable="0"
+          information_only="1">
+        <Documentation>
+          This property returns the name of the mesh.
+        </Documentation>
+      </StringVectorProperty>
     </SourceProxy>
   </ProxyGroup>
   

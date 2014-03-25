@@ -111,6 +111,7 @@ class vtkExtractGroup::vtkExtractGroupInternal
 public:
   void loadFrom(vtkMutableDirectedGraph *sil);
   int getNumberOfEntries() const;
+  const char *getMeshName() const;
   const char *getKeyOfEntry(int i) const;
   bool getStatusOfEntryStr(const char *entry) const;
   void setStatusOfEntryStr(const char *entry, bool status);
@@ -125,6 +126,7 @@ private:
 private:
   std::vector<ExtractGroupGrp> _groups;
   std::vector<ExtractGroupFam> _fams;
+  std::string _mesh_name;
 };
 
 const char ExtractGroupGrp::START[]="GRP_";
@@ -180,6 +182,11 @@ bool vtkExtractGroup::vtkExtractGroupInternal::IsInformationOK(vtkInformation *i
   return false;
 }
 
+const char *vtkExtractGroup::vtkExtractGroupInternal::getMeshName() const
+{
+  return this->_mesh_name.c_str();
+}
+
 void vtkExtractGroup::vtkExtractGroupInternal::loadFrom(vtkMutableDirectedGraph *sil)
 {
   std::vector<ExtractGroupGrp> oldGrps(_groups); _groups.clear();
@@ -207,6 +214,7 @@ void vtkExtractGroup::vtkExtractGroupInternal::loadFrom(vtkMutableDirectedGraph 
     {
       vtkIdType id1(it0->Next());
       std::string meshName((const char *)verticesNames2->GetValue(id1));
+      this->_mesh_name=meshName;
       vtkAdjacentVertexIterator *it1(vtkAdjacentVertexIterator::New());
       sil->GetAdjacentVertices(id1,it1);
       vtkIdType idZeGrps(it1->Next());//zeGroups
@@ -670,4 +678,9 @@ void vtkExtractGroup::SetGroupsFlagsStatus(const char *name, int status)
   if(std::string(name)==GetGroupsFlagsArrayName(GetNumberOfGroupsFlagsArrays()-1))
      this->Modified();
   //this->Internal->printMySelf(std::cerr);
+}
+
+const char *vtkExtractGroup::GetMeshName()
+{
+  return this->Internal->getMeshName();
 }
