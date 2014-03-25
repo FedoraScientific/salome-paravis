@@ -43,10 +43,9 @@ else:
     print "OK"
 
 # 2. Creation of presentation of each group
-groups_on_cells = get_group_names(med_reader, "MAILLAGE_01_001", EntityType.CELL, wo_nogroups=True)
-groups_on_nodes = get_group_names(med_reader, "MAILLAGE_01_001", EntityType.NODE, wo_nogroups=True)
-
-groups = groups_on_cells + groups_on_nodes
+extGrp = pvs.ExtractGroup()
+extGrp.UpdatePipelineInformation()
+groups = get_group_names(extGrp)
 
 errors = 0
 i = 0
@@ -54,7 +53,7 @@ for group in groups:
     i += 1
     shor_name = group.split('/')[-1]
     print "group: ", shor_name
-    prs = MeshOnGroup(med_reader, group)
+    prs = MeshOnGroup(med_reader, extGrp, group)
     
     if prs is None : 
         print "FAILED!!! Created presentation is None!!!"
