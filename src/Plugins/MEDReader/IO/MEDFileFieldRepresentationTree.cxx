@@ -1252,7 +1252,7 @@ vtkDataSet *MEDFileFieldRepresentationTree::buildVTKInstance(bool isStdOrMode, d
   if(!isStdOrMode)
     tr=new MEDStdTimeReq((int)zeTimeId);
   else
-    tr=new MEDModeTimeReq(tk.getTheVectOfBool());
+    tr=new MEDModeTimeReq(tk.getTheVectOfBool(),tk.getPostProcessedTime());
   vtkDataSet *ret(leaf.buildVTKInstanceNoTimeInterpolation(tr,_fields,_ms));
   delete tr;
   return ret;

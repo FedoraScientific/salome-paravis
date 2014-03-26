@@ -93,6 +93,8 @@ ExtractGroup1=ExtractGroup()
 ExtractGroup1.Input=ELNOMesh1
 ExtractGroup1.UpdatePipelineInformation()
 ExtractGroup1.AllGroups=['GRP_ba2','GRP_to1','GRP_web']
+assert(isinstance(ExtractGroup1.GetProperty("MeshName")[0],str))
+assert(ExtractGroup1.GetProperty("MeshName")[0]=="mesh")
 #
 DataRepresentation3 = Show()
 DataRepresentation3.ScaleFactor = 0.008999999705702066

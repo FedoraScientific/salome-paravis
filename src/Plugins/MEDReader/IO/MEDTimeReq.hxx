@@ -55,7 +55,7 @@ private:
 class MEDModeTimeReq : public MEDTimeReq
 {
 public:
-  MEDModeTimeReq(const std::vector<bool>& v);
+  MEDModeTimeReq(const std::vector<bool>& v, const std::vector<double>& ts);
   ~MEDModeTimeReq();
   int size() const;
   int getCurrent() const;
@@ -65,6 +65,7 @@ public:
   void operator++() const;
 private:
   std::vector<bool> _v;
+  std::vector<double> _ts;
   mutable int _it;
   mutable int _sz;
 };

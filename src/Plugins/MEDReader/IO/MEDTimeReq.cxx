@@ -74,7 +74,7 @@ void MEDStdTimeReq::operator++() const
 
 ///////////
 
-MEDModeTimeReq::MEDModeTimeReq(const std::vector<bool>& v):_v(v),_it(0),_sz(0)
+MEDModeTimeReq::MEDModeTimeReq(const std::vector<bool>& v, const std::vector<double>& ts):_v(v),_ts(ts),_it(0),_sz(0)
 {
 }
 
@@ -120,7 +120,9 @@ std::string MEDModeTimeReq::buildName(const std::string& name) const
   oss2.width(len);
   oss2.fill('0'); oss2 << _it;
   //
-  oss << oss2.str() << "]"; 
+  oss << oss2.str() << "]";
+  if(_it<(int)_ts.size())
+    oss << " - " << _ts[_it];
   return oss.str();
 }
 
