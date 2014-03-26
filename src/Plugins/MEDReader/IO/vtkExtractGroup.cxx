@@ -612,7 +612,7 @@ int vtkExtractGroup::RequestData(vtkInformation *request, vtkInformationVector *
 	}
       else
 	{
-	  vtkDataSet *tryOnNode(FilterFamilies<PointExtractor>(tryOnCell,idsToKeep,this->InsideOut,
+	  vtkDataSet *tryOnNode(FilterFamilies<PointExtractor>(input,idsToKeep,this->InsideOut,
 							       MEDFileFieldRepresentationLeavesArrays::FAMILY_ID_NODE_NAME,"vtkDataObject::FIELD_ASSOCIATION_POINTS",catchAll,catchSmth));
 	  if(tryOnNode)
 	    {
