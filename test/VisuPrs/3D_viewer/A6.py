@@ -106,7 +106,7 @@ for reprCode in represents:
 
         for sha in shadings:
             setShaded(my_view, sha)
-            call_and_check(shape_to_show, "Shading", sha, 1)
+            call_and_check(shape_to_show, "Interpolation", sha, 1)
             Render(my_view)
 
             for opa in opacities:
