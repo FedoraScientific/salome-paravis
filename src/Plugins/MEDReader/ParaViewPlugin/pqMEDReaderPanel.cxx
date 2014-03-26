@@ -51,6 +51,8 @@
 
 #include <QHeaderView>
 
+#include <sstream>
+
 static const char ZE_SEP[]="@@][@@";
 
 class PixSingle
@@ -224,7 +226,7 @@ void pqMEDReaderPanel::initAll()
                 {
                   vtkIdType id4(it3Arrs->Next());
                   std::string name3CppFull((const char *)verticesNames2->GetValue(id4));
-                  std::size_t pos(name3CppFull.find_first_of(ZE_SEP));
+                  std::size_t pos(name3CppFull.find(ZE_SEP));
                   std::string name3Only(name3CppFull.substr(0,pos)); std::string spatialDiscr(name3CppFull.substr(pos+sizeof(ZE_SEP)-1));
                   QString name3(QString::fromStdString(name3Only)); QList<QString> strs3; strs3.append(name3);
                   QString toolTipName3(name3+QString(" (")+spatialDiscr.c_str()+QString(")"));
@@ -250,8 +252,16 @@ void pqMEDReaderPanel::initAll()
 		      item3->setData(0,Qt::ToolTipRole,toolTipName3);
 		      item3->setData(0,Qt::DecorationRole,PixSingle::GetInstance().getPixFromStr(spatialDiscr));
 		    }
-                  this->propertyManager()->registerLink(item3,"checked",SIGNAL(checkedStateChanged(bool)),this->proxy(),SMProperty,ll);
                   _leaves.insert(std::pair<pqTreeWidgetItemObject *,int>(item3,ll));
+                  std::ostringstream pdm; pdm << name0.toStdString() << "/" << name1.toStdString() << "/" << name2.toStdString() << "/" << name3CppFull;
+                  (static_cast<vtkSMStringVectorProperty *>(SMProperty))->SetElement(2*ll,pdm.str().c_str());
+                  char tmp2[2]; tmp2[0]=(kk==0?'1':'0'); tmp2[1]='\0';
+                  std::string tmp(tmp2);
+                  (static_cast<vtkSMStringVectorProperty *>(SMProperty))->SetElement(2*ll+1,tmp.c_str());
+                  //SMProperty->ResetToDefault();
+                  item2->setChecked(kk==0);
+                  item3->setChecked(kk==0);
+                  this->propertyManager()->registerLink(item3,"checked",SIGNAL(checkedStateChanged(bool)),this->proxy(),SMProperty,ll);
                   connect(item2,SIGNAL(checkedStateChanged(bool)),item3,SLOT(setChecked(bool)));
                   connect(item3,SIGNAL(checkedStateChanged(bool)),this,SLOT(aLev4HasBeenFired()));
                   ll++;
@@ -270,8 +280,6 @@ void pqMEDReaderPanel::initAll()
               it3Gts->Delete();
               it3->Delete();
               it3Arrs->Delete();
-              if(kk==0)
-                item2->setChecked(true);
               kk++;
             }
           it2->Delete();

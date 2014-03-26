@@ -1020,7 +1020,8 @@ int MEDFileFieldRepresentationTree::getIdHavingZeName(const char *name) const
       for(std::vector< MEDFileFieldRepresentationLeaves >::const_iterator it2=(*it1).begin();it2!=(*it1).end();it2++)
         if((*it2).containZeName(name,ret))
           return ret;
-  throw INTERP_KERNEL::Exception("MEDFileFieldRepresentationTree::getIdHavingZeName : No such a name !");
+  std::ostringstream msg; msg << "MEDFileFieldRepresentationTree::getIdHavingZeName : No such a name \"" << name << "\" !";
+  throw INTERP_KERNEL::Exception(msg.str().c_str());
 }
 
 bool MEDFileFieldRepresentationTree::changeStatusOfAndUpdateToHaveCoherentVTKDataSet(int id, bool status) const
