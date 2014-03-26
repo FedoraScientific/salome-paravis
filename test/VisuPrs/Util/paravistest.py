@@ -159,12 +159,19 @@ def get_picture_dir(subdir):
 def call_and_check(prs, property_name, value, do_raise=1, compare_toler=-1.0):
     """Utility function for 3D viewer test for common check of different
     types of presentation parameters set"""
-    try:
-        prs.SetPropertyWithName(property_name, value)
-    except ValueError:
-        error_string = (str(value) + "value of " + property_name + " is not available for this type of presentations")
+    if property_name == 'Representation':
+        if value in prs.GetProperty('RepresentationTypesInfo'):
+            prs.SetPropertyWithName(property_name, value)
+            error_string = None
+        else:
+            error_string = (str(value) + " value of " + property_name + " is not available for this type of presentations")
     else:
-        error_string = None
+        try:
+            prs.SetPropertyWithName(property_name, value)
+        except ValueError:
+            error_string = (str(value) + "value of " + property_name + " is not available for this type of presentations")
+        else:
+            error_string = None
     is_good = (error_string is None)
     if not is_good:
         if do_raise:
