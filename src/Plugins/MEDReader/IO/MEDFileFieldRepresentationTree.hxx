@@ -147,6 +147,7 @@ public:
   void removeEmptyLeaves();
   // static methods
   static bool IsFieldMeshRegardingInfo(const std::vector<std::string>& compInfos);
+  static std::string PostProcessFieldName(const std::string& fullFieldName);
 public:
   static const char ROOT_OF_GRPS_IN_TREE[];
   static const char ROOT_OF_FAM_IDS_IN_TREE[];
@@ -156,6 +157,7 @@ private:
   const MEDFileFieldRepresentationLeaves& getTheSingleActivated(int& lev0, int& lev1, int& lev2) const;
   static ParaMEDMEM::MEDFileFields *BuildFieldFromMeshes(const ParaMEDMEM::MEDFileMeshes *ms);
   static void AppendFieldFromMeshes(const ParaMEDMEM::MEDFileMeshes *ms, ParaMEDMEM::MEDFileFields *ret);
+  static std::vector<std::string> SplitFieldNameIntoParts(const std::string& fullFieldName, char sep);
 private:
   // 1st : timesteps, 2nd : meshName, 3rd : common support
   std::vector< std::vector< std::vector< MEDFileFieldRepresentationLeaves > > > _data_structure;
