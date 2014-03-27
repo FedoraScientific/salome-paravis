@@ -144,7 +144,7 @@ pic_name = picturedir + "params_SURFACE_2." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.SURFACE), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.SURFACE), "Gouraud", 0.8, 5.0)
 
 ##call_and_check(scalar_map, "Shrinked", 0, "Shrinked")
 ##call_and_check(scalar_map, "Shrinked", 1, "Shrinked")
@@ -158,7 +158,7 @@ pic_name = picturedir + "params_SURFACE_3." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.SURFACE), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.SURFACE), "Gouraud", 0.8, 5.0)
 
 call_and_check(shape_to_show, "Interpolation", "Flat")
 call_and_check(shape_to_show, "Interpolation", "Gouraud")
@@ -172,7 +172,7 @@ pic_name = picturedir + "params_SURFACE_4." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.SURFACE), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.SURFACE), "Gouraud", 0.8, 5.0)
 
 call_and_check(shape_to_show, "Opacity", 1.0,  1, compare_prec)
 call_and_check(shape_to_show, "Opacity", 0.8,  1, compare_prec)
@@ -186,7 +186,7 @@ pic_name = picturedir + "params_SURFACE_5." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.SURFACE), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.SURFACE), "Gouraud", 0.8, 5.0)
 
 # Reset
 ##call_and_check(shape_to_show, "Shrinked", 0, "Shrinked")
@@ -243,7 +243,7 @@ pic_name = picturedir + "params_WIREFRAME_2." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.WIREFRAME), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.WIREFRAME), "Gouraud", 0.8, 5.0)
 
 ##call_and_check(shape_to_show, "Shrinked", 0)
 ##call_and_check(shape_to_show, "Shrinked", 1)
@@ -256,7 +256,7 @@ pic_name = picturedir + "params_WIREFRAME_3." + pictureext
 process_prs_for_test(shrinked_scalar_map, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.WIREFRAME), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.WIREFRAME), "Gouraud", 0.8, 5.0)
 
 call_and_check(shape_to_show, "Interpolation", "Flat")
 call_and_check(shape_to_show, "Interpolation", "Gouraud")
@@ -269,7 +269,7 @@ pic_name = picturedir + "params_WIREFRAME_4." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.WIREFRAME), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.WIREFRAME), "Gouraud", 0.8, 5.0)
 
 call_and_check(shape_to_show, "Opacity", 1.0, 1, compare_prec)
 call_and_check(shape_to_show, "Opacity", 0.8, 1, compare_prec)
@@ -282,7 +282,7 @@ pic_name = picturedir + "params_WIREFRAME_5." + pictureext
 process_prs_for_test(shape_to_show, my_view, pic_name)
 
 err = err + check_all_params(shape_to_show,
-RepresentationType.get_name(RepresentationType.WIREFRAME), 1, 0.8, 5.0)
+RepresentationType.get_name(RepresentationType.WIREFRAME), "Gouraud", 0.8, 5.0)
 
 if err:
     raise RuntimeError("Presentation parameters are not stable")

@@ -58,7 +58,7 @@ else:
 represents = [RepresentationType.POINTS, RepresentationType.WIREFRAME,
 RepresentationType.SURFACE, RepresentationType.VOLUME]
 shrinks = [0, 1]
-shadings = [0, 1]
+shadings = ["Flat", "Gouraud"]
 opacities = [1.0, 0.5, 0.0]
 linewidths = [1.0, 3.0, 10.0]
 compare_prec = 0.00001
