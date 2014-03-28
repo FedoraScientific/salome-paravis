@@ -254,6 +254,9 @@ void PVGUI_Module::setupDockWidgets()
   colorMapEditorDock->setWidget(cmed_panel);
   myDockWidgets[colorMapEditorDock] = false; // hidden by default
 
+  // Provide access to the color-editor panel for the application.
+  pqApplicationCore::instance()->registerManager(
+    "COLOR_EDITOR_PANEL", colorMapEditorDock);
   
   // Memory inspector dock
   QDockWidget* memoryInspectorDock = new QDockWidget(tr( "TTL_MEMORY_INSPECTOR" ), desk);
