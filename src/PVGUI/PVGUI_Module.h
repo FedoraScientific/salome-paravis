@@ -208,6 +208,9 @@ private:
   //! Load selected state
   void loadSelectedState(bool toClear);
 
+  //! Get list of embedded macros files
+  QStringList getEmbeddedMacrosList();
+
   //! update macros state
   void updateMacros();
 

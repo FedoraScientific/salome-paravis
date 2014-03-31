@@ -351,15 +351,18 @@ PVGUI_Module::PVGUI_Module()
 #endif
   ParavisModule = this;
 
-  // Clear old macros
+  // Clear old copies of embedded macros files
   QString aDestPath = QString( "%1/.config/%2/Macros" ).arg( QDir::homePath() ).arg( QApplication::applicationName() );
   QStringList aFilter;
   aFilter << "*.py";
 
   QDir aDestDir(aDestPath);
   QStringList aDestFiles = aDestDir.entryList(aFilter, QDir::Files);
-  foreach (QString aStr, aDestFiles) {
-    aDestDir.remove(aStr);
+  foreach (QString aMacrosPath, getEmbeddedMacrosList()) {
+    QString aMacrosName = QFileInfo(aMacrosPath).fileName();
+    if (aDestFiles.contains(aMacrosName)) {
+      aDestDir.remove(aMacrosName);
+    }
   }
 }
 
@@ -672,13 +675,11 @@ void PVGUI_Module::timerEvent(QTimerEvent* te )
 #endif
 }
   
-void PVGUI_Module::updateMacros()
+/*!
+  \brief Get list of embedded macros files
+*/
+QStringList PVGUI_Module::getEmbeddedMacrosList()
 {
-  pqPythonManager* aPythonManager = pqPVApplicationCore::instance()->pythonManager();
-  if(!aPythonManager)  {
-    return;
-  }
-  
   QString aRootDir = getenv("PARAVIS_ROOT_DIR");
 
   QString aSourcePath = aRootDir + "/bin/salome/Macro";
@@ -688,8 +689,22 @@ void PVGUI_Module::updateMacros()
 
   QDir aSourceDir(aSourcePath);
   QStringList aSourceFiles = aSourceDir.entryList(aFilter, QDir::Files);
-  foreach (QString aStr, aSourceFiles) {
-    aPythonManager->addMacro(aSourcePath + "/" + aStr);
+  QStringList aFullPathSourceFiles;
+  foreach (QString aMacrosName, aSourceFiles) {
+    aFullPathSourceFiles << aSourceDir.absoluteFilePath(aMacrosName);
+  }
+  return aFullPathSourceFiles;
+}
+
+void PVGUI_Module::updateMacros()
+{
+  pqPythonManager* aPythonManager = pqPVApplicationCore::instance()->pythonManager();
+  if(!aPythonManager)  {
+    return;
+  }
+  
+  foreach (QString aStr, getEmbeddedMacrosList()) {
+    aPythonManager->addMacro(aStr);
   }
 }
 
