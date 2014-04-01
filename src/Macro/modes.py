@@ -17,10 +17,6 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-#
-# Do not touch this anchor comment
-#
-
 try: paraview.simple
 except: from paraview.simple import *
 paraview.simple._DisableFirstRenderCameraReset()
