@@ -23,14 +23,24 @@
 #include "vtkInformation.h"
 #include "vtkQuadratureSchemeDefinition.h"
 #include "MEDUtilities.hxx"
-#define protected public
 #include "vtkFieldData.h"
+
+#include <sstream>
+
+const char vtkGenerateVectors::VECTOR_SUFFIX[]="_Vector";
+
+std::string vtkGenerateVectors::SuffixFieldName(const std::string& name)
+{
+  std::ostringstream oss; oss << name << VECTOR_SUFFIX;
+  return oss.str();
+}
 
 void vtkGenerateVectors::Operate(vtkFieldData *fd)
 {
   if(!fd)
     return ;
   const int nbOfArrs(fd->GetNumberOfArrays());
+  std::vector<vtkDoubleArray *> daToAppend;
   for(int i=0;i<nbOfArrs;i++)
     {
       vtkDataArray *arr(fd->GetArray(i));
@@ -43,9 +53,17 @@ void vtkGenerateVectors::Operate(vtkFieldData *fd)
       if(nbOfCompo<=1 || nbOfCompo==3)
         continue;
       if(nbOfCompo==2)
-        fd->SetArray(i,Operate2Compo(arrc));
+        daToAppend.push_back(Operate2Compo(arrc));
       else
-        fd->SetArray(i,OperateMoreThan3Compo(arrc));
+        daToAppend.push_back(OperateMoreThan3Compo(arrc));
+    }
+  for(std::vector<vtkDoubleArray *>::const_iterator it=daToAppend.begin();it!=daToAppend.end();it++)
+    {
+      vtkDoubleArray *elt(*it);
+      if(!elt)
+	continue;
+      fd->AddArray(elt);
+      elt->Delete();
     }
 }
 
@@ -63,7 +81,8 @@ vtkDoubleArray *vtkGenerateVectors::Operate2Compo(vtkDoubleArray *oldArr)
       pt[3*i+2]=0.;
     }
   ret->SetNumberOfComponents(3);
-  ret->SetName(oldArr->GetName());
+  std::string newName(SuffixFieldName(oldArr->GetName()));
+  ret->SetName(newName.c_str());
   ret->SetComponentName(0,oldArr->GetComponentName(0));
   ret->SetComponentName(1,oldArr->GetComponentName(1));
   ret->SetArray(pt,3*nbOfTuples,0,VTK_DATA_ARRAY_FREE);
@@ -86,7 +105,8 @@ vtkDoubleArray *vtkGenerateVectors::OperateMoreThan3Compo(vtkDoubleArray *oldArr
       pt[3*i+2]=inPt[nbOfCompo*i+2];
     }
   ret->SetNumberOfComponents(3);
-  ret->SetName(oldArr->GetName());
+  std::string newName(SuffixFieldName(oldArr->GetName()));
+  ret->SetName(newName.c_str());
   ret->SetComponentName(0,oldArr->GetComponentName(0));
   ret->SetComponentName(1,oldArr->GetComponentName(1));
   ret->SetComponentName(2,oldArr->GetComponentName(2));
