@@ -647,8 +647,10 @@ def get_nb_components(proxy, entity, field_name):
     if field_name in field_data.keys():
         entity_data_info = field_data
     elif entity == EntityType.CELL:
+        select_cells_with_data(proxy, on_cells=[field_name])
         entity_data_info = proxy.GetCellDataInformation()
     elif entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
         entity_data_info = proxy.GetPointDataInformation()
 
     nb_comp = None
@@ -803,6 +805,7 @@ def select_cells_with_data(proxy, on_points=[], on_cells=[], on_gauss=[]):
         arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
 
         proxy.AllArrays = []
+        proxy.UpdatePipeline()
         
         fields = []
         for name in on_gauss:
@@ -2564,7 +2567,6 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
     proxy.UpdatePipeline()
     # List of the field names
     fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
-    print fields_info
 
     # Add path separator to the end of picture path if necessery
     if not picture_dir.endswith(os.sep):
@@ -2589,23 +2591,23 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
             # Show and dump the presentation into a graphics file
             process_prs_for_test(prs, view, pic_name, False)
 
-        # Create Mesh presentation. Build all groups.
-        extGrp = pvs.ExtractGroup()
-        extGrp.UpdatePipelineInformation()
-        if if_possible(proxy, None, None, PrsTypeEnum.MESH, extGrp):
-            for group in get_group_names(extGrp):
-                print "Creating submesh on group " + get_group_short_name(group) + "... "
-                prs = MeshOnGroup(proxy, extGrp, group)
-                if prs is None:
-                    print "FAILED"
-                    continue
-                else:
-                    print "OK"
-                # Construct image file name
-                pic_name = picture_dir + get_group_short_name(group) + "." + picture_ext
+            # Create Mesh presentation. Build all groups.
+            extGrp = pvs.ExtractGroup()
+            extGrp.UpdatePipelineInformation()
+            if if_possible(proxy, None, None, PrsTypeEnum.MESH, extGrp):
+                for group in get_group_names(extGrp):
+                    print "Creating submesh on group " + get_group_short_name(group) + "... "
+                    prs = MeshOnGroup(proxy, extGrp, group)
+                    if prs is None:
+                        print "FAILED"
+                        continue
+                    else:
+                        print "OK"
+                    # Construct image file name
+                    pic_name = picture_dir + get_group_short_name(group) + "." + picture_ext
                     
-                # Show and dump the presentation into a graphics file
-                process_prs_for_test(prs, view, pic_name, False)
+                    # Show and dump the presentation into a graphics file
+                    process_prs_for_test(prs, view, pic_name, False)
 
     # Presentations on fields
     for field in fields_info:
@@ -2643,6 +2645,12 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
                 for timestamp_nb in xrange(1, len(timestamps) + 1):
                     time = timestamps[timestamp_nb - 1]
+                    if (time == 0.0):
+                        scalar_range = get_data_range(proxy, field_entity,
+                                                      field_name, cut_off=True)
+                        # exclude time stamps with null lenght of scalar range
+                        if (scalar_range[0] == scalar_range[1]):
+                            continue
                     print "Creating " + prs_name + " on " + field_name + ", time = " + str(time) + "... "
                     prs = create_prs(prs_type, proxy,
                                      field_entity, field_name, timestamp_nb)
