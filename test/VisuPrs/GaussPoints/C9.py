@@ -30,14 +30,14 @@ import pvsimple
 
 
 # Directory for saving snapshots
-picturedir = get_picture_dir(sys.argv[1], "GaussPoints/C9")
+picturedir = get_picture_dir("GaussPoints/C9")
 if not picturedir.endswith(os.sep):
     picturedir += os.sep
 
 # MED file
 file_name = datadir + "petit.rmed"
-field_name = "RESPIL_SIEF_ELGA"
-timestamp_nb = 1
+field_name = "RESPIL__SIEF_ELGA"
+timestamp_nb = -1 # last timestamp
 
 paravis.myParavis.ImportFile(file_name)
 med_reader = pvsimple.GetActiveSource()

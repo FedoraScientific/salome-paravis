@@ -49,10 +49,8 @@ else: print "OK"
 aView = GetRenderView()
 
 
-field_names = proxy.PointArrays.GetData()
-aTimeStamps = proxy.TimestepValues.GetData()
 aFieldEntity = EntityType.NODE
-aFieldName = "MODES_DEPL"
+aFieldName = "MODES___DEPL____________________"
 #create list to store picture files sizes
 sizes=[]
 #create Scalar Map presentations for 10 timestamps

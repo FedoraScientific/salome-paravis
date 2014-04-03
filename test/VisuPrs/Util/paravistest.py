@@ -291,7 +291,7 @@ def Import_Med_Field(paravis, file, field_names, check_errors=0, prs=[]):
 
     # import MED file
     paravis.ImportFile(file)
-    proxy = presentations.pv.GetActiveSource()
+    proxy = presentations.pvs.GetActiveSource()
     if proxy is None:
       	raise RuntimeError, "ERROR!!! Can't import file!!!"  
     

@@ -47,21 +47,17 @@ aView = GetRenderView()
 
 # Create required presentations for the proxy
 # CreatePrsForProxy(aProxy, aView, thePrsTypeList, thePictureDir, thePictureExt, theIsAutoDelete)
-aFieldNames = aProxy.PointArrays.GetData()
-aNbOnNodes = len(aFieldNames)
-aFieldNames.extend(aProxy.CellArrays.GetData())
-aTimeStamps = aProxy.TimestepValues.GetData()
 aFieldEntity = EntityType.NODE
-aFieldName = "MODES_DEPL"
+aFieldName = "MODES___DEPL____________________"
 
 #create Iso Surfaces presentations for 10 timestamps
 for i in range(1,11):
-    hide_all(aView, True)
+    #hide_all(aView, True)
     aPrs = IsoSurfacesOnField(aProxy, aFieldEntity,aFieldName , i)
     if aPrs is None:
         raise RuntimeError, "Presentation is None!!!"
     #display only current scalar map
-    aPrs.Visibility=1
+    display_only(aPrs, aView)
     reset_view(aView)
     Render(aView)    
     

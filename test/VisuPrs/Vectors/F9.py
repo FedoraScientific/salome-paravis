@@ -48,12 +48,8 @@ aView = GetRenderView()
 
 # Create required presentations for the proxy
 # CreatePrsForProxy(aProxy, aView, thePrsTypeList, thePictureDir, thePictureExt, theIsAutoDelete)
-aFieldNames = aProxy.PointArrays.GetData()
-aNbOnNodes = len(aFieldNames)
-aFieldNames.extend(aProxy.CellArrays.GetData())
-aTimeStamps = aProxy.TimestepValues.GetData()
 aFieldEntity = EntityType.NODE
-aFieldName = "MODES_DEPL"
+aFieldName = "MODES___DEPL____________________"
 
 #Creation of a set of non-colored and then colored Vectors presentations, based on time stamps of MODES_DEP field
 for colored in [False,True]:

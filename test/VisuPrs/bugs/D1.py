@@ -27,7 +27,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/D1")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/D1")
 
 # 1. Import of the "Bug829_resu_mode.med" file at first time
 med_file_path = datadir + "Bug829_resu_mode.med"

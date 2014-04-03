@@ -68,7 +68,7 @@ field_name = 'VITESSE'
 my_view = GetRenderView()
 
 print "\nCreating plot3d.......",
-plot3d = Plot3DOnField(proxy, EntityType.CELL, field_name, 1)
+plot3d = Plot3DOnField(proxy, EntityType.NODE, field_name, 1)
 if plot3d is None:
     raise RuntimeError("Error!!! Presentation wasn't created...")
 

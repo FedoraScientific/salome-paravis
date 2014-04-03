@@ -55,13 +55,13 @@ if cut_segment2 == None:
 #       (spreadsheet view in terms of ParaViS) from in Python script
 
 # 5. Creation of curve based on Table
-xy_view = pv.CreateXYPlotView()
+xy_view = pvs.CreateXYPlotView()
 
-curve1 = pv.Show(cut_segment1.Input, xy_view)
+curve1 = pvs.Show(cut_segment1.Input, xy_view)
 if curve1 == None:
    raise RuntimeError, " ERROR!!! Curve based on the first CutSegment is not built!"
 
-curve2 = pv.Show(cut_segment2.Input, xy_view)
+curve2 = pvs.Show(cut_segment2.Input, xy_view)
 if curve2 == None:
    raise RuntimeError, " ERROR!!! Curve based on the second CutSegment is not built!"
 

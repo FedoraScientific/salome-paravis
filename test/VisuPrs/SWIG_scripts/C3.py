@@ -20,7 +20,10 @@
 # This case corresponds to: /visu/SWIG_scripts/C3 case
 # Create table and display curves
 
-import paraview.simple as pv
+# Do not use pv as a short name.
+# It is a name of function from numpy and may be redefined implicitly by 'from numpy import *' call.
+# import paraview.simple as pv
+import paraview.simple as pvs
 import paraview.servermanager as sm
 
 
@@ -58,43 +61,43 @@ for i in xrange(1, nb_cols + 1):
 """
 
 # Creating programmable source (table)
-ps = pv.ProgrammableSource()
+ps = pvs.ProgrammableSource()
 ps.OutputDataSetType = 'vtkTable'
 ps.Script = script
-pv.RenameSource("Very useful data", ps)
+pvs.RenameSource("Very useful data", ps)
 ps.UpdatePipeline()
 
 # Display table
 # TODO: no possibility to create spreadsheet view
 
 # Display curves
-xy_view = pv.CreateXYPlotView()
+xy_view = pvs.CreateXYPlotView()
 xy_view.ChartTitle = 'Very useful data'
 xy_view.AxisTitle = ['[ Wt ]', 'Frequency [ Hz ]']
 
-xy_rep = pv.Show(ps)
+xy_rep = pvs.Show(ps)
 xy_rep.AttributeType = 'Row Data'
 xy_rep.UseIndexForXAxis = 0
 xy_rep.XArrayName = 'Frequency'
 xy_rep.SeriesVisibility = ['Frequency', '0']
-pv.Render(xy_view)
+pvs.Render(xy_view)
 
 # Hide legend
 xy_view.ShowLegend = 0
-pv.Render(xy_view)
+pvs.Render(xy_view)
 
 # Set logarithmic scaling for X axis
 xy_view.AxisLogScale[1] = 1
-pv.Render(xy_view)
+pvs.Render(xy_view)
 
 # Set linear scaling for X axis
 xy_view.AxisLogScale[1] = 0
-pv.Render(xy_view)
+pvs.Render(xy_view)
 
 # Set logarithmic scaling for X axis
 xy_view.AxisLogScale[0] = 1
-pv.Render(xy_view)
+pvs.Render(xy_view)
 
 # Show legend
 xy_view.ShowLegend = 1
-pv.Render(xy_view)
+pvs.Render(xy_view)

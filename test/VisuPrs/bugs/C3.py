@@ -34,7 +34,7 @@ my_paravis.ImportFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:
-    print "FAILED"
+    raise RuntimeError, "MEDfileForStructuredMesh.med was not imported!"
 else:
     print "OK"
 

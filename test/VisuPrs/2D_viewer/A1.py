@@ -48,13 +48,6 @@ Ranges=aXYPlot.LeftAxisRange
 error = error + test_values(Ranges, Etvalue[0:2])
 Ranges=aXYPlot.BottomAxisRange
 error = error + test_values(Ranges, Etvalue[2:4])
-
-try:
-    aXYPlot.ShowAxis = [1, 1, 1, 1]
-except:
-    print "Error: ShowAxis property is not avaliable for XYPlotView"
-    error = error + 1
-
 aXYPlot.AxisUseCustomRange = [1, 1, 1, 1]
 # Left, bottom, right and top axis range
 aXYPlot.LeftAxisRange = [0, 200]

@@ -27,7 +27,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/C6")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/C6")
 
 # 1. Import MED file
 med_file_path = datadir + "relachement_brutal_sans_dudg_gauss.med"

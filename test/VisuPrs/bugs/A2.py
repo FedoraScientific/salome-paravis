@@ -28,7 +28,8 @@ import paravis
 import pvsimple
 
 my_paravis = paravis.myParavis
-picturedir = get_picture_dir(sys.argv[1], "bugs/A2")
+os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]
+picturedir = get_picture_dir("bugs/A2")
 
 med_file_path = datadir + "carre_MIXTE_0000_v3.0.6.med"
 pic_path = os.path.join(picturedir, "A2." + pictureext)
@@ -70,5 +71,5 @@ view.CameraParallelScale = 0.1
 pvsimple.Render(view)
 
 print "Picure file name is " + pic_path
-pv.WriteImage(pic_path, view=view, Magnification=1)
+pvs.WriteImage(pic_path, view=view, Magnification=1)
 time.sleep(1)

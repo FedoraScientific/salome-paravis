@@ -32,12 +32,15 @@ import warnings
 from math import sqrt, sin, cos, radians
 from string import upper
 
-import pvsimple as pv
+# Do not use pv as a short name.
+# It is a name of function from numpy and may be redefined implicitly by 'from numpy import *' call.
+# import pvsimple as pv
+import pvsimple as pvs
 #try:
 #    # TODO(MZN): to be removed (issue with Point Sprite texture)
 #    #import paravisSM as sm
 #except:
-#    import paraview.simple as pv
+#    import paraview.simple as pvs
 #    import paraview.servermanager as sm
 
 
@@ -50,6 +53,7 @@ GAP_COEFFICIENT = 0.0001
 
 # Globals
 _current_bar = None
+_med_field_sep = '@@][@@'
 
 
 # Enumerations
@@ -94,11 +98,11 @@ class EntityType:
     NODE = 0
     CELL = 1
 
-    _type2name = {NODE: 'OnPoint',
-                  CELL: 'OnCell'}
+    _type2name = {NODE: 'P1',
+                  CELL: 'P0'}
 
-    _name2type = {'OnPoint': NODE,
-                  'OnCell': CELL}
+    _name2type = {'P1': NODE,
+                  'P0': CELL}
 
     _type2pvtype = {NODE: 'POINT_DATA',
                     CELL: 'CELL_DATA'}
@@ -168,6 +172,33 @@ class GaussType:
 
 
 # Auxiliary functions
+
+def get_field_mesh_name(full_field_name):
+    """Return mesh name of the field by its full name."""
+    aList = full_field_name.split('/')
+    if len(aList) >= 2 :
+        field_name = full_field_name.split('/')[1]
+        return field_name
+
+
+def get_field_entity(full_field_name):
+    """Return entity type of the field by its full name."""
+    aList = full_field_name.split(_med_field_sep)
+    if len(aList) == 2 :
+        entity_name = full_field_name.split(_med_field_sep)[-1]
+        entity = EntityType.get_type(entity_name)
+        return entity
+
+
+def get_field_short_name(full_field_name):
+    """Return short name of the field by its full name."""
+    aList = full_field_name.split('/')
+    if len(aList) == 4 :
+        short_name_with_type = full_field_name.split('/')[-1]
+        short_name = short_name_with_type.split(_med_field_sep)[0]
+        return short_name
+
+
 def process_prs_for_test(prs, view, picture_name, show_bar=True):
     """Show presentation and record snapshot image.
 
@@ -195,7 +226,7 @@ def process_prs_for_test(prs, view, picture_name, show_bar=True):
         os.makedirs(pic_dir)
 
     # Save picture
-    pv.WriteImage(file_name, view=view, Magnification=1)
+    pvs.WriteImage(file_name, view=view, Magnification=1)
 
 
 def reset_view(view=None):
@@ -206,7 +237,7 @@ def reset_view(view=None):
 
     """
     if not view:
-        view = pv.GetRenderView()
+        view = pvs.GetRenderView()
 
     # Camera preferences
     view.CameraFocalPoint = [0.0, 0.0, 0.0]
@@ -221,13 +252,13 @@ def reset_view(view=None):
     view.CameraParallelProjection = 1
 
     view.ResetCamera()
-    pv.Render(view=view)
+    pvs.Render(view=view)
 
 
 def hide_all(view, to_remove=False):
     """Hide all representations in the view."""
     if not view:
-        view = pv.GetRenderView()
+        view = pvs.GetRenderView()
 
     rep_list = view.Representations
     for rep in rep_list:
@@ -235,15 +266,19 @@ def hide_all(view, to_remove=False):
             rep.Visibility = 0
         if to_remove:
             view.Representations.remove(rep)
-    pv.Render(view=view)
+    pvs.Render(view=view)
 
 
 def display_only(prs, view=None):
     """Display only the given presentation in the view."""
-    hide_all(view)
-    if (hasattr(prs, 'Visibility') and prs.Visibility != 1):
-        prs.Visibility = 1
-    pv.Render(view=view)
+    if not view:
+        view = pvs.GetRenderView()
+
+    rep_list = view.Representations
+    for rep in rep_list:
+        if hasattr(rep, 'Visibility'):
+            rep.Visibility = (rep == prs)
+    pvs.Render(view=view)
 
 
 def set_visible_lines(xy_prs, lines):
@@ -672,7 +707,7 @@ def get_calc_magnitude(proxy, array_entity, array_name):
     # Transform vector array to scalar array if possible
     nb_components = get_nb_components(proxy, array_entity, array_name)
     if (nb_components > 1):
-        calculator = pv.Calculator(proxy)
+        calculator = pvs.Calculator(proxy)
         attribute_mode = "Point Data"
         if array_entity != EntityType.NODE:
             attribute_mode = "Cell Data"
@@ -705,7 +740,7 @@ def get_add_component_calc(proxy, array_entity, array_name):
 
     nb_components = get_nb_components(proxy, array_entity, array_name)
     if nb_components == 2:
-        calculator = pv.Calculator(proxy)
+        calculator = pvs.Calculator(proxy)
         attribute_mode = "Point Data"
         if array_entity != EntityType.NODE:
             attribute_mode = "Cell Data"
@@ -724,14 +759,11 @@ def select_all_cells(proxy):
     Used in creation of mesh/submesh presentation.
 
     """
-    ### Old API all_cell_types = proxy.CellTypes.Available
-    all_cell_types = proxy.Entity.Available
-    ### Old API proxy.CellTypes = all_cell_types
-    proxy.Entity = all_cell_types
-    proxy.UpdatePipeline()
+    extractCT = pvs.ExtractCellType()
+    extractCT.AllGeoTypes = extractCT.GetProperty("GeoTypesInfo")[::2]
 
 
-def select_cells_with_data(proxy, on_points=None, on_cells=None):
+def select_cells_with_data(proxy, on_points=[], on_cells=[], on_gauss=[]):
     """Select cell types with data.
 
     Only cell types with data for the given fields will be selected.
@@ -740,7 +772,32 @@ def select_cells_with_data(proxy, on_points=None, on_cells=None):
 
     """
     if not hasattr(proxy, 'Entity'):
-        return
+        separator = proxy.GetProperty("Separator").GetData()
+
+        fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+        arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
+
+        proxy.AllArrays = []
+        
+        fields = []
+        for name in on_gauss:
+            fields.append(name+separator+'GAUSS')
+        for name in on_cells:
+            fields.append(name+separator+'P0')
+        for name in on_points:
+            fields.append(name+separator+'P1')
+
+        field_list = []
+        for name in fields:
+            if arr_name_with_dis.count(name) > 0:
+                index = arr_name_with_dis.index(name)
+                field_list.append(fields_info[index])
+                
+        proxy.AllArrays = field_list
+        proxy.UpdatePipeline()
+        return len(field_list) != 0
+
+    # TODO: VTN. Looks like this code is out of date.
     
     #all_cell_types = proxy.CellTypes.Available
     all_cell_types = proxy.Entity.Available
@@ -812,7 +869,7 @@ def add_scalar_bar(field_name, nb_components,
         title = "\n".join([title, vector_mode])
 
     # Create scalar bar
-    scalar_bar = pv.CreateScalarBar(Enabled=1)
+    scalar_bar = pvs.CreateScalarBar(Enabled=1)
     scalar_bar.Orientation = 'Vertical'
     scalar_bar.Title = title
     scalar_bar.LookupTable = lookup_table
@@ -835,7 +892,7 @@ def add_scalar_bar(field_name, nb_components,
     scalar_bar.LabelShadow = 1
 
     # Add the scalar bar to the view
-    pv.GetRenderView().Representations.append(scalar_bar)
+    pvs.GetRenderView().Representations.append(scalar_bar)
 
     # Reassign the current bar
     _current_bar = scalar_bar
@@ -852,7 +909,7 @@ def get_bar():
 
 def get_lookup_table(field_name, nb_components, vector_mode='Magnitude'):
     """Get lookup table for the given field."""
-    lookup_table = pv.GetLookupTableForArray(field_name, nb_components)
+    lookup_table = pvs.GetLookupTableForArray(field_name, nb_components)
 
     if vector_mode == 'Magnitude':
         lookup_table.VectorMode = vector_mode
@@ -902,9 +959,8 @@ def get_group_short_name(full_group_name):
 
 def get_mesh_names(proxy):
     """Return all mesh names in the given proxy as a set."""
-    groups = proxy.Groups.Available
-    mesh_names = set([get_group_mesh_name(item) for item in groups])
-
+    fields = proxy.GetProperty("FieldsTreeInfo")[::2]
+    mesh_names = set([get_field_mesh_name(item) for item in fields])
     return mesh_names
 
 
@@ -936,12 +992,15 @@ def get_time(proxy, timestamp_nb):
     elif (hasattr(proxy.Input, 'TimestepValues')):
         timestamps = proxy.Input.TimestepValues.GetData()
 
-    if ((timestamp_nb - 1) not in xrange(len(timestamps))):
+    length = len(timestamps)
+    if (timestamp_nb > 0 and (timestamp_nb - 1) not in xrange(length) ) or (timestamp_nb < 0 and -timestamp_nb > length):
         raise ValueError("Timestamp number is out of range: " + str(timestamp_nb))
 
     # Return time value
-    return timestamps[timestamp_nb - 1]
-
+    if timestamp_nb > 0:
+        return timestamps[timestamp_nb - 1]
+    else:
+        return timestamps[timestamp_nb]
 
 def create_prs(prs_type, proxy, field_entity, field_name, timestamp_nb):
     """Auxiliary function.
@@ -1016,11 +1075,11 @@ def ScalarMapOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Get Scalar Map representation object
-    scalarmap = pv.GetRepresentation(proxy)
+    scalarmap = pvs.GetRepresentation(proxy)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1072,6 +1131,11 @@ def CutPlanesOnField(proxy, entity, field_name, timestamp_nb,
       Cut Planes as representation object.
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1080,11 +1144,11 @@ def CutPlanesOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Create slice filter
-    slice_filter = pv.Slice(proxy)
+    slice_filter = pvs.Slice(proxy)
     slice_filter.SliceType = "Plane"
 
     # Set cut planes normal
@@ -1098,7 +1162,7 @@ def CutPlanesOnField(proxy, entity, field_name, timestamp_nb,
     slice_filter.SliceOffsetValues = positions
 
     # Get Cut Planes representation object
-    cut_planes = pv.GetRepresentation(slice_filter)
+    cut_planes = pvs.GetRepresentation(slice_filter)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1162,6 +1226,11 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
       (Cut Lines as representation object, list of 'PlotOverLine') otherwise
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1170,11 +1239,11 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Create base plane
-    base_plane = pv.Slice(proxy)
+    base_plane = pvs.Slice(proxy)
     base_plane.SliceType = "Plane"
 
     # Set base plane normal
@@ -1194,7 +1263,7 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
         base_plane = proxy
 
     # Create cutting planes
-    cut_planes = pv.Slice(base_plane)
+    cut_planes = pvs.Slice(base_plane)
     cut_planes.SliceType = "Plane"
 
     # Set cutting planes normal and get positions
@@ -1220,9 +1289,9 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
             point2 = [bounds[1], bounds[3], bounds[5]]
 
             # Create plot over line filter
-            pol = pv.PlotOverLine(cut_planes,
+            pol = pvs.PlotOverLine(cut_planes,
                                   Source="High Resolution Line Source")
-            pv.RenameSource('Y' + str(index), pol)
+            pvs.RenameSource('Y' + str(index), pol)
             pol.Source.Point1 = point1
             pol.Source.Point2 = point2
             pol.UpdatePipeline()
@@ -1234,7 +1303,7 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
     cut_planes.UpdatePipeline()
 
     # Get Cut Lines representation object
-    cut_lines = pv.GetRepresentation(cut_planes)
+    cut_lines = pvs.GetRepresentation(cut_planes)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1284,6 +1353,11 @@ def CutSegmentOnField(proxy, entity, field_name, timestamp_nb,
       Cut Segment as 3D representation object.
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1292,17 +1366,17 @@ def CutSegmentOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Create plot over line filter
-    pol = pv.PlotOverLine(proxy, Source="High Resolution Line Source")
+    pol = pvs.PlotOverLine(proxy, Source="High Resolution Line Source")
     pol.Source.Point1 = point1
     pol.Source.Point2 = point2
     pol.UpdatePipeline()
 
     # Get Cut Segment representation object
-    cut_segment = pv.GetRepresentation(pol)
+    cut_segment = pvs.GetRepresentation(pol)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1352,6 +1426,11 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
       Vectors as representation object.
 
     """
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1360,15 +1439,15 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Extract only groups with data for the field
     source = proxy
 
     # Cell centers
     if is_data_on_cells(proxy, field_name):
-        cell_centers = pv.CellCenters(source)
+        cell_centers = pvs.CellCenters(source)
         cell_centers.VertexCells = 1
         source = cell_centers
 
@@ -1380,7 +1459,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
         source = calc
 
     # Glyph
-    glyph = pv.Glyph(source)
+    glyph = pvs.Glyph(source)
     glyph.Vectors = vector_array
     glyph.ScaleMode = 'vector'
     glyph.MaskPoints = 0
@@ -1413,7 +1492,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
     glyph.UpdatePipeline()
 
     # Get Vectors representation object
-    vectors = pv.GetRepresentation(glyph)
+    vectors = pvs.GetRepresentation(glyph)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1479,15 +1558,15 @@ def DeformedShapeOnField(proxy, entity, field_name,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Do merge
-    source = pv.MergeBlocks(proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
-        cell_to_point = pv.CellDatatoPointData()
+        cell_to_point = pvs.CellDatatoPointData()
         cell_to_point.PassCellData = 1
         source = cell_to_point
 
@@ -1499,7 +1578,7 @@ def DeformedShapeOnField(proxy, entity, field_name,
         source = calc
 
     # Warp by vector
-    warp_vector = pv.WarpByVector(source)
+    warp_vector = pvs.WarpByVector(source)
     warp_vector.Vectors = [vector_array]
     if scale_factor is not None:
         warp_vector.ScaleFactor = scale_factor
@@ -1509,7 +1588,7 @@ def DeformedShapeOnField(proxy, entity, field_name,
         warp_vector.ScaleFactor = def_scale
 
     # Get Deformed Shape representation object
-    defshape = pv.GetRepresentation(warp_vector)
+    defshape = pvs.GetRepresentation(warp_vector)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1587,8 +1666,8 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Set scalar field by default
     scalar_field_entity = scalar_entity
@@ -1598,11 +1677,11 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         scalar_field = field_name
 
     # Do merge
-    source = pv.MergeBlocks(proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
-        cell_to_point = pv.CellDatatoPointData(source)
+        cell_to_point = pvs.CellDatatoPointData(source)
         cell_to_point.PassCellData = 1
         source = cell_to_point
 
@@ -1614,7 +1693,7 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         source = calc
 
     # Warp by vector
-    warp_vector = pv.WarpByVector(source)
+    warp_vector = pvs.WarpByVector(source)
     warp_vector.Vectors = [vector_array]
     if scale_factor is not None:
         warp_vector.ScaleFactor = scale_factor
@@ -1624,7 +1703,7 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         warp_vector.ScaleFactor = def_scale
 
     # Get Defromed Shape And Scalar Map representation object
-    defshapemap = pv.GetRepresentation(warp_vector)
+    defshapemap = pvs.GetRepresentation(warp_vector)
 
     # Get lookup table
     lookup_table = get_lookup_table(scalar_field, nb_components, vector_mode)
@@ -1698,11 +1777,11 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Do merge
-    merge_blocks = pv.MergeBlocks(proxy)
+    merge_blocks = pvs.MergeBlocks(proxy)
     merge_blocks.UpdatePipeline()
 
     poly_data = None
@@ -1722,7 +1801,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
                                            radians(angle1), radians(angle2))
 
         # Create slice filter
-        slice_filter = pv.Slice(merge_blocks)
+        slice_filter = pvs.Slice(merge_blocks)
         slice_filter.SliceType = "Plane"
 
         # Set cutting plane normal
@@ -1744,7 +1823,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
     use_normal = 0
     # Geometry filter
     if not poly_data or poly_data.GetDataInformation().GetNumberOfCells() == 0:
-        geometry_filter = pv.GeometryFilter(merge_blocks)
+        geometry_filter = pvs.GeometryFilter(merge_blocks)
         poly_data = geometry_filter
         use_normal = 1  # TODO(MZN): workaround
 
@@ -1754,7 +1833,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
 
     if is_data_on_cells(poly_data, field_name):
         # Cell data to point data
-        cell_to_point = pv.CellDatatoPointData(poly_data)
+        cell_to_point = pvs.CellDatatoPointData(poly_data)
         cell_to_point.PassCellData = 1
         source = cell_to_point
 
@@ -1767,7 +1846,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
         source = calc
 
     # Warp by scalar
-    warp_scalar = pv.WarpByScalar(source)
+    warp_scalar = pvs.WarpByScalar(source)
     warp_scalar.Scalars = scalars
     warp_scalar.Normal = normal
     warp_scalar.UseNormal = use_normal
@@ -1783,7 +1862,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
 
     if (is_contour):
         # Contours
-        contour = pv.Contour(warp_scalar)
+        contour = pvs.Contour(warp_scalar)
         contour.PointMergeMethod = "Uniform Binning"
         contour.ContourBy = ['POINTS', field_name]
         scalar_range = get_data_range(proxy, entity,
@@ -1793,7 +1872,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
         source = contour
 
     # Get Plot 3D representation object
-    plot3d = pv.GetRepresentation(source)
+    plot3d = pvs.GetRepresentation(source)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1855,15 +1934,15 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Do merge
-    source = pv.MergeBlocks(proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Transform cell data into point data if necessary
     if is_data_on_cells(proxy, field_name):
-        cell_to_point = pv.CellDatatoPointData(source)
+        cell_to_point = pvs.CellDatatoPointData(source)
         cell_to_point.PassCellData = 1
         source = cell_to_point
 
@@ -1876,7 +1955,7 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
         source = calc
 
     # Contour filter settings
-    contour = pv.Contour(source)
+    contour = pvs.Contour(source)
     contour.ComputeScalars = 1
     contour.ContourBy = contour_by
 
@@ -1893,7 +1972,7 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
     contour.Isosurfaces = surfaces
 
     # Get Iso Surfaces representation object
-    isosurfaces = pv.GetRepresentation(contour)
+    isosurfaces = pvs.GetRepresentation(contour)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1961,10 +2040,12 @@ def GaussPointsOnField(proxy, entity, field_name,
 
     """
     # We don't need mesh parts with no data on them
-    if entity == EntityType.NODE:
-        select_cells_with_data(proxy, on_points=[field_name])
-    else:
-        select_cells_with_data(proxy, on_cells=[field_name])
+    on_gauss = select_cells_with_data(proxy, on_gauss=[field_name])
+    if not on_gauss:
+        if entity == EntityType.NODE:
+            select_cells_with_data(proxy, on_points=[field_name])
+        else:
+            select_cells_with_data(proxy, on_cells=[field_name])
 
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
@@ -1974,22 +2055,19 @@ def GaussPointsOnField(proxy, entity, field_name,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
+    pvs.GetRenderView().ViewTime = time_value
     proxy.UpdatePipeline(time=time_value)
 
     source = proxy
 
-    # Quadrature point arrays
-    qp_arrays = proxy.QuadraturePointArrays.Available
-
     # If no quadrature point array is passed, use cell centers
-    if field_name in qp_arrays:
-        generate_qp = pv.GenerateQuadraturePoints(source)
-        generate_qp.SelectSourceArray = ['CELLS', 'ELGA_Offset']
+    if on_gauss:
+        generate_qp = pvs.GenerateQuadraturePoints(source)
+        generate_qp.QuadratureSchemeDef = ['CELLS', 'ELGA@0']
         source = generate_qp
     else:
         # Cell centers
-        cell_centers = pv.CellCenters(source)
+        cell_centers = pvs.CellCenters(source)
         cell_centers.VertexCells = 1
         source = cell_centers
 
@@ -2006,7 +2084,7 @@ def GaussPointsOnField(proxy, entity, field_name,
             source = calc
 
         # Warp by vector
-        warp_vector = pv.WarpByVector(source)
+        warp_vector = pvs.WarpByVector(source)
         warp_vector.Vectors = [vector_array]
         if scale_factor is not None:
             warp_vector.ScaleFactor = scale_factor
@@ -2018,7 +2096,7 @@ def GaussPointsOnField(proxy, entity, field_name,
         source = warp_vector
 
     # Get Gauss Points representation object
-    gausspnt = pv.GetRepresentation(source)
+    gausspnt = pvs.GetRepresentation(source)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -2133,29 +2211,25 @@ def GaussPointsOnField1(proxy, entity, field_name,
       Gauss Points as representation object.
 
     """
+    select_cells_with_data(proxy, on_gauss=[field_name])
+
+    nb_components = get_nb_components(proxy, entity, field_name)
+
     # Get time value
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
+    pvs.GetRenderView().ViewTime = time_value
     proxy.UpdatePipeline(time=time_value)
 
     # Create Gauss Points object
-    source = pv.GaussPoints(proxy)
+    source = pvs.GaussPoints(proxy)
     source.UpdatePipeline()
   
     # Get Gauss Points representation object
-    gausspnt = pv.GetRepresentation(source)
+    gausspnt = pvs.GetRepresentation(source)
 
     # Get lookup table
-    entity_data_info = None
-    point_data_info = source.GetPointDataInformation()
-    if field_name in point_data_info.keys():
-        entity_data_info = point_data_info
-    else:
-        entity_data_info = source.GetCellDataInformation()
-    nb_components = entity_data_info[field_name].GetNumberOfComponents()
-    
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
 
     # Set field range if necessary
@@ -2272,15 +2346,15 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
     time_value = get_time(proxy, timestamp_nb)
 
     # Set timestamp
-    pv.GetRenderView().ViewTime = time_value
-    pv.UpdatePipeline(time_value, proxy)
+    pvs.GetRenderView().ViewTime = time_value
+    pvs.UpdatePipeline(time_value, proxy)
 
     # Do merge
-    source = pv.MergeBlocks(proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
-        cell_to_point = pv.CellDatatoPointData(source)
+        cell_to_point = pvs.CellDatatoPointData(source)
         cell_to_point.PassCellData = 1
         cell_to_point.UpdatePipeline()
         source = cell_to_point
@@ -2294,7 +2368,7 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
         source = calc
 
     # Stream Tracer
-    stream = pv.StreamTracer(source)
+    stream = pvs.StreamTracer(source)
     stream.SeedType = "Point Source"
     stream.Vectors = ['POINTS', vector_array]
     stream.SeedType = "Point Source"
@@ -2305,7 +2379,7 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
     # Get Stream Lines representation object
     if is_empty(stream):
         return None
-    streamlines = pv.GetRepresentation(stream)
+    streamlines = pvs.GetRepresentation(stream)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -2360,7 +2434,7 @@ def MeshOnEntity(proxy, mesh_name, entity):
     prs = None
     if (proxy.GetDataInformation().GetNumberOfPoints() or
         proxy.GetDataInformation().GetNumberOfCells()):
-        prs = pv.GetRepresentation(proxy)
+        prs = pvs.GetRepresentation(proxy)
         prs.ColorArrayName = ''
 
     return prs
@@ -2400,7 +2474,7 @@ def MeshOnGroup(proxy, group_name):
             nb_items = proxy.GetDataInformation().GetNumberOfCells()
 
         if nb_items:
-            prs = pv.GetRepresentation(proxy)
+            prs = pvs.GetRepresentation(proxy)
             prs.ColorArrayName = ''
 
     return prs
@@ -2424,23 +2498,22 @@ def CreatePrsForFile(paravis_instance, file_name, prs_types,
     print "Import " + file_name.split(os.sep)[-1] + "..."
 
     try:
-        paravis_instance.ImportFile(file_name)
-        proxy = pv.GetActiveSource()
+        proxy = pvs.MEDReader(FileName=file_name)
         if proxy is None:
             print "FAILED"
         else:
             proxy.UpdatePipeline()
+            _med_field_sep = proxy.GetProperty("Separator")
             print "OK"
     except:
         print "FAILED"
     else:
         # Get view
-        view = pv.GetRenderView()
+        view = pvs.GetRenderView()
 
         # Create required presentations for the proxy
         CreatePrsForProxy(proxy, view, prs_types,
                           picture_dir, picture_ext)
-
 
 def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
     """Build presentations of the given types for all fields of the proxy.
@@ -2457,9 +2530,8 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
     """
     # List of the field names
-    field_names = list(proxy.PointArrays.GetData())
-    nb_on_nodes = len(field_names)
-    field_names.extend(proxy.CellArrays.GetData())
+    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+    print fields_info
 
     # Add path separator to the end of picture path if necessery
     if not picture_dir.endswith(os.sep):
@@ -2469,8 +2541,10 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
     if PrsTypeEnum.MESH in prs_types:
         # Create Mesh presentation. Build all possible submeshes.
 
+        extGrp=pvs.ExtractGroup()
+
         # Remember the current state
-        groups = list(proxy.Groups)
+        groups = filter(lambda x:x[:4]=="GRP_",list(extGrp.GetProperty("GroupsFlagsInfo")[::2]))
 
         # Iterate on meshes
         mesh_names = get_mesh_names(proxy)
@@ -2510,33 +2584,27 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
                     process_prs_for_test(prs, view, pic_name, False)
 
         # Restore the state
-        proxy.Groups = groups
-        proxy.UpdatePipeline()
+        extGrp.AllGroups = groups
+        extGrp.UpdatePipelineInformation()
 
     # Presentations on fields
-    for (i, field_name) in enumerate(field_names):
+    for field in fields_info:
+        field_name = get_field_short_name(field)
+        # Ignore mesh presentation
+        if field_name == get_field_mesh_name(field):
+            continue
+        field_entity = get_field_entity(field)
+        # Clear fields selection state
+        proxy.AllArrays = []
+        proxy.UpdatePipeline()
         # Select only the current field:
         # necessary for getting the right timestamps
-        cell_arrays = proxy.CellArrays.GetData()
-        point_arrays = proxy.PointArrays.GetData()
-        field_entity = None
-        if (i >= nb_on_nodes):
-            field_entity = EntityType.CELL
-            proxy.PointArrays.DeselectAll()
-            proxy.CellArrays = [field_name]
-        else:
-            field_entity = EntityType.NODE
-            proxy.CellArrays.DeselectAll()
-            proxy.PointArrays = [field_name]
+        proxy.AllArrays = field
+        proxy.UpdatePipeline()
 
         # Get timestamps
-        proxy.UpdatePipelineInformation()
+        entity_data_info = proxy.GetCellDataInformation()
         timestamps = proxy.TimestepValues.GetData()
-
-        # Restore fields selection state
-        proxy.CellArrays = cell_arrays
-        proxy.PointArrays = point_arrays
-        proxy.UpdatePipelineInformation()
 
         for prs_type in prs_types:
             # Ignore mesh presentation
@@ -2569,3 +2637,4 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
                     # Show and dump the presentation into a graphics file
                     process_prs_for_test(prs, view, pic_name)
+    return
