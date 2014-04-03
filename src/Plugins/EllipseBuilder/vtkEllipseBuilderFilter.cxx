@@ -18,6 +18,7 @@
 
 #include "vtkEllipseBuilderFilter.h"
 
+#include <vtkObjectFactory.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <vtkMultiBlockDataSet.h>

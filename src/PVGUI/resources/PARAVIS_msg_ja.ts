@@ -202,6 +202,14 @@
       <translation>オブジェクト インスペクター</translation>
     </message>
     <message>
+        <source>TTL_MUTLI_BLOCK_INSPECTOR</source>
+        <translation>Multi-block inspector</translation>
+    </message> 
+    <message>
+        <source>TTL_COLOR_MAP_EDITOR</source>
+        <translation>Color Map Editor</translation>
+    </message>      
+    <message>
       <source>TTL_DISPLAY</source>
       <translation>表示</translation>
     </message>

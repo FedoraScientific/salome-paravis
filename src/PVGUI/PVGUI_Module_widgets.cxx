@@ -46,12 +46,12 @@
 #include <pqApplicationCore.h>
 #include <pqComparativeVisPanel.h>
 #include <pqPipelineBrowserWidget.h>
-//#include <pqProxyTabWidget.h>
 #include <pqProxyInformationWidget.h>
 #include <pqSettings.h>
 #include <pqDataInformationWidget.h>
 #include <pqPVAnimationWidget.h>
-#include <pqSelectionInspectorWidget.h>
+#include <pqFindDataSelectionDisplayFrame.h>
+#include <pqMultiBlockInspectorPanel.h>
 #include <pqProgressWidget.h>
 #include <pqProgressManager.h>
 #include <pqObjectInspectorWidget.h>
@@ -77,6 +77,7 @@
 #include <pqParaViewMenuBuilders.h>
 #include <pqCollaborationPanel.h>
 #include <pqMemoryInspectorPanel.h>
+#include <pqColorMapEditor.h>
 
 class ResizeHelper : public pqPVAnimationWidget
 {
@@ -211,14 +212,22 @@ void PVGUI_Module::setupDockWidgets()
 
   desk->tabifyDockWidget(animationViewDock,  statisticsViewDock);
 
-  // Selection view
-  QDockWidget* selectionInspectorDock = new QDockWidget( tr( "TTL_SELECTION_INSPECTOR" ), desk );
-  selectionInspectorDock->setObjectName("selectionInspectorDock");
-  selectionInspectorDock->setAllowedAreas( Qt::AllDockWidgetAreas );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, selectionInspectorDock );
-  pqSelectionInspectorPanel* aSelInspector = new pqSelectionInspectorWidget(selectionInspectorDock);
-  selectionInspectorDock->setWidget(aSelInspector);
-  myDockWidgets[selectionInspectorDock] = false; // hidden by default
+  // Selection inspector
+  QDockWidget* selectionDisplayDock = new QDockWidget( tr( "TTL_SELECTION_INSPECTOR" ), desk );
+  selectionDisplayDock->setObjectName("selectionInspectorDock");
+  selectionDisplayDock->setAllowedAreas( Qt::AllDockWidgetAreas );
+  desk->addDockWidget( Qt::LeftDockWidgetArea, selectionDisplayDock );
+  pqFindDataSelectionDisplayFrame* aSelInspector = new pqFindDataSelectionDisplayFrame(selectionDisplayDock);
+  selectionDisplayDock->setWidget(aSelInspector);
+  myDockWidgets[selectionDisplayDock] = false; // hidden by default
+
+  // Multi-block inspector
+  QDockWidget* multiBlockInspectorPanelDock  = new QDockWidget( tr( "TTL_MUTLI_BLOCK_INSPECTOR" ), desk );
+  multiBlockInspectorPanelDock->setObjectName("multiBlockInspectorPanelDock");
+  desk->addDockWidget( Qt::LeftDockWidgetArea, multiBlockInspectorPanelDock );
+  pqMultiBlockInspectorPanel* mbi_panel = new pqMultiBlockInspectorPanel( multiBlockInspectorPanelDock );
+  multiBlockInspectorPanelDock->setWidget(mbi_panel);
+  myDockWidgets[multiBlockInspectorPanelDock] = false; // hidden by default
 
   // Comparative View
   QDockWidget* comparativePanelDock  = new QDockWidget( tr( "TTL_COMPARATIVE_VIEW_INSPECTOR" ), desk );
@@ -236,6 +245,15 @@ void PVGUI_Module::setupDockWidgets()
   collaborationPanelDock->setWidget(collaborationPanel);
   desk->addDockWidget(Qt::RightDockWidgetArea, collaborationPanelDock);
   myDockWidgets[collaborationPanelDock] = false; // hidden by default
+
+  // Color map editor
+  QDockWidget* colorMapEditorDock  = new QDockWidget( tr( "TTL_COLOR_MAP_EDITOR" ), desk );
+  colorMapEditorDock->setObjectName("colorMapEditorDock");
+  desk->addDockWidget( Qt::LeftDockWidgetArea, colorMapEditorDock );
+  pqColorMapEditor* cmed_panel = new pqColorMapEditor( colorMapEditorDock );
+  colorMapEditorDock->setWidget(cmed_panel);
+  myDockWidgets[colorMapEditorDock] = false; // hidden by default
+
   
   // Memory inspector dock
   QDockWidget* memoryInspectorDock = new QDockWidget(tr( "TTL_MEMORY_INSPECTOR" ), desk);
@@ -280,9 +298,11 @@ void PVGUI_Module::setupDockWidgets()
   statisticsViewDock->hide();
   comparativePanelDock->hide();
   animationViewDock->hide();
-  selectionInspectorDock->hide();
+  multiBlockInspectorPanelDock->hide();
+  selectionDisplayDock->hide();
   collaborationPanelDock->hide();
   memoryInspectorDock->hide();
+  colorMapEditorDock->hide();
 }
 
 /*!

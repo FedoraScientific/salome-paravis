@@ -186,7 +186,9 @@ def OpenDataFile(filename, **extraArgs):
         raise RuntimeError, msg
     prototype = servermanager.ProxyManager().GetPrototypeProxy(
       reader_factor.GetReaderGroup(), reader_factor.GetReaderName())
-    xml_name = paraview.make_name_valid(prototype.GetXMLLabel())
+    # [ABN]: bug fix for Christian VW (temporary - pvsimple should disappear soon) 
+    from paraview import make_name_valid  # make_name_valid is not in paravisSM
+    xml_name = make_name_valid(prototype.GetXMLLabel())
     reader_func = _create_func(xml_name, servermanager.sources)
     if prototype.GetProperty("FileNames"):
       reader = reader_func(FileNames=filename, **extraArgs)
