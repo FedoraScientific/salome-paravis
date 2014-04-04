@@ -32,6 +32,9 @@ public:
   static void Operate(vtkFieldData *fd);
   static vtkDoubleArray *Operate2Compo(vtkDoubleArray *oldArr);
   static vtkDoubleArray *OperateMoreThan3Compo(vtkDoubleArray *oldArr);
+  static std::string SuffixFieldName(const std::string& name);
+public:
+  static const char VECTOR_SUFFIX[];
 protected:
   static void UpdateInformationOfArray(vtkDoubleArray *oldArr, vtkDoubleArray *arr);
 };

@@ -56,3 +56,13 @@ when in STANDALONE mode.
 0 - ELGA arrays choice of GaussPoints filter
 
 0 - Manage file containing only cartesian meshes.
+
+0 - Bug on vtkExtractGroup when attempting to extract on empty group. Previously, it led to SIGSEGV.
+
+0 - Add the frequency information in mode mode in the name of arrays in DataSet.
+
+0 - Addition of MeshName property in ExtractGroup (see testMEDReader9.py)
+
+0 - Bug when fields contains @
+
+1 - Bug on reload the first leaf is not systematically activated.

@@ -1020,7 +1020,8 @@ int MEDFileFieldRepresentationTree::getIdHavingZeName(const char *name) const
       for(std::vector< MEDFileFieldRepresentationLeaves >::const_iterator it2=(*it1).begin();it2!=(*it1).end();it2++)
         if((*it2).containZeName(name,ret))
           return ret;
-  throw INTERP_KERNEL::Exception("MEDFileFieldRepresentationTree::getIdHavingZeName : No such a name !");
+  std::ostringstream msg; msg << "MEDFileFieldRepresentationTree::getIdHavingZeName : No such a name \"" << name << "\" !";
+  throw INTERP_KERNEL::Exception(msg.str().c_str());
 }
 
 bool MEDFileFieldRepresentationTree::changeStatusOfAndUpdateToHaveCoherentVTKDataSet(int id, bool status) const
@@ -1252,7 +1253,7 @@ vtkDataSet *MEDFileFieldRepresentationTree::buildVTKInstance(bool isStdOrMode, d
   if(!isStdOrMode)
     tr=new MEDStdTimeReq((int)zeTimeId);
   else
-    tr=new MEDModeTimeReq(tk.getTheVectOfBool());
+    tr=new MEDModeTimeReq(tk.getTheVectOfBool(),tk.getPostProcessedTime());
   vtkDataSet *ret(leaf.buildVTKInstanceNoTimeInterpolation(tr,_fields,_ms));
   delete tr;
   return ret;
@@ -1374,6 +1375,74 @@ ParaMEDMEM::MEDFileFields *MEDFileFieldRepresentationTree::BuildFieldFromMeshes(
   ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDFileFields> ret(ParaMEDMEM::MEDFileFields::New());
   AppendFieldFromMeshes(ms,ret);
   return ret.retn();
+}
+
+std::vector<std::string> MEDFileFieldRepresentationTree::SplitFieldNameIntoParts(const std::string& fullFieldName, char sep)
+{
+  std::vector<std::string> ret;
+  std::size_t pos(0);
+  while(pos!=std::string::npos)
+    {
+      std::size_t curPos(fullFieldName.find_first_of(sep,pos));
+      std::string elt(fullFieldName.substr(pos,curPos!=std::string::npos?curPos-pos:std::string::npos));
+      ret.push_back(elt);
+      pos=fullFieldName.find_first_not_of(sep,curPos);
+    }
+  return ret;
+}
+
+/*!
+ * Here the non regression tests.
+ * const char inp0[]="";
+ * const char exp0[]="";
+ * const char inp1[]="field";
+ * const char exp1[]="field";
+ * const char inp2[]="_________";
+ * const char exp2[]="_________";
+ * const char inp3[]="field_p";
+ * const char exp3[]="field_p";
+ * const char inp4[]="field__p";
+ * const char exp4[]="field_p";
+ * const char inp5[]="field_p__";
+ * const char exp5[]="field_p";
+ * const char inp6[]="field_p_";
+ * const char exp6[]="field_p";
+ * const char inp7[]="field_____EDFGEG//sdkjf_____PP_______________";
+ * const char exp7[]="field_EDFGEG//sdkjf_PP";
+ * const char inp8[]="field_____EDFGEG//sdkjf_____PP";
+ * const char exp8[]="field_EDFGEG//sdkjf_PP";
+ * const char inp9[]="_field_____EDFGEG//sdkjf_____PP_______________";
+ * const char exp9[]="field_EDFGEG//sdkjf_PP";
+ * const char inp10[]="___field_____EDFGEG//sdkjf_____PP_______________";
+ * const char exp10[]="field_EDFGEG//sdkjf_PP";
+*/
+std::string MEDFileFieldRepresentationTree::PostProcessFieldName(const std::string& fullFieldName)
+{
+  static const char SEP('_');
+  std::vector<std::string> v(SplitFieldNameIntoParts(fullFieldName,SEP));
+  if(v.empty())
+    return fullFieldName;//should never happen
+  if(v.size()==1)
+    {
+      if(v[0].empty())
+        return fullFieldName;
+      else
+        return v[0];
+    }
+  std::string ret(v[0]);
+  for(std::size_t i=1;i<v.size();i++)
+    {
+      if(!v[i].empty())
+        {
+          if(!ret.empty())
+            { ret+=SEP; ret+=v[i]; }
+          else
+            ret=v[i];
+        }
+    }
+  if(ret.empty())
+    return fullFieldName;
+  return ret;
 }
 
 ///////////

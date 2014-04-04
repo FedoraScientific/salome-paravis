@@ -39,7 +39,7 @@ public:
   // Description:
   // Every time the SIL is updated a this will return a different value.
   virtual int GetSILUpdateStamp();
-
+  const char *GetMeshName();
 protected:
   vtkExtractGroup();
   ~vtkExtractGroup();
