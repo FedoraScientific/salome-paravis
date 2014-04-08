@@ -1,5 +1,4 @@
 <RCC>
     <qresource prefix="/ParaViewResources">
-        <file>TableReaderClient.xml</file>
     </qresource>
 </RCC>

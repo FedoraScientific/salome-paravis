@@ -1,6 +1,0 @@
-<ParaViewReaders>
-  <Reader name="TableReader"
-     extensions="tab txt xls"
-     file_description="Post-Pro Table Files">
-  </Reader>
-</ParaViewReaders>

@@ -5,6 +5,12 @@
       class="vtkVisuTableReader"
       label="Table Reader">
       
+      <Hints>
+	<ReaderFactory extensions="tab txt xls"
+		       file_description="Post-Pro Table Files">
+	</ReaderFactory>
+      </Hints>
+
       <StringVectorProperty
          name="FileName"
 	 command="SetFileName"
