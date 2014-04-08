@@ -97,7 +97,6 @@
         number_of_elements="1"
         animateable="0"
         information_only="1">
-        <FileListDomain name="files" />
         <Documentation>
           This property specifies the file name for the MED reader.
         </Documentation>
