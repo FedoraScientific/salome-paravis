@@ -234,18 +234,22 @@ std::string MEDFileFieldRepresentationLeavesArrays::getZeName() const
   return _ze_full_name;
 }
 
-void MEDFileFieldRepresentationLeavesArrays::feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& comSupStr, std::vector<std::string>& names) const
+void MEDFileFieldRepresentationLeavesArrays::feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const
 {
   vtkIdType refId(sil->AddChild(root,edge));
   names.push_back(_ze_name);
-  std::ostringstream oss3; oss3 << tsName << "/" << meshName << "/" << comSupStr << "/" << _ze_name;
-  _ze_full_name=oss3.str();
   //
   if(MEDFileFieldRepresentationTree::IsFieldMeshRegardingInfo(((operator->())->getInfo())))
     {
       sil->AddChild(refId,edge);
       names.push_back(std::string());
     }
+}
+
+void MEDFileFieldRepresentationLeavesArrays::computeFullNameInLeaves(const std::string& tsName, const std::string& meshName, const std::string& comSupStr) const
+{
+  std::ostringstream oss3; oss3 << tsName << "/" << meshName << "/" << comSupStr << "/" << _ze_name;
+  _ze_full_name=oss3.str();
 }
 
 bool MEDFileFieldRepresentationLeavesArrays::getStatus() const
@@ -469,15 +473,21 @@ int MEDFileFieldRepresentationLeaves::getNumberOfTS() const
   return _arrays[0]->getNumberOfTS();
 }
 
+void MEDFileFieldRepresentationLeaves::computeFullNameInLeaves(const std::string& tsName, const std::string& meshName, const std::string& comSupStr) const
+{
+  for(std::vector<MEDFileFieldRepresentationLeavesArrays>::const_iterator it=_arrays.begin();it!=_arrays.end();it++)
+    (*it).computeFullNameInLeaves(tsName,meshName,comSupStr);
+}
+
 /*!
  * \param [in] ms is the meshes pointer. It can be used only for information of geometric types. No special processing will be requested on ms.
  */
-void MEDFileFieldRepresentationLeaves::feedSIL(const ParaMEDMEM::MEDFileMeshes *ms, vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& comSupStr, std::vector<std::string>& names) const
+void MEDFileFieldRepresentationLeaves::feedSIL(const ParaMEDMEM::MEDFileMeshes *ms, const std::string& meshName, vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const
 {
   vtkIdType root2(sil->AddChild(root,edge));
   names.push_back(std::string("Arrs"));
   for(std::vector<MEDFileFieldRepresentationLeavesArrays>::const_iterator it=_arrays.begin();it!=_arrays.end();it++)
-    (*it).feedSIL(sil,root2,edge,tsName,meshName,comSupStr,names);
+    (*it).feedSIL(sil,root2,edge,names);
   //
   vtkIdType root3(sil->AddChild(root,edge));
   names.push_back(std::string("InfoOnGeoType"));
@@ -884,6 +894,28 @@ void MEDFileFieldRepresentationTree::assignIds() const
       for(std::vector< MEDFileFieldRepresentationLeaves >::const_iterator it2=(*it1).begin();it2!=(*it1).end();it2++)
         (*it2).setId(zeId);
 }
+
+void MEDFileFieldRepresentationTree::computeFullNameInLeaves() const
+{
+   std::size_t it0Cnt(0);
+   for(std::vector< std::vector< std::vector< MEDFileFieldRepresentationLeaves > > >::const_iterator it0=_data_structure.begin();it0!=_data_structure.end();it0++,it0Cnt++)
+     {
+       std::ostringstream oss; oss << MEDFileFieldRepresentationLeavesArrays::TS_STR << it0Cnt;
+       std::string tsName(oss.str());
+       for(std::vector< std::vector< MEDFileFieldRepresentationLeaves > >::const_iterator it1=(*it0).begin();it1!=(*it0).end();it1++)
+         {
+           std::string meshName((*it1)[0].getMeshName());
+           std::size_t it2Cnt(0);
+           for(std::vector< MEDFileFieldRepresentationLeaves >::const_iterator it2=(*it1).begin();it2!=(*it1).end();it2++,it2Cnt++)
+             {
+               std::ostringstream oss2; oss2 << MEDFileFieldRepresentationLeavesArrays::COM_SUP_STR << it2Cnt;
+               std::string comSupStr(oss2.str());
+               (*it2).computeFullNameInLeaves(tsName,meshName,comSupStr);
+             }
+         }
+     }
+}
+
 void MEDFileFieldRepresentationTree::activateTheFirst() const
 {
   for(std::vector< std::vector< std::vector< MEDFileFieldRepresentationLeaves > > >::const_iterator it0=_data_structure.begin();it0!=_data_structure.end();it0++)
@@ -938,7 +970,7 @@ void MEDFileFieldRepresentationTree::feedSIL(vtkMutableDirectedGraph* sil, vtkId
               std::string comSupStr(oss2.str());
               vtkIdType typeId2(sil->AddChild(typeId1,edge));
               names.push_back(comSupStr);
-              (*it2).feedSIL(_ms,sil,typeId2,edge,tsName,meshName,comSupStr,names);
+              (*it2).feedSIL(_ms,meshName,sil,typeId2,edge,names);
             } 
         }
     }
@@ -1157,6 +1189,7 @@ void MEDFileFieldRepresentationTree::loadMainStructureOfFile(const char *fileNam
     }
   this->removeEmptyLeaves();
   this->assignIds();
+  this->computeFullNameInLeaves();
 }
 
 void MEDFileFieldRepresentationTree::removeEmptyLeaves()

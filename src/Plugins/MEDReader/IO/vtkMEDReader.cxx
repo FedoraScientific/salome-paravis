@@ -52,11 +52,102 @@
 #include <sstream>
 #include <algorithm>
 
+/*!
+ * This class stores properties in loading state mode (pvsm) when the MED file has not been read yet.
+ * The file is not read beacause FileName has not been informed yet ! So this class stores properties of vtkMEDReader instance that 
+ * owns it and wait the vtkMEDReader::SetFileName to apply properties afterwards.
+ */
+class PropertyKeeper
+{
+public:
+  PropertyKeeper(vtkMEDReader *master):_master(master),IsGVActivated(false),GVValue(0),IsCMActivated(false),CMValue(0) { }
+  void assignPropertiesIfNeeded();
+  bool arePropertiesOnTreeToSetAfter() const;
+  //
+  void pushFieldStatusEntry(const char* name, int status);
+  void pushGenerateVectorsValue(int value);
+  void pushChangeModeValue(int value);
+  void pushTimesFlagsStatusEntry(const char* name, int status);
+protected:
+  // pool of pairs to assign in SetFieldsStatus if needed. The use case is the load using pvsm.
+  std::vector< std::pair<std::string,int> > SetFieldsStatusPairs;
+  // generate vector
+  bool IsGVActivated;
+  int GVValue;
+  // change mode
+  bool IsCMActivated;
+  int CMValue;
+  //
+  std::vector< std::pair<std::string,int> > TimesFlagsStatusPairs;
+  vtkMEDReader *_master;
+};
+
+void PropertyKeeper::assignPropertiesIfNeeded()
+{
+  if(!this->SetFieldsStatusPairs.empty())
+    {
+      for(std::vector< std::pair<std::string,int> >::const_iterator it=this->SetFieldsStatusPairs.begin();it!=this->SetFieldsStatusPairs.end();it++)
+        _master->SetFieldsStatus((*it).first.c_str(),(*it).second);
+      this->SetFieldsStatusPairs.clear();
+    }
+  if(!this->TimesFlagsStatusPairs.empty())
+    {
+      for(std::vector< std::pair<std::string,int> >::const_iterator it=this->TimesFlagsStatusPairs.begin();it!=this->TimesFlagsStatusPairs.end();it++)
+        _master->SetTimesFlagsStatus((*it).first.c_str(),(*it).second);
+      this->TimesFlagsStatusPairs.clear();
+    }
+  if(this->IsGVActivated)
+    {
+      _master->GenerateVectors(this->GVValue);
+      this->IsGVActivated=false;
+    }
+  if(this->IsCMActivated)
+    {
+      _master->ChangeMode(this->CMValue);
+      this->IsCMActivated=false;
+    }
+}
+
+void PropertyKeeper::pushFieldStatusEntry(const char* name, int status)
+{
+  bool found(false);
+  for(std::vector< std::pair<std::string,int> >::const_iterator it=this->SetFieldsStatusPairs.begin();it!=this->SetFieldsStatusPairs.end() && !found;it++)
+    found=(*it).first==name;
+  if(!found)
+    this->SetFieldsStatusPairs.push_back(std::pair<std::string,int>(name,status));
+}
+
+void PropertyKeeper::pushTimesFlagsStatusEntry(const char* name, int status)
+{
+  bool found(false);
+  for(std::vector< std::pair<std::string,int> >::const_iterator it=this->TimesFlagsStatusPairs.begin();it!=this->TimesFlagsStatusPairs.end() && !found;it++)
+    found=(*it).first==name;
+  if(!found)
+    this->TimesFlagsStatusPairs.push_back(std::pair<std::string,int>(name,status));
+}
+
+void PropertyKeeper::pushGenerateVectorsValue(int value)
+{
+  this->IsGVActivated=true;
+  this->GVValue=value;
+}
+
+void PropertyKeeper::pushChangeModeValue(int value)
+{
+  this->IsCMActivated=true;
+  this->CMValue=value;
+}
+
+bool PropertyKeeper::arePropertiesOnTreeToSetAfter() const
+{
+  return !SetFieldsStatusPairs.empty();
+}
+
 class vtkMEDReader::vtkMEDReaderInternal
 {
 
 public:
-  vtkMEDReaderInternal():TK(0),IsMEDOrSauv(true),IsStdOrMode(false),GenerateVect(false),SIL(0),LastLev0(-1),FirstCall0(2)
+  vtkMEDReaderInternal(vtkMEDReader *master):TK(0),IsMEDOrSauv(true),IsStdOrMode(false),GenerateVect(false),SIL(0),LastLev0(-1),FirstCall0(2),PK(master)
   {
   }
   
@@ -88,13 +179,15 @@ public:
   vtkMutableDirectedGraph* SIL;
   // store the lev0 id in Tree corresponding to the TIME_STEPS in the pipeline.
   int LastLev0;
+  // The property keeper is usable only in pvsm mode.
+  PropertyKeeper PK;
 private:
   unsigned char FirstCall0;
 };
 
 vtkStandardNewMacro(vtkMEDReader);
 
-vtkMEDReader::vtkMEDReader():Internal(new vtkMEDReaderInternal)
+vtkMEDReader::vtkMEDReader():Internal(new vtkMEDReaderInternal(this))
 {
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
@@ -112,12 +205,18 @@ void vtkMEDReader::Reload(int a)
   std::cerr << "vtkMEDReader::Reload" << a << std::endl;
   std::string fName((const char *)this->GetFileName());
   delete this->Internal;
-  this->Internal=new vtkMEDReaderInternal;
+  this->Internal=new vtkMEDReaderInternal(this);
   this->SetFileName(fName.c_str());
 }
 
 void vtkMEDReader::GenerateVectors(int val)
 {
+  if(this->Internal->FileName.empty())
+    {//pvsm mode
+      this->Internal->PK.pushGenerateVectorsValue(val);
+      return ;
+    }
+  //not pvsm mode (general case)
   bool val2((bool)val);
   if(val2!=this->Internal->GenerateVect)
     {
@@ -128,6 +227,12 @@ void vtkMEDReader::GenerateVectors(int val)
 
 void vtkMEDReader::ChangeMode(int newMode)
 {
+  if(this->Internal->FileName.empty())
+    {//pvsm mode
+      this->Internal->PK.pushChangeModeValue(newMode);
+      return ;
+    }
+  //not pvsm mode (general case)
   this->Internal->IsStdOrMode=newMode!=0;
   //std::cerr << "vtkMEDReader::ChangeMode : " << this->Internal->IsStdOrMode << std::endl;
   this->Modified();
@@ -153,10 +258,12 @@ void vtkMEDReader::SetFileName(const char *fname)
       if(this->Internal->Tree.getNumberOfLeavesArrays()==0)
         {
           this->Internal->Tree.loadMainStructureOfFile(this->Internal->FileName.c_str(),this->Internal->IsMEDOrSauv);
-          this->Internal->Tree.activateTheFirst();//This line manually initialize the status of server (this) with the remote client.
+          if(!this->Internal->PK.arePropertiesOnTreeToSetAfter())
+            this->Internal->Tree.activateTheFirst();//This line manually initialize the status of server (this) with the remote client.
           this->Internal->TK.setMaxNumberOfTimeSteps(this->Internal->Tree.getMaxNumberOfTimeSteps());
         }
       this->Modified();
+      this->Internal->PK.assignPropertiesIfNeeded();
     }
   catch(INTERP_KERNEL::Exception& e)
     {
@@ -230,10 +337,27 @@ int vtkMEDReader::RequestData(vtkInformation *request, vtkInformationVector **in
 void vtkMEDReader::SetFieldsStatus(const char* name, int status)
 {
   //std::cerr << "vtkMEDReader::SetFieldsStatus(" << name << "," << status << ") called !" << std::endl;
-  this->Internal->Tree.changeStatusOfAndUpdateToHaveCoherentVTKDataSet(this->Internal->Tree.getIdHavingZeName(name),status);
-  if(std::string(name)==GetFieldsTreeArrayName(GetNumberOfFieldsTreeArrays()-1))
-    if(!this->Internal->PluginStart0())
-      this->Modified();
+  if(this->Internal->FileName.empty())
+    {//pvsm mode
+      this->Internal->PK.pushFieldStatusEntry(name,status);
+      return ;
+    }
+  //not pvsm mode (general case)
+  try
+    {
+      this->Internal->Tree.changeStatusOfAndUpdateToHaveCoherentVTKDataSet(this->Internal->Tree.getIdHavingZeName(name),status);
+      if(std::string(name)==GetFieldsTreeArrayName(GetNumberOfFieldsTreeArrays()-1))
+        if(!this->Internal->PluginStart0())
+          this->Modified();
+    }
+  catch(INTERP_KERNEL::Exception& e)
+    {
+      if(!this->Internal->FileName.empty())
+        {
+          std::cerr << "vtkMEDReader::SetFieldsStatus error : " << e.what() << " *** WITH STATUS=" << status << endl;
+          return ;
+        }
+    }
 }
 
 int vtkMEDReader::GetNumberOfFieldsTreeArrays()
@@ -261,6 +385,12 @@ int vtkMEDReader::GetFieldsTreeArrayStatus(const char *name)
 
 void vtkMEDReader::SetTimesFlagsStatus(const char *name, int status)
 {
+  if(this->Internal->FileName.empty())
+    {//pvsm mode
+      this->Internal->PK.pushTimesFlagsStatusEntry(name,status);
+      return ;
+    }
+  //not pvsm mode (general case)
   int pos(0);
   std::istringstream iss(name); iss >> pos;
   this->Internal->TK.getTimesFlagArray()[pos].first=(bool)status;

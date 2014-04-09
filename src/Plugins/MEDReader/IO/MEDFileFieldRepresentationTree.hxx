@@ -67,7 +67,8 @@ public:
   MEDFileFieldRepresentationLeavesArrays& operator=(const MEDFileFieldRepresentationLeavesArrays& other);
   int getId() const;
   void setId(int& id) const;
-  void feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& comSupStr, std::vector<std::string>& names) const;
+  void feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const;
+  void computeFullNameInLeaves(const std::string& tsName, const std::string& meshName, const std::string& comSupStr) const;
   bool getStatus() const;
   bool setStatus(bool status) const;
   std::string getZeName() const;
@@ -101,7 +102,8 @@ public:
   std::string getMeshName() const;
   int getNumberOfArrays() const;
   int getNumberOfTS() const;
-  void feedSIL(const ParaMEDMEM::MEDFileMeshes *ms, vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, const std::string& tsName, const std::string& meshName, const std::string& compSupStr, std::vector<std::string>& names) const;
+  void feedSIL(const ParaMEDMEM::MEDFileMeshes *ms, const std::string& meshName, vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const;
+  void computeFullNameInLeaves(const std::string& tsName, const std::string& meshName, const std::string& comSupStr) const;
   bool containId(int id) const;
   bool containZeName(const char *name, int& id) const;
   bool isActivated() const;
@@ -130,6 +132,7 @@ public:
   int getNumberOfLeavesArrays() const;
   void assignIds() const;
   void activateTheFirst() const;
+  void computeFullNameInLeaves() const;
   void feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const;
   std::string feedSILForFamsAndGrps(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const;
   std::string getNameOf(int id) const;
