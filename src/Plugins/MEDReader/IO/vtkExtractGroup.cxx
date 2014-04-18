@@ -58,8 +58,6 @@
 
 vtkStandardNewMacro(vtkExtractGroup);
 
-vtkCxxSetObjectMacro(vtkExtractGroup, SIL, vtkMutableDirectedGraph);
-
 ///////////////////
 
 class ExtractGroupStatus
@@ -460,6 +458,16 @@ int vtkExtractGroup::RequestInformation(vtkInformation *request, vtkInformationV
       return 0;
     }
   return 1;
+}
+
+/*!
+ * Do not use vtkCxxSetObjectMacro macro because input mdg comes from an already managed in the pipeline just a ref on it.
+ */
+void vtkExtractGroup::SetSIL(vtkMutableDirectedGraph *mdg)
+{
+  if(this->SIL==mdg)
+    return ;
+  this->SIL=mdg;
 }
 
 template<class CellPointExtractor>
