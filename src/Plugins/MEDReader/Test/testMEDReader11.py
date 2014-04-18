@@ -135,9 +135,6 @@ fs.pushField(fmts0)
 fs.write(fname,0)
 ################### MED write is done -> Go to MEDReader
 from paraview.simple import *
-try: paraview.simple
-except: from paraview.simple import *
-paraview.simple._DisableFirstRenderCameraReset()
 
 testMEDReader11_med = MEDReader( FileName=fname )
 
