@@ -427,6 +427,7 @@ void vtkExtractGroup::SetInsideOut(int val)
 
 int vtkExtractGroup::RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
+  vtkUnstructuredGridAlgorithm::RequestInformation(request,inputVector,outputVector);
   try
     {
       //std::cerr << "########################################## vtkExtractGroup::RequestInformation ##########################################" << std::endl;
