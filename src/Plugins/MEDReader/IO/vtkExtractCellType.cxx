@@ -264,6 +264,8 @@ vtkExtractCellType::vtkExtractCellType():SIL(NULL),Internal(new vtkExtractCellTy
 
 vtkExtractCellType::~vtkExtractCellType()
 {
+  if(this->SIL)
+    this->SIL->Delete();
   delete this->Internal;
 }
 
