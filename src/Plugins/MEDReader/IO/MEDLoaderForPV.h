@@ -16,20 +16,18 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// Author : Anthony Geay
 
-#ifndef __MEDUTILITIES_HXX__
-#define __MEDUTILITIES_HXX__
+#ifndef __MEDLOADERFORPV_HXX__
+#define __MEDLOADERFORPV_HXX__
 
-#include "MEDLoaderForPV.h"
-
-class vtkInformationIntegerKey;
-
-class MEDLOADERFORPV_EXPORT MEDUtilities
-{
-public:
-  static vtkInformationIntegerKey *ELGA();
-  static vtkInformationIntegerKey *ELNO();
-};
+#ifdef WIN32
+# if defined MEDLoaderForPV_EXPORTS || defined MEDLOADERFORPV_EXPORTS
+#  define MEDLOADERFORPV_EXPORT __declspec( dllexport )
+# else
+#  define MEDLOADERFORPV_EXPORT __declspec( dllimport )
+# endif
+#else
+ #define MEDLOADERFORPV_EXPORT
+#endif
 
 #endif

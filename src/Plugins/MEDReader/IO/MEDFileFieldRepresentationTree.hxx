@@ -23,6 +23,7 @@
 
 #include "MEDFileMesh.hxx"
 #include "MEDFileField.hxx"
+#include "MEDLoaderForPV.h"
 
 #include "vtkType.h"
 
@@ -59,7 +60,7 @@ private:
   mutable std::vector< std::vector< std::pair< vtkQuadratureSchemeDefinition *, unsigned char > > > _defs;
 };
 
-class MEDFileFieldRepresentationLeavesArrays : public ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDFileAnyTypeFieldMultiTS>
+class MEDLOADERFORPV_EXPORT MEDFileFieldRepresentationLeavesArrays : public ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDFileAnyTypeFieldMultiTS>
 {
 public:
   MEDFileFieldRepresentationLeavesArrays();
@@ -90,7 +91,7 @@ private:
   ELGACmp _elga_cmp;
 };
 
-class MEDFileFieldRepresentationLeaves
+class MEDLOADERFORPV_EXPORT MEDFileFieldRepresentationLeaves
 {
 public:
   MEDFileFieldRepresentationLeaves();
@@ -125,7 +126,7 @@ private:
   mutable vtkDataSet *_cached_ds;
 };
 
-class MEDFileFieldRepresentationTree
+class MEDLOADERFORPV_EXPORT MEDFileFieldRepresentationTree
 {
 public:
   MEDFileFieldRepresentationTree();
@@ -168,7 +169,7 @@ private:
   ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::MEDFileFields> _fields;
 };
 
-class TimeKeeper
+class MEDLOADERFORPV_EXPORT TimeKeeper
 {
 public:
   TimeKeeper(int policy);

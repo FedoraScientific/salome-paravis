@@ -21,6 +21,8 @@
 #ifndef __vtkMEDReader_h_
 #define __vtkMEDReader_h_
 
+#include <string>
+
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
 class vtkMutableDirectedGraph;

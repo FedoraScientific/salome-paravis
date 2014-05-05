@@ -34,10 +34,10 @@ FOREACH(class ${MEDReader_CLASSES})
 ENDFOREACH(class)
 
 ADD_LIBRARY(MEDLoaderForPV SHARED MEDFileFieldRepresentationTree.cxx MEDTimeReq.cxx MEDUtilities.cxx vtkGenerateVectors.cxx)
-TARGET_LINK_LIBRARIES(MEDLoaderForPV ${MED_medloader} ${MEDFILE_C_LIBRARIES})
+TARGET_LINK_LIBRARIES(MEDLoaderForPV vtkCommonCore vtkCommonDataModel ${MED_medloader} ${MEDFILE_C_LIBRARIES})
 
 VTK_MODULE_LIBRARY(vtkMEDReader ${MEDReader_SRCS})
-TARGET_LINK_LIBRARIES(vtkMEDReader MEDLoaderForPV ${MEDFILE_C_LIBRARIES}) 
+TARGET_LINK_LIBRARIES(vtkMEDReader vtkPVVTKExtensionsRendering vtkRenderingFreeType vtkRenderingOpenGL vtkRenderingFreeTypeOpenGL vtkInteractionStyle vtkFiltersCore vtkFiltersGeneral MEDLoaderForPV ${MEDFILE_C_LIBRARIES}) 
 
 INSTALL(
   TARGETS vtkMEDReader MEDLoaderForPV
