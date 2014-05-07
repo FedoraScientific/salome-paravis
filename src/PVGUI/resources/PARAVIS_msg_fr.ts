@@ -5,15 +5,15 @@
     <name>@default</name>
     <message>
         <source>STB_RESTART_TRACE</source>
-        <translation type="unfinished">Re-initialize Trace</translation>
+        <translation>Réinitialiser la trace</translation>
     </message>
     <message>
         <source>TOP_RESTART_TRACE</source>
-        <translation type="unfinished">Re-initialize Trace</translation>
+        <translation>Réinitialiser la trace</translation>
     </message>
     <message>
         <source>MEN_RESTART_TRACE</source>
-        <translation type="unfinished">Re-initialize Trace</translation>
+        <translation>Réinitialiser la trace</translation>
     </message>
     <message>
         <source>TOP_CLEAR_ALL</source>
@@ -212,7 +212,7 @@
     <message>
         <source>TTL_COLOR_MAP_EDITOR</source>
         <translation>Editeur de carte de couleurs</translation>
-    </message>             
+    </message>
     <message>
         <source>TTL_DISPLAY</source>
         <translation>Affichage</translation>
