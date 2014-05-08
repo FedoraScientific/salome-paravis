@@ -51,7 +51,7 @@ f1ts.write(fname,0)
 ################### MED write is done -> Go to MEDReader
 from paraview.simple import *
 
-testMEDReader12_med = MEDReader( FileName='/export/home/geay/Salome7/V7_3_0/BUG_7972/TRY4/testMEDReader12.med' )
+testMEDReader12_med = MEDReader( FileName=fname )
 testMEDReader12_med.AllArrays = ['TS0/Maillage_THYC/ComSup0/POROSITE@@][@@P0']
 
 RenderView1 = GetRenderView()
