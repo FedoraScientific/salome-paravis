@@ -24,7 +24,9 @@
 #include <string>
 #include <vector>
 
-class MEDTimeReq
+#include "MEDLoaderForPV.h"
+
+class MEDLOADERFORPV_EXPORT MEDTimeReq
 {
 public:
   virtual int size() const = 0;
@@ -36,7 +38,7 @@ public:
   virtual ~MEDTimeReq();
 };
 
-class MEDStdTimeReq : public MEDTimeReq
+class MEDLOADERFORPV_EXPORT MEDStdTimeReq : public MEDTimeReq
 {
 public:
   MEDStdTimeReq(int timeReq);
@@ -52,7 +54,7 @@ private:
   int _time_req;
 };
 
-class MEDModeTimeReq : public MEDTimeReq
+class MEDLOADERFORPV_EXPORT MEDModeTimeReq : public MEDTimeReq
 {
 public:
   MEDModeTimeReq(const std::vector<bool>& v, const std::vector<double>& ts);

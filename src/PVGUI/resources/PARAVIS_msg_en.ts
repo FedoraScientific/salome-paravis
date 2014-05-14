@@ -208,7 +208,7 @@
     <message>
         <source>TTL_COLOR_MAP_EDITOR</source>
         <translation>Color Map Editor</translation>
-    </message>           
+    </message>
     <message>
         <source>TTL_DISPLAY</source>
         <translation>Display</translation>

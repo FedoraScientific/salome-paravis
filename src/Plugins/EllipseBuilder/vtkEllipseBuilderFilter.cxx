@@ -189,7 +189,7 @@ int vtkEllipseBuilderFilter::RequestData(vtkInformation* vtkNotUsed(request),
           
 	  int aNumberOfRealComponents = aRealArray->GetNumberOfComponents();
 	  int aNumberOfImagComponents = anImagArray->GetNumberOfComponents();	           
-	  if (aNumberOfRealComponents >= 3 and aNumberOfImagComponents >= 3)
+	  if (aNumberOfRealComponents >= 3 && aNumberOfImagComponents >= 3)
             {
 	      anOutputMDSet->CopyStructure(anInputMDSet);
 	      vtkUnstructuredGrid* aCloneDS = aSourceDS->NewInstance();
