@@ -371,9 +371,8 @@ int vtkMEDReader::GetNumberOfFieldsTreeArrays()
 
 const char *vtkMEDReader::GetFieldsTreeArrayName(int index)
 {
-  std::string ret(this->Internal->Tree.getNameOf(index));
+  return this->Internal->Tree.getNameOfC(index);
   //std::cerr << "vtkMEDReader::GetFieldsTreeArrayName(" << index << ") called ! " << ret << std::endl;
-  return ret.c_str();
 }
 
 int vtkMEDReader::GetFieldsTreeArrayStatus(const char *name)

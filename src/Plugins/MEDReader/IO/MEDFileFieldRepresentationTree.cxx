@@ -234,6 +234,11 @@ std::string MEDFileFieldRepresentationLeavesArrays::getZeName() const
   return _ze_full_name;
 }
 
+const char *MEDFileFieldRepresentationLeavesArrays::getZeNameC() const
+{
+  return _ze_full_name.c_str();
+}
+
 void MEDFileFieldRepresentationLeavesArrays::feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const
 {
   vtkIdType refId(sil->AddChild(root,edge));
@@ -1036,6 +1041,12 @@ std::string MEDFileFieldRepresentationTree::getNameOf(int id) const
 {
   const MEDFileFieldRepresentationLeavesArrays& elt(getLeafArr(id));
   return elt.getZeName();
+}
+
+const char *MEDFileFieldRepresentationTree::getNameOfC(int id) const
+{
+  const MEDFileFieldRepresentationLeavesArrays& elt(getLeafArr(id));
+  return elt.getZeNameC();
 }
 
 bool MEDFileFieldRepresentationTree::getStatusOf(int id) const

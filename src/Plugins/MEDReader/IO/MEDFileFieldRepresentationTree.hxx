@@ -72,6 +72,7 @@ public:
   bool getStatus() const;
   bool setStatus(bool status) const;
   std::string getZeName() const;
+  const char *getZeNameC() const;
   void appendFields(const MEDTimeReq *tr, const ParaMEDMEM::MEDFileFieldGlobsReal *globs, const ParaMEDMEM::MEDMeshMultiLev *mml, const ParaMEDMEM::MEDFileMeshStruct *mst, vtkDataSet *ds) const;
   void appendELGAIfAny(vtkDataSet *ds) const;
 public:
@@ -136,6 +137,7 @@ public:
   void feedSIL(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const;
   std::string feedSILForFamsAndGrps(vtkMutableDirectedGraph* sil, vtkIdType root, vtkVariantArray *edge, std::vector<std::string>& names) const;
   std::string getNameOf(int id) const;
+  const char *getNameOfC(int id) const;
   bool getStatusOf(int id) const;
   int getIdHavingZeName(const char *name) const;
   bool changeStatusOfAndUpdateToHaveCoherentVTKDataSet(int id, bool status) const;
