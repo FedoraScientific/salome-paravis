@@ -797,10 +797,11 @@ def select_cells_with_data(proxy, on_points=[], on_cells=[], on_gauss=[]):
     types with data for even one field (from available) will be selected.
 
     """
+    if not proxy.GetProperty("FieldsTreeInfo"):
+        return
+
     proxy.UpdatePipeline()
     if not hasattr(proxy, 'Entity'):
-        separator = proxy.GetProperty("Separator").GetData()
-
         fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
         arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
 
@@ -809,11 +810,11 @@ def select_cells_with_data(proxy, on_points=[], on_cells=[], on_gauss=[]):
         
         fields = []
         for name in on_gauss:
-            fields.append(name+separator+'GAUSS')
+            fields.append(name+_med_field_sep+'GAUSS')
         for name in on_cells:
-            fields.append(name+separator+'P0')
+            fields.append(name+_med_field_sep+'P0')
         for name in on_points:
-            fields.append(name+separator+'P1')
+            fields.append(name+_med_field_sep+'P1')
 
         field_list = []
         for name in fields:
@@ -2538,7 +2539,6 @@ def CreatePrsForFile(paravis_instance, file_name, prs_types,
             print "FAILED"
         else:
             proxy.UpdatePipeline()
-            _med_field_sep = proxy.GetProperty("Separator")
             print "OK"
     except:
         print "FAILED"
