@@ -19,6 +19,15 @@
 
 SET(TIMEOUT 10000)
 SALOME_GENERATE_TESTS_ENVIRONMENT(tests_env)
+
+IF(NOT WIN32)
+  # Special case for the PV_PLUGIN_PATH environment variable:
+  # PV_PLUGIN_PATH=VAL_1;VAL_2;...;VAL_N
+  # But the ';' character is used as separator between variables (PATH, LD_LIBRARY_PATH, etc...)
+  # So we should shield a sequence ";/" by the '\' character.
+  STRING(REGEX REPLACE ";/" "\\\\;/" tests_env "${tests_env}")
+ENDIF(NOT WIN32)
+
 SET(PARAVIS_TEST_HELPER_FILE ${PROJECT_SOURCE_DIR}/test/VisuPrs/Util/paravistesthelper.py)
 
 SET(TEST_DIRECTORIES 

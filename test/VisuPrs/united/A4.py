@@ -43,8 +43,8 @@ else:
     print "OK"
 
 mesh_name1 = 'Maillage_MED_HEXA8'
-scalar_field = 'scalar_field'
-vectoriel_field = 'vectoriel_field'
+scalar_field = 'scalar field'
+vectoriel_field = 'vectoriel field'
 view = pvsimple.GetRenderView()
 
 print "Creating Scalar Map...................",

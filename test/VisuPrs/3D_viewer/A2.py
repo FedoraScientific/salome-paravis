@@ -57,12 +57,12 @@ else:
 represents = [RepresentationType.POINTS, RepresentationType.WIREFRAME,\
 RepresentationType.SURFACE, RepresentationType.VOLUME]
 shrinks = [0, 1]
-shadings = [0, 1]
+shadings = ["Flat", "Gouraud"]
 opacities = [1.0, 0.5, 0.0]
 linewidths = [1.0, 3.0, 10.0]
 compare_prec = 0.00001
 
-field_name = 'vectoriel_field'
+field_name = 'vectoriel field'
 
 print "\nCreating Vectors.......",
 vectors = VectorsOnField(proxy, EntityType.CELL, field_name, 1,
@@ -87,7 +87,7 @@ for reprCode in represents:
         call_and_check(vectors, "Representation", repr, 1)
 
         for sha in shadings:
-            call_and_check(vectors, "Shading", sha, 1)
+            call_and_check(vectors, "Interpolation", sha, 1)
             setShaded(my_view, sha)
             Render(my_view)
             time.sleep(1)

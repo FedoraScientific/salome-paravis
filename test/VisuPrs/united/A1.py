@@ -120,7 +120,7 @@ else:
 print "**** Step4: Displaying scalar field"
 
 print "Creating Scalar Map.......",
-scalarmap1 = ScalarMapOnField(med_reader1, cell_entity, 'scalar_field', 1)
+scalarmap1 = ScalarMapOnField(med_reader1, cell_entity, 'scalar field', 1)
 if scalarmap1 is None:
     print "FAILED"
 else:
@@ -130,7 +130,7 @@ else:
 reset_view(view)
 
 print "Creating Iso Surfaces.....",
-isosurfaces1 = IsoSurfacesOnField(med_reader1, cell_entity, 'scalar_field', 1)
+isosurfaces1 = IsoSurfacesOnField(med_reader1, cell_entity, 'scalar field', 1)
 if isosurfaces1 is None:
     print "FAILED"
 else:
@@ -138,7 +138,7 @@ else:
     print "OK"
 
 print "Creating Cut Planes.......",
-cutplanes1 = CutPlanesOnField(med_reader1, cell_entity, 'scalar_field', 1,
+cutplanes1 = CutPlanesOnField(med_reader1, cell_entity, 'scalar field', 1,
                               orientation=Orientation.YZ)
 if cutplanes1 is None:
     print "FAILED"

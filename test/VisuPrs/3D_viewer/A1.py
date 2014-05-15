@@ -57,7 +57,7 @@ else:
 represents = [RepresentationType.POINTS, RepresentationType.WIREFRAME,\
 RepresentationType.SURFACE, RepresentationType.VOLUME]
 shrinks = [0, 1]
-shadings = [0, 1]
+shadings = ["Flat", "Gouraud"]
 opacities = [1.0, 0.5, 0.0]
 linewidths = [1.0, 3.0, 10.0]
 compare_prec = 0.00001
@@ -67,7 +67,7 @@ field_name = 'VITESSE'
 # Get view
 my_view = GetRenderView()
 
-print "\nCreating plot3d.......",
+print "\nCreating plot3d......."
 plot3d = Plot3DOnField(proxy, EntityType.NODE, field_name, 1)
 if plot3d is None:
     raise RuntimeError("Error!!! Presentation wasn't created...")
@@ -90,7 +90,7 @@ for reprCode in represents:
 
     for sha in shadings:
         setShaded(my_view, sha)
-        call_and_check(plot3d, "Shading", sha, 1)
+        call_and_check(plot3d, "Interpolation", sha, 1)
         Render(my_view)
 
         for opa in opacities:

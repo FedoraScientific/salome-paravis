@@ -42,7 +42,7 @@ errors=0
 sizes=[]
 
 for i in range(1,11):
-    presentation = DeformedShapeAndScalarMapOnField(med_reader1, EntityType.NODE, "MODES_DEPL", i)
+    presentation = DeformedShapeAndScalarMapOnField(med_reader1, EntityType.NODE, "MODES___DEPL____________________", i)
     if presentation is None : 
         raise RuntimeError, "Presentation is None!!!"
 
@@ -70,7 +70,7 @@ errors = 0
 sizes=[]
 
 for i in range(1,11):
-    presentation = DeformedShapeAndScalarMapOnField(med_reader2, EntityType.NODE, "MODES_DEPL", 11-i)
+    presentation = DeformedShapeAndScalarMapOnField(med_reader2, EntityType.NODE, "MODES___DEPL____________________", 11-i)
     if presentation is None : 
         raise RuntimeError, "Presentation is None!!!"
 

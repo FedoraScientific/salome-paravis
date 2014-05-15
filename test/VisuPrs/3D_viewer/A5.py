@@ -57,7 +57,7 @@ else:
 represents = [RepresentationType.POINTS, RepresentationType.WIREFRAME,\
 RepresentationType.SURFACE, RepresentationType.VOLUME]
 shrinks = [0, 1]
-shadings = [0, 1]
+shadings = ["Flat", "Gouraud"]
 opacities = [1.0, 0.5, 0.0]
 linewidths = [1.0, 3.0, 10.0]
 compare_prec = 0.00001
@@ -105,7 +105,7 @@ for reprCode in represents:
 
         for sha in shadings:
             setShaded(my_view, sha)
-            call_and_check(shape_to_show, "Shading", sha, 1)
+            call_and_check(shape_to_show, "Interpolation", sha, 1)
             Render(my_view)
 
             for opa in opacities:
