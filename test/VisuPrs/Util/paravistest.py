@@ -241,26 +241,21 @@ def TimeStampId(proxy):
     Originally defined in KERNEL_TEST/Tools/CommonFunctions file.
     """
     import presentations
-    mesh_name = presentations.get_mesh_names(proxy).pop()
+    mesh_name = presentations.get_mesh_full_names(proxy).pop()
     iterations = {}
 
     # get list of field names
-    fields_on_points = list(proxy.PointArrays)
-    fields_on_cells = list(proxy.CellArrays)
-    all_fields = fields_on_points + fields_on_cells
+    all_fields = proxy.GetProperty("FieldsTreeInfo")[::2]
 
     # get timestamps
     timestamps = proxy.TimestepValues.GetData()
     timestamp_nb = len(timestamps)
 
     for field in all_fields:
-        entity = None
-        if fields_on_points.count(field) > 0:
-            entity = presentations.EntityType.NODE
-        elif fields_on_cells.count(field) > 0:
-            entity = presentations.EntityType.CELL
-            
-        iterations[field] = [entity, timestamp_nb]
+        entity = presentations.get_field_entity(field)
+        field_short_name = presentations.get_field_short_name(field)
+
+        iterations[field_short_name] = [entity, timestamp_nb]
 
     return mesh_name, iterations
     

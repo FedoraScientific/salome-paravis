@@ -80,7 +80,7 @@ select_cells_with_data(med_reader, on_cells=["scalar field", "vectoriel field"])
 
 print "Setting of deformation:"
 warp_vector = pvsimple.WarpByVector(cutplanes.Input)
-warp_vector.Vectors = ["vectoriel field"]
+warp_vector.Vectors = ["scalar field"]
 warp_vector.ScaleFactor = 5.0
 
 print "Got scale     : ", warp_vector.ScaleFactor

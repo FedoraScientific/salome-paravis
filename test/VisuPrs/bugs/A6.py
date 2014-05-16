@@ -43,8 +43,8 @@ else:
     print "OK"
 
 # 2. Create mesh
-mesh_names = get_mesh_names(med_reader)
-for mesh_name in mesh_names:
+mesh_names = get_mesh_full_names(med_reader)
+for mesh_name in [get_field_short_name(name) for name in mesh_names]:
     print "Mesh name: ", mesh_name
     mesh = MeshOnEntity(med_reader, mesh_name, EntityType.CELL)
     if mesh is None:
