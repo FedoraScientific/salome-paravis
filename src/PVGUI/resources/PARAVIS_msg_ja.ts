@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS>
+<TS version="2.0" language="ja" sourcelanguage="en">
   <context>
     <name>@default</name>
     <message>
@@ -202,13 +202,13 @@
       <translation>オブジェクト インスペクター</translation>
     </message>
     <message>
-        <source>TTL_MUTLI_BLOCK_INSPECTOR</source>
-        <translation>Multi-block inspector</translation>
-    </message> 
+      <source>TTL_MUTLI_BLOCK_INSPECTOR</source>
+      <translation>TTL_MUTLI_BLOCK_INSPECTOR</translation>
+    </message>
     <message>
-        <source>TTL_COLOR_MAP_EDITOR</source>
-        <translation>Color Map Editor</translation>
-    </message>      
+      <source>TTL_COLOR_MAP_EDITOR</source>
+      <translation>TTL_COLOR_MAP_EDITOR</translation>
+    </message>
     <message>
       <source>TTL_DISPLAY</source>
       <translation>表示</translation>
