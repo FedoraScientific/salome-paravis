@@ -1683,10 +1683,12 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         else:
             on_cells.append(scalar_field_name)
 
+    nb_components = get_nb_components(proxy, entity, field_name)
+
+    # Select fields
     select_cells_with_data(proxy, on_points, on_cells)
 
     # Check vector mode
-    nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
 
     # Get time value
