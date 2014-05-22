@@ -203,11 +203,11 @@
     </message>
     <message>
       <source>TTL_MUTLI_BLOCK_INSPECTOR</source>
-      <translation>TTL_MUTLI_BLOCK_INSPECTOR</translation>
+      <translation>多重ブロック調査</translation>
     </message>
     <message>
       <source>TTL_COLOR_MAP_EDITOR</source>
-      <translation>TTL_COLOR_MAP_EDITOR</translation>
+      <translation>カラーマップエディタ</translation>
     </message>
     <message>
       <source>TTL_DISPLAY</source>
