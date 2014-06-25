@@ -24,9 +24,14 @@
 #include "vtkPolyDataAlgorithm.h"
 #include "vtkPolyData.h"
 #include "vtkIdTypeArray.h"
+#include "vtkFieldData.h"
+#include "vtkCellData.h"
+#include "vtkPointData.h"
 #include "vtkInformationQuadratureSchemeDefinitionVectorKey.h"
 #include "vtkQuadratureSchemeDefinition.h"
 #include "vtkUnstructuredGrid.h"
+
+#include "MEDUtilities.hxx"
 
 //vtkCxxRevisionMacro(vtkELNOFilter, "$Revision: 1.2.2.2 $");
 vtkStandardNewMacro(vtkELNOFilter);
@@ -116,7 +121,25 @@ int vtkELNOFilter::RequestData(vtkInformation *request,
       }
     start += np;
     }
-
+  //// bug EDF 8407 PARAVIS - mantis 22610
+  vtkFieldData *fielddata(usgIn->GetFieldData());
+  for(int index = 0; index < fielddata->GetNumberOfArrays(); index++)
+    {
+      vtkDataArray *data(fielddata->GetArray(index));
+      vtkInformation *info(data->GetInformation());
+      const char *arrayOffsetName(info->Get(vtkQuadratureSchemeDefinition::QUADRATURE_OFFSET_ARRAY_NAME()));
+      bool isELNO(false);
+      if(arrayOffsetName)
+        {
+          vtkCellData *cellData(usgIn->GetCellData());
+          vtkDataArray *offData(cellData->GetArray(arrayOffsetName));
+          isELNO=offData->GetInformation()->Get(MEDUtilities::ELNO())==1;
+        }
+      if(isELNO)
+        {
+          pdOut->GetPointData()->AddArray(data);
+        }
+    }
   return 1;
 }
 
