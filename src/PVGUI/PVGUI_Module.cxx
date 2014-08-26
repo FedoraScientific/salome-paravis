@@ -128,6 +128,8 @@
 #include <pqScalarBarVisibilityReaction.h>
 #include <pqStandardPropertyWidgetInterface.h>
 #include <pqViewStreamingBehavior.h>
+#include <pqServerResource.h>
+#include <pqServerConnectReaction.h>
 
 #include <PARAVIS_version.h>
 
@@ -525,6 +527,22 @@ void PVGUI_Module::initialize( CAM_Application* app )
   connect(&pqActiveObjects::instance(),
           SIGNAL(representationChanged(pqRepresentation*)),
           this, SLOT(onRepresentationChanged(pqRepresentation*)));
+
+  // Try to connect to the external PVServer
+  QString serverUrlEnv = getenv("PARAVIS_PVSERVER_URL");
+  const char * serverUrl = "cs://localhost";
+  if (!serverUrlEnv.isEmpty())
+    serverUrl = serverUrlEnv.toStdString().c_str();
+  std::cout << "** Trying to connect to the external PVServer '" << serverUrl << "' ..." << std::endl;
+
+  if (!pqServerConnectReaction::connectToServer(pqServerResource(serverUrl)))
+    {
+      std::cerr << "** Could not connect to the requested server \""
+          << serverUrl << "\". Creating default builtin connection.\n" << std::endl;
+    }
+  else
+    std::cout << "** Connected!" << std::endl;
+
 }
 
 void PVGUI_Module::onStartProgress()

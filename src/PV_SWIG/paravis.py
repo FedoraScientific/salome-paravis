@@ -29,50 +29,30 @@ import SALOMEDS
 import SALOME_ModuleCatalog
 from omniORB import CORBA
 from time import sleep
-from salome import *
-
-myORB = None
-myNamingService = None
-myLifeCycleCORBA = None
-myNamingService = None
-myLocalStudyManager = None
-myLocalStudy = None
-myLocalParavis = None
-myDelay = None
-mySession = None
+import salome
 
 ## Initialization of paravis server
-def Initialize(theORB, theNamingService, theLifeCycleCORBA, theStudyManager, theStudy, theDelay) :
-    global myORB, myNamingService, myLifeCycleCORBA, myLocalStudyManager, myLocalStudy
-    global mySession, myDelay
-    myDelay = theDelay
-    myORB = theORB
-    myNamingService = theNamingService
-    myLifeCycleCORBA = theLifeCycleCORBA
-    myLocalStudyManager = theStudyManager
+def Initialize(theDelay) :
+    mySession = None
     while mySession == None:
-        mySession = myNamingService.Resolve("/Kernel/Session")
+        mySession = salome.naming_service.Resolve("/Kernel/Session")
     mySession = mySession._narrow(SALOME.Session)
     mySession.GetInterface()
-    myDelay = theDelay
-    sleep(myDelay)
-    myLocalParavis = myLifeCycleCORBA.FindOrLoadComponent("FactoryServer", "PARAVIS")
-    myLocalStudy = theStudy
+    sleep(theDelay)
+    myLocalParavis = salome.lcc.FindOrLoadComponent("FactoryServer", "PARAVIS")
+    myLocalStudy = salome.myStudy
     myLocalParavis.SetCurrentStudy(myLocalStudy)
-    myLocalParavis.ActivateModule()
+    myLocalParavis.ActivateModule()  ## TO BE DISCUSSED!
     return myLocalParavis
 
+def StartOrRetrievePVServerURL():
+  """ To be completed!!! Should invoke IDL methods from 'PARAVIS' module"""
+  return "localhost"
 
-def ImportFile(theFileName):
-    "Import a file of any format supported by ParaView"
-    myParavis.ImportFile(theFileName)
+# def ImportFile(theFileName):
+#     "Import a file of any format supported by ParaView"
+#     myParavis.ImportFile(theFileName)
 
 ## Initialize PARAVIS interface  
-myParavis = Initialize(orb, naming_service,lcc,myStudyManager,myStudy, 2)
-
-## Initialize Paravis static objects
-#vtkSMObject = vtkSMObject()
-#vtkProcessModule = vtkProcessModule()
-#vtkPVPythonModule = vtkPVPythonModule()
-#vtkSMProxyManager = vtkSMProxyManager()
+myParavisEngine = Initialize(2)
 

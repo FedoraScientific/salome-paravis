@@ -21,12 +21,10 @@ r""" This module is a direct forward to the initial
 'servermanager' module of ParaView.
 """
 
-from paraview import servermanager
-from paravis import *
+from paraview.servermanager import *
 
-for name in dir(servermanager):
-  if name != "__file__":
-    globals()[name] = getattr(servermanager, name)
-del servermanager
-
-InitFromGUI()
+# for name in dir(servermanager):
+#   if name != "__file__":
+#     globals()[name] = getattr(servermanager, name)
+# del servermanager
+# 

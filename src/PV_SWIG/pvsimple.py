@@ -17,25 +17,27 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-r""" This module is a direct forward to the initial 
-'simple' module of ParaView.
+r""" This module is a direct forward to the initial 'simple' module of ParaView.
+On top of that it also establishes a connection to a valid PVServer whose address
+is provided by the PARAVIS engine.
 """
 
-from paraview import simple
+from paraview.simple import *
+import paravis        ## Triggers the "FindOrLoadCompo(PARAVIS)"
 
-for name in dir(simple):
-  if name != "__file__":
-    globals()[name] = getattr(simple, name)
-del simple
+def SalomeConnectToPVServer():
+  print "Connecting to PVServer ..."
+  try:
+    server_url = paravis.StartOrRetrievePVServerURL()
+    Connect(server_url)
+  except Exception as e:
+    print "*******************************************"
+    print "*******************************************"
+    print "Could not connect to a running PVServer!"
+    print "*******************************************"
+    print "*******************************************"
+    raise e
+  print "Connected!"
 
-print "Connecting to PVServer ..."
-try:
-  # TODO: this should be improved (retrieval from the engine)
-  Connect('localhost')
-except Exception as e:
-  print "*******************************************"
-  print "*******************************************"
-  print "Could not connect to PVServer on localhost!"
-  print "*******************************************"
-  print "*******************************************"
-  raise e
+# Automatically connect to the right PVServer:
+SalomeConnectToPVServer()
