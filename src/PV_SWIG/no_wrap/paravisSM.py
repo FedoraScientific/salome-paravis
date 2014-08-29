@@ -17,31 +17,14 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-SET(_PYFILES_TO_INSTALL)
+r""" This module is a direct forward to the initial 
+'servermanager' module of ParaView.
+"""
 
-IF(SALOME_LIGHT_ONLY)
-  LIST(APPEND _PYFILES_TO_INSTALL
-    pvsimple.py
-    presentations.py
-  )
-ELSE(SALOME_LIGHT_ONLY)
-  IF(SALOME_PARAVIS_MINIMAL_CORBA)
-    # Use another set of Python files redirecting the API directly 
-    # to the original ParaView modules.
-    LIST(APPEND _PYFILES_TO_INSTALL
-      no_wrap/paravis.py
-      no_wrap/pvsimple.py
-      no_wrap/presentations.py
-      no_wrap/paravisSM.py
-    )
-  ELSE()
-    LIST(APPEND _PYFILES_TO_INSTALL
-      paravis.py
-      paravisSM.py
-      pvsimple.py
-      presentations.py
-    )
-  ENDIF()
-ENDIF(SALOME_LIGHT_ONLY)
+from paraview.servermanager import *
 
-INSTALL_AND_COMPILE_PYTHON_FILE("${_PYFILES_TO_INSTALL}" ${SALOME_INSTALL_SCRIPT_PYTHON})
+# for name in dir(servermanager):
+#   if name != "__file__":
+#     globals()[name] = getattr(servermanager, name)
+# del servermanager
+# 

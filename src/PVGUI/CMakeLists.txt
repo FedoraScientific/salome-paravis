@@ -75,8 +75,11 @@ SET(_other_HEADERS
   PV_I.h
   PARAVIS_Gen_i.hh
   PV_Events.h
-  PV_Tools.h
 )
+
+IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
+    LIST(APPEND _other_HEADERS PV_Tools.h)
+ENDIF()
 
 # header files / to install
 SET(PVGUI_HEADERS ${_moc_HEADERS} ${_other_HEADERS})
@@ -138,8 +141,7 @@ SET(_other_SOURCES
   PVGUI_Tools.cxx
   PVGUI_ParaViewSettingsPane.cxx
   #PVGUI_MatplotlibMathTextUtilities.cxx
-  PARAVIS_Gen_i.cc
-  PV_Tools.cxx
+  #PV_Tools.cxx
   )
 
 IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
@@ -155,6 +157,7 @@ IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
   SET(WRAP_IDL_I_CC "${WRAP_IDL_I_CC}" PARENT_SCOPE)
 
   SET(_VTK_wrap_SOURCES
+    PARAVIS_Gen_i.cc
     PARAVIS_CreateClass.cxx
     ${WRAP_IDL_I_CC}
   )

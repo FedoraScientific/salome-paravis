@@ -27,9 +27,15 @@
 #define PVGUI_Module_H
 
 #include <SalomeApp_Module.h>
+#include "SALOMEconfig.h"
+#include CORBA_SERVER_HEADER(SALOMEDS)
+#ifndef PARAVIS_WITH_FULL_CORBA
+#    include CORBA_SERVER_HEADER(PARAVIS_Gen)
+#endif
 
 #include <ostream>
 #include <vtkType.h>
+#include <QTimer>
 
 #include <pqVariableType.h>
 
@@ -140,6 +146,8 @@ public:
   PVGUI_Module();
   ~PVGUI_Module();
 
+  static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();
+
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
 
@@ -163,7 +171,7 @@ public:
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
 public slots:
-  void onImportFromVisu(QString theEntry);
+  //void onImportFromVisu(QString theEntry);
 
 private:
   //! Initialize ParaView if not yet done (once per session)
@@ -224,6 +232,10 @@ private:
   //! run Python command (either in SALOME's Python interpreter, or in ParaView's Python's interpreter)
   void execPythonCommand(const QString& cmd, bool inSalomeConsole=false);
 
+  //! Connect to the external PVServer, using the PARAVIS engine to launch it if it is not
+  //! already up.
+  bool connectToExternalPVServer();
+
 private slots:
 
   void showHelpForProxy( const QString&, const QString& );
@@ -265,6 +277,7 @@ public slots:
 
 protected slots:
   virtual void           onModelOpened();
+  virtual void           onPushTraceTimer();
 
 protected:
   void timerEvent(QTimerEvent *event);
@@ -300,6 +313,10 @@ private:
   int myStateCounter;
 
   static pqPVApplicationCore* MyCoreApp;
+
+  static PARAVIS_ORB::PARAVIS_Gen_var myEngine;
+
+  QTimer             * myPushTraceTimer;
 };
 
 #endif // PVGUI_Module_H

@@ -377,14 +377,16 @@ void PVGUI_Module::restoreDockWidgetsState()
     dw->setVisible( it1.value() );
     dw->toggleViewAction()->setVisible( true );
   }
-  // restore toolbar breaks state
-  QMapIterator<QWidget*, bool> it2( myToolbarBreaks );
-  while( it2.hasNext() ) {
-    it2.next();
-    QToolBar* tb = qobject_cast<QToolBar*>( it2.key() );
-    if ( myToolbarBreaks[tb] )
-      desk->insertToolBarBreak( tb );
-  }
+
+    // restore toolbar breaks state
+    QMapIterator<QWidget*, bool> it2( myToolbarBreaks );
+    while( it2.hasNext() ) {
+        it2.next();
+        QToolBar* tb = qobject_cast<QToolBar*>( it2.key() );
+        if ( myToolbarBreaks[tb] )
+          desk->insertToolBarBreak( tb );
+    }
+
   // restore toolbar visibility state
   QMapIterator<QWidget*, bool> it3( myToolbars );
   while( it3.hasNext() ) {
@@ -425,15 +427,15 @@ void PVGUI_Module::storeCommonWindowsState() {
       QDockWidget* dock = 0;
       QWidget* w = wg->parentWidget();
       while ( w && !dock ) {
-	dock = ::qobject_cast<QDockWidget*>( w );
-	w = w->parentWidget();
+          dock = ::qobject_cast<QDockWidget*>( w );
+          w = w->parentWidget();
       }
       if(dock){
-	if(!myCommonMap.contains(i)){
-	  myCommonMap.insert(i,dock->isVisible());
-	} else {
-	  myCommonMap[i] = dock->isVisible();
-	}
+          if(!myCommonMap.contains(i)){
+              myCommonMap.insert(i,dock->isVisible());
+          } else {
+              myCommonMap[i] = dock->isVisible();
+          }
       }
     }
   }
@@ -453,11 +455,11 @@ void PVGUI_Module::restoreCommonWindowsState() {
       QDockWidget* dock = 0;
       QWidget* w = wg->parentWidget();
       while ( w && !dock ) {
-	dock = ::qobject_cast<QDockWidget*>( w );
-	w = w->parentWidget();
+          dock = ::qobject_cast<QDockWidget*>( w );
+          w = w->parentWidget();
       }
       if(dock) {
-	dock->setVisible(it.value());
+          dock->setVisible(it.value());
       }
     }
   }

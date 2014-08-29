@@ -32,6 +32,7 @@ using namespace std;
 //=============================================================================
 namespace PARAVIS
 {
+#ifdef PARAVIS_WITH_FULL_CORBA
   //------------------------------------------------------------
   PARAVIS_Gen_i* GetParavisGen(const CAM_Module* theModule)
   {
@@ -48,6 +49,7 @@ namespace PARAVIS
       throw std::runtime_error("Can not create PARAVIS_Gen");
     return aGen;
   }
+#endif
 
   //------------------------------------------------------------
   _PTR(Study) GetCStudy(const CAM_Module* theModule)

@@ -29,30 +29,69 @@ import SALOMEDS
 import SALOME_ModuleCatalog
 from omniORB import CORBA
 from time import sleep
-import salome
+from salome import *
+
+myORB = None
+myNamingService = None
+myLifeCycleCORBA = None
+myNamingService = None
+myLocalStudyManager = None
+myLocalStudy = None
+myLocalParavis = None
+myDelay = None
+mySession = None
 
 ## Initialization of paravis server
-def Initialize(theDelay) :
-    mySession = None
+def Initialize(theORB, theNamingService, theLifeCycleCORBA, theStudyManager, theStudy, theDelay) :
+    global myORB, myNamingService, myLifeCycleCORBA, myLocalStudyManager, myLocalStudy
+    global mySession, myDelay
+    myDelay = theDelay
+    myORB = theORB
+    myNamingService = theNamingService
+    myLifeCycleCORBA = theLifeCycleCORBA
+    myLocalStudyManager = theStudyManager
     while mySession == None:
-        mySession = salome.naming_service.Resolve("/Kernel/Session")
+        mySession = myNamingService.Resolve("/Kernel/Session")
     mySession = mySession._narrow(SALOME.Session)
     mySession.GetInterface()
-    sleep(theDelay)
-    myLocalParavis = salome.lcc.FindOrLoadComponent("FactoryServer", "PARAVIS")
-    myLocalStudy = salome.myStudy
+    myDelay = theDelay
+    sleep(myDelay)
+    myLocalParavis = myLifeCycleCORBA.FindOrLoadComponent("FactoryServer", "PARAVIS")
+    myLocalStudy = theStudy
     myLocalParavis.SetCurrentStudy(myLocalStudy)
-    myLocalParavis.ActivateModule()  ## TO BE DISCUSSED!
+    myLocalParavis.ActivateModule()
     return myLocalParavis
 
-def StartOrRetrievePVServerURL():
-  """ To be completed!!! Should invoke IDL methods from 'PARAVIS' module"""
-  return "localhost"
 
-# def ImportFile(theFileName):
-#     "Import a file of any format supported by ParaView"
-#     myParavis.ImportFile(theFileName)
+def ImportFile(theFileName):
+    "Import a file of any format supported by ParaView"
+    myParavis.ImportFile(theFileName)
 
-## Initialize PARAVIS interface  
-myParavisEngine = Initialize(2)
+
+def createFunction(theName):
+    "Create function - constructor of Paravis object"
+    def MyFunction():
+        return myParavis.CreateClass(theName)
+    return MyFunction
+
+
+def createConstructors():
+    "Create constructor functions according to list of extracted classes"
+    g = globals()
+    aClassNames = myParavis.GetClassesList();
+    for aName in aClassNames:
+        g[aName] = createFunction(aName)
+
+## Initialize of a PARAVIS interface  
+myParavis = Initialize(orb, naming_service,lcc,myStudyManager,myStudy, 2)
+
+## Initialize constructor functions
+createConstructors()
+
+## Initialize Paravis static objects
+vtkSMObject = vtkSMObject()
+vtkProcessModule = vtkProcessModule()
+vtkPVPythonModule = vtkPVPythonModule()
+vtkSMProxyManager = vtkSMProxyManager()
+
 
