@@ -53,8 +53,6 @@ class pqPVApplicationCore;
 class pqDataRepresentation;
 class pqRepresentation;
 
-class PyConsole_Interp;
-
 class PVGUI_Module : public SalomeApp_Module
 {
   Q_OBJECT
@@ -204,10 +202,6 @@ private:
   //! Discover help project files from the resources.
   QString getHelpFileName();
 
-  void                   deleteTemporaryFiles();
-  
-  //QList<QToolBar*>       getParaViewToolbars();
-
   //! Create actions for ParaViS
   void createActions();
 
@@ -278,9 +272,7 @@ public slots:
 protected slots:
   virtual void           onModelOpened();
   virtual void           onPushTraceTimer();
-
-protected:
-  void timerEvent(QTimerEvent *event);
+  virtual void           onInitTimer();
 
 private:
   class pqImplementation;
@@ -316,6 +308,10 @@ private:
 
   static PARAVIS_ORB::PARAVIS_Gen_var myEngine;
 
+  //! Single shot timer used to connect to the PVServer, and start the trace.
+  QTimer             * myInitTimer;
+
+  //! Timer used to regularly push the Python trace to the engine.
   QTimer             * myPushTraceTimer;
 };
 

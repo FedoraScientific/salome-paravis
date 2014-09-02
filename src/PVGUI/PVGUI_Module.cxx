@@ -63,6 +63,7 @@
 #include <PyInterp_Interp.h>
 #include <PyInterp_Dispatcher.h>
 #include <PyConsole_Console.h>
+#include <PyConsole_Interp.h>
 
 #include <sstream>
 
@@ -322,6 +323,7 @@ PVGUI_Module::PVGUI_Module()
     myOldMsgHandler(0),
     myTraceWindow(0),
     myStateCounter(0),
+    myInitTimer(0),
     myPushTraceTimer(0)
 {
 #ifdef HAS_PV_DOC
@@ -351,10 +353,15 @@ PVGUI_Module::~PVGUI_Module()
 {
   if (myPushTraceTimer)
     delete myPushTraceTimer;
-  //MyCoreApp->prepareForQuit();
-  // even if it is static:
-//  if (MyCoreApp)
-//    delete MyCoreApp;
+  if (myInitTimer)
+    delete myInitTimer;
+  // Disconnect from server
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  if (server && server->isRemote())
+    {
+      MESSAGE("~PVGUI_Module(): Disconnecting from remote server ...");
+      pqServerDisconnectReaction::disconnectFromServer();
+    }
 }
 
 PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetEngine()
@@ -516,10 +523,17 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
   bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
-  // start a timer to schedule the trace start asap:
   if(!isStop)
     {
-      startTimer( 0 );
+      // Start a timer to schedule asap:
+      //  - the connection to the server
+      //  - the trace start
+      myInitTimer = new QTimer(aDesktop);
+      QObject::connect(myInitTimer, SIGNAL(timeout()), this, SLOT(onInitTimer()) );
+      myInitTimer->setSingleShot(true);
+      myInitTimer->start(0);
+
+      // Another timer to regularly push the trace onto the engine:
       myPushTraceTimer = new QTimer(aDesktop);
       QObject::connect(myPushTraceTimer, SIGNAL(timeout()), this, SLOT(onPushTraceTimer()) );
       myPushTraceTimer->setSingleShot(false);
@@ -546,9 +560,9 @@ void PVGUI_Module::initialize( CAM_Application* app )
           SIGNAL(representationChanged(pqRepresentation*)),
           this, SLOT(onRepresentationChanged(pqRepresentation*)));
 
-#ifndef PARAVIS_WITH_FULL_CORBA
-  connectToExternalPVServer();
-#endif
+//  MESSAGE("initialize(): Initializing PARAVIS's Python context ...");
+//  execPythonCommand("import paraview.servermanager as sm; sm.fromGUI=True", false);
+//  MESSAGE("initialize(): Initialized.");
 }
 
 bool PVGUI_Module::connectToExternalPVServer()
@@ -692,44 +706,55 @@ void PVGUI_Module::execPythonCommand(const QString& cmd, bool inSalomeConsole)
   }
   else
     {
-      pqPythonManager* manager = qobject_cast<pqPythonManager*>
-      ( pqApplicationCore::instance()->manager( "PYTHON_MANAGER" ) );
-      if ( manager )
-        {
-          pqPythonDialog* pyDiag = manager->pythonShellDialog();
-          if ( pyDiag )
-            {
-              pqPythonShell* shell = pyDiag->shell();
-              if ( shell ) {
-                  shell->executeScript(cmd);
-              }
-            }
-        }
+      SalomeApp_Application* app =
+            dynamic_cast< SalomeApp_Application* >(SUIT_Session::session()->activeApplication());
+      PyConsole_Interp* pyInterp = app->pythonConsole()->getInterp();
+      PyLockWrapper aGil;
+      pyInterp->run(cmd.toStdString().c_str());
+//      pqPythonManager* manager = qobject_cast<pqPythonManager*>
+//      ( pqApplicationCore::instance()->manager( "PYTHON_MANAGER" ) );
+//      if ( manager )
+//        {
+//          pqPythonDialog* pyDiag = manager->pythonShellDialog();
+//          if ( pyDiag )
+//            {
+//              pqPythonShell* shell = pyDiag->shell();
+//              if ( shell ) {
+//                  shell->executeScript(cmd);
+//              }
+//            }
+//        }
     }
 }
 
 /*!
-  \brief Launches a tracing of current server
+  \brief Initialisation timer event - fired only once, after the GUI loop is ready.
+  See creation in initialize().
 */
-void PVGUI_Module::timerEvent(QTimerEvent* te )
+void PVGUI_Module::onInitTimer()
 {
-//  connectToExternalPVServer();
+#ifndef PARAVIS_WITH_FULL_CORBA
+  connectToExternalPVServer();
+#endif
 
 #ifndef WNT
-  if ( PyInterp_Dispatcher::Get()->IsBusy() )
-    {
-      // Reschedule for later
-      MESSAGE("interpreter busy -> rescheduling trace start.");
-      startTimer(500);
-    }
-  else
-    {
-      MESSAGE("about to start trace....");
+//  if ( PyInterp_Dispatcher::Get()->IsBusy() )
+//    {
+//      // Reschedule for later
+//      MESSAGE("interpreter busy -> rescheduling trace start.");
+//      startTimer(500);
+//    }
+//  else
+//    {
+      MESSAGE("timerEvent(): About to start trace....");
       execPythonCommand("from paraview import smtrace;smtrace.start_trace()", false);
-      MESSAGE("trace STARTED....");
-    }
-  killTimer( te->timerId() );
+      MESSAGE("timerEvent(): Trace STARTED....");
+//    }
 #endif
+
+  MESSAGE("initialize(): Initializing PARAVIS's Python context ...");
+  execPythonCommand("import paraview.servermanager as sm; sm.fromGUI=True", false);
+  MESSAGE("initialize(): Initialized.");
 }
   
 /*!
@@ -992,9 +1017,7 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 */
 bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 {
-  // Stop Python trace
-  MESSAGE("Stopping Python trace ...")
-  execPythonCommand("from paraview import smtrace;smtrace.stop_trace()", false);
+  MESSAGE("PARAVIS deactivation ...")
 
   QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
   if(aMenu) {
@@ -1058,7 +1081,6 @@ void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
   pqApplicationCore::instance()->settings()->sync();
   int aAppsNb = SUIT_Session::session()->applications().size();
   if (aAppsNb == 1) {
-    deleteTemporaryFiles();
     MyCoreApp->deleteLater();
   }
   CAM_Module::onApplicationClosed(theApp);
@@ -1250,19 +1272,6 @@ void PVGUI_Module::loadParaviewState(const char* theFileName)
 {
   pqApplicationCore::instance()->loadState(theFileName, getActiveServer());
 }
-
-/*!
-  \brief Deletes temporary files created during import operation from VISU
-*/
-void PVGUI_Module::deleteTemporaryFiles()
-{
-  foreach(QString aFile, myTemporaryFiles) {
-    if (QFile::exists(aFile)) {
-      QFile::remove(aFile);
-    }
-  }
-}
-
 
 /*!
   \brief Returns current active ParaView server
@@ -1588,7 +1597,7 @@ void PVGUI_Module::onDelete()
 
 void PVGUI_Module::onPushTraceTimer()
 {
-  //MESSAGE("Pushing trace ...");
+//  MESSAGE("onPushTraceTimer(): Pushing trace to engine...");
   GetEngine()->PutPythonTraceStringToEngine(getTraceString().toStdString().c_str());
 }
 

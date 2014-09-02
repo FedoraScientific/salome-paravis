@@ -24,6 +24,7 @@ is provided by the PARAVIS engine.
 """
 
 from paraview.simple import *
+import paraview.servermanager  # local import - see test on 'fromGUI' below
 import paravis        ## Triggers the "FindOrLoadCompo(PARAVIS)"
 
 def __my_log(msg):
@@ -46,5 +47,6 @@ def SalomeConnectToPVServer():
         raise e
     __my_log("Connected to %s!" % server_url)
 
-# Automatically connect to the right PVServer:
-SalomeConnectToPVServer()
+# Automatically connect to the right PVServer when not inside SALOME GUI:
+if not paraview.servermanager.fromGUI: 
+  SalomeConnectToPVServer()
