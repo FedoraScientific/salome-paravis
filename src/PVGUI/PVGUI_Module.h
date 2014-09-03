@@ -172,6 +172,8 @@ public slots:
   //void onImportFromVisu(QString theEntry);
 
 private:
+  void deleteTemporaryFiles();
+
   //! Initialize ParaView if not yet done (once per session)
   static bool            pvInit();  
  
@@ -275,9 +277,6 @@ protected slots:
   virtual void           onInitTimer();
 
 private:
-  class pqImplementation;
-  pqImplementation*      Implementation;
-
   int                    mySelectionControlsTb;
   int                    mySourcesMenuId;
   int                    myFiltersMenuId;
@@ -300,13 +299,13 @@ private:
 
   vtkEventQtSlotConnect *VTKConnect;
 
+  static pqPVApplicationCore* MyCoreApp;
+  static PARAVIS_ORB::PARAVIS_Gen_var myEngine;
+
+
   pqPythonScriptEditor* myTraceWindow;
 
   int myStateCounter;
-
-  static pqPVApplicationCore* MyCoreApp;
-
-  static PARAVIS_ORB::PARAVIS_Gen_var myEngine;
 
   //! Single shot timer used to connect to the PVServer, and start the trace.
   QTimer             * myInitTimer;

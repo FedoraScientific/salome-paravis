@@ -30,7 +30,11 @@ INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${QT_INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/view
     )
+
+# Process viewer:
+ADD_SUBDIRECTORY(view)
 
 # additional preprocessor / compiler flags
 ADD_DEFINITIONS(${CAS_DEFINITIONS})
@@ -45,7 +49,7 @@ SET(_PARAVIEW_APP_COMPO_LIB
 SET(_link_LIBRARIES 
   ${OMNIORB_LIBRARIES}
   ${QT_LIBRARIES}
-  ${CAS_KERNEL}
+#  ${CAS_KERNEL}
   ${PYTHON_LIBS}
   ${KERNEL_LDFLAGS} ${KERNEL_SalomeDS} ${KERNEL_SALOMELocalTrace} ${KERNEL_SalomeIDLKernel} 
                     ${KERNEL_SalomeNS} ${KERNEL_SalomeLifeCycleCORBA} ${KERNEL_SalomeContainer} ${KERNEL_TOOLSDS}
@@ -54,6 +58,7 @@ SET(_link_LIBRARIES
   ${MED_SalomeIDLMED}
   ${_PARAVIEW_APP_COMPO_LIB}
   SalomeIDLPARAVIS
+  PVViewer
 )
 
 # --- headers ---
@@ -61,17 +66,16 @@ SET(_link_LIBRARIES
 # header files / to be processed by moc
 SET(_moc_HEADERS
   PVGUI_Module.h
-  PVGUI_ViewManager.h
-  PVGUI_ViewModel.h
-  PVGUI_ViewWindow.h
+#  PVGUI_ViewManager.h
+#  PVGUI_ViewModel.h
+#  PVGUI_ViewWindow.h
   PVGUI_ParaViewSettingsPane.h
 )
 
 # header files / no moc processing
 SET(_other_HEADERS
-  PVGUI_OutputWindowAdapter.h
+#  PVGUI_OutputWindowAdapter.h
   PVGUI_Tools.h
-  #PVGUI_MatplotlibMathTextUtilities.h
   PV_I.h
   PARAVIS_Gen_i.hh
   PV_Events.h
@@ -134,10 +138,10 @@ SET(_other_SOURCES
   PVGUI_Module.cxx
   PVGUI_Module_actions.cxx
   PVGUI_Module_widgets.cxx
-  PVGUI_ViewManager.cxx
-  PVGUI_ViewModel.cxx
-  PVGUI_ViewWindow.cxx
-  PVGUI_OutputWindowAdapter.cxx
+#  PVGUI_ViewManager.cxx
+#  PVGUI_ViewModel.cxx
+#  PVGUI_ViewWindow.cxx
+#  PVGUI_OutputWindowAdapter.cxx
   PVGUI_Tools.cxx
   PVGUI_ParaViewSettingsPane.cxx
   #PVGUI_MatplotlibMathTextUtilities.cxx

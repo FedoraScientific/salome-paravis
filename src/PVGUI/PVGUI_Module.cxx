@@ -163,8 +163,6 @@
 
 //----------------------------------------------------------------------------
 pqPVApplicationCore* PVGUI_Module::MyCoreApp = 0;
-//PVGUI_OutputWindowAdapter* PVGUI_Module::pqImplementation::OutputWindowAdapter = 0;
-//QPointer<pqHelpWindow> PVGUI_Module::pqImplementation::helpWindow = 0;
 
 PVGUI_Module* ParavisModule = 0;
 
@@ -313,7 +311,6 @@ void paravisCleanUp()
 */
 PVGUI_Module::PVGUI_Module()
   : SalomeApp_Module( "PARAVIS" ),
-    //    Implementation( 0 ),
     mySelectionControlsTb( -1 ),
     mySourcesMenuId( -1 ),
     myFiltersMenuId( -1 ),
@@ -381,9 +378,6 @@ PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetEngine()
 */
 void PVGUI_Module::initialize( CAM_Application* app )
 {
-  // [ABN]: patched in ParaView's sources.
-  // PVGUI_MatplotlibMathTextUtilities::Disable();
-
   SalomeApp_Module::initialize( app );
 
   // Create ParaViS actions
@@ -410,9 +404,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
   // Remember current state of desktop toolbars
   QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
 
-  // Simulate ParaView client main window
-  //Implementation = new pqImplementation( aDesktop );
-
   setupDockWidgets();
 
   pvCreateActions();
@@ -431,7 +422,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   // * adds support for standard paraview views.
   pgm->addInterface(new pqStandardViewModules(pgm));
-  //pgm->addInterface(new pqStandardSummaryPanelImplementation(pgm));
   pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
 
   // Load plugins distributed with application.
@@ -559,10 +549,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
   connect(&pqActiveObjects::instance(),
           SIGNAL(representationChanged(pqRepresentation*)),
           this, SLOT(onRepresentationChanged(pqRepresentation*)));
-
-//  MESSAGE("initialize(): Initializing PARAVIS's Python context ...");
-//  execPythonCommand("import paraview.servermanager as sm; sm.fromGUI=True", false);
-//  MESSAGE("initialize(): Initialized.");
 }
 
 bool PVGUI_Module::connectToExternalPVServer()
@@ -1081,9 +1067,23 @@ void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
   pqApplicationCore::instance()->settings()->sync();
   int aAppsNb = SUIT_Session::session()->applications().size();
   if (aAppsNb == 1) {
+    deleteTemporaryFiles();
     MyCoreApp->deleteLater();
   }
   CAM_Module::onApplicationClosed(theApp);
+}
+
+
+/*!
+  \brief Deletes temporary files created during import operation from VISU
+*/
+void PVGUI_Module::deleteTemporaryFiles()
+{
+  foreach(QString aFile, myTemporaryFiles) {
+    if (QFile::exists(aFile)) {
+      QFile::remove(aFile);
+    }
+  }
 }
 
 

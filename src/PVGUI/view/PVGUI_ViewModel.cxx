@@ -19,6 +19,7 @@
 
 #include "PVGUI_ViewModel.h"
 #include "PVGUI_ViewWindow.h"
+#include "utilities.h"
 
 /*!
   Constructor
@@ -26,7 +27,9 @@
 PVGUI_Viewer::PVGUI_Viewer()
 :SUIT_ViewModel() 
 {
+  MESSAGE("PVGUI_Viewer: creating view ...");
 }
+
 
 /*!
   Destructor
