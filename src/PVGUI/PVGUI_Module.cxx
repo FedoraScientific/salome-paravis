@@ -40,6 +40,7 @@
 #include "PVGUI_Tools.h"
 #include "PVGUI_ParaViewSettingsPane.h"
 #include "PVGUI_OutputWindowAdapter.h"
+#include "PVGUI_Behaviors.h"
 
 #include <SUIT_DataBrowser.h>
 #include <SUIT_Desktop.h>
@@ -109,7 +110,6 @@
 #include <pqHelpReaction.h>
 #include <vtkOutputWindow.h>
 #include <pqPluginManager.h>
-#include "pqInterfaceTracker.h"
 #include <pqSettings.h>
 #include <pqPythonDialog.h>
 #include <pqPythonManager.h>
@@ -117,49 +117,25 @@
 #include <pqLoadDataReaction.h>
 #include <vtkEventQtSlotConnect.h>
 #include <pqPythonScriptEditor.h>
-#include <pqCollaborationBehavior.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
 #include <pqLookupTableManager.h>
 #include <pqDisplayColorWidget.h>
 #include <pqColorToolbar.h>
 #include <pqScalarBarVisibilityReaction.h>
-#include <pqStandardPropertyWidgetInterface.h>
-#include <pqViewStreamingBehavior.h>
+
 #include <pqServerResource.h>
 #include <pqServerConnectReaction.h>
 #include <pqServerDisconnectReaction.h>
 
-#include <PARAVIS_version.h>
-
+#include <pqApplicationCore.h>
+#include <pqServerManagerObserver.h>
+#include <vtkClientServerInterpreterInitializer.h>
 #include <vtkPVConfig.h>
 
+#include <PARAVIS_version.h>
 
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
-
-#include <pqAlwaysConnectedBehavior.h>
-#include <pqApplicationCore.h>
-#include <pqAutoLoadPluginXMLBehavior.h>
-#include <pqCommandLineOptionsBehavior.h>
-#include <pqCrashRecoveryBehavior.h>
-#include <pqDataTimeStepBehavior.h>
-#include <pqDefaultViewBehavior.h>
-#include <pqDeleteBehavior.h>
-#include <pqObjectPickingBehavior.h>
-#include <pqPersistentMainWindowStateBehavior.h>
-#include <pqPipelineContextMenuBehavior.h>
-#include <pqPluginActionGroupBehavior.h>
-#include <pqPluginDockWidgetsBehavior.h>
-#include <pqPluginManager.h>
-#include <pqPVNewSourceBehavior.h>
-#include <pqSpreadSheetVisibilityBehavior.h>
-#include <pqStandardViewModules.h>
-#include <pqUndoRedoBehavior.h>
-#include <pqViewFrameActionsBehavior.h>
-#include <pqServerManagerObserver.h>
-
-#include <vtkClientServerInterpreterInitializer.h>
-
 
 //----------------------------------------------------------------------------
 pqPVApplicationCore* PVGUI_Module::MyCoreApp = 0;
@@ -413,44 +389,8 @@ void PVGUI_Module::initialize( CAM_Application* app )
   QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
   QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();
 
-  // new pqParaViewBehaviors(anApp->desktop(), this);
-  // Has to be replaced in order to exclude using of pqQtMessageHandlerBehaviour
-  //  Start pqParaViewBehaviors
-  // Register ParaView interfaces.
-  //pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
-  pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
-
-  // * adds support for standard paraview views.
-  pgm->addInterface(new pqStandardViewModules(pgm));
-  pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
-
-  // Load plugins distributed with application.
-  pqApplicationCore::instance()->loadDistributedPlugins();
-
-  // Define application behaviors.
-  //new pqQtMessageHandlerBehavior(this);
-  new pqDataTimeStepBehavior(this);
-  new pqViewFrameActionsBehavior(this);
-  new pqSpreadSheetVisibilityBehavior(this);
-  new pqPipelineContextMenuBehavior(this);
-  new pqObjectPickingBehavior(this); // NEW in 4.1
-  new pqDefaultViewBehavior(this);
-  new pqAlwaysConnectedBehavior(this);
-  new pqPVNewSourceBehavior(this);
-  new pqDeleteBehavior(this);
-  new pqUndoRedoBehavior(this);
-  new pqCrashRecoveryBehavior(this);
-  new pqAutoLoadPluginXMLBehavior(this);
-  new pqPluginDockWidgetsBehavior(aDesktop);
-  //new pqVerifyRequiredPluginBehavior(this);
-  new pqPluginActionGroupBehavior(aDesktop);
-  //new pqFixPathsInStateFilesBehavior(this);
-  new pqCommandLineOptionsBehavior(this);
-  new pqPersistentMainWindowStateBehavior(aDesktop);
-  new pqObjectPickingBehavior(aDesktop);
-  new pqCollaborationBehavior(this);
-  //new pqMultiServerBehavior(this);
-  new pqViewStreamingBehavior(this);
+  PVGUI_Behaviors * behav = new PVGUI_Behaviors(this);
+  behav->instanciateAllBehaviors(aDesktop);
 
   // Setup quick-launch shortcuts.
   QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);

@@ -42,6 +42,7 @@ SET(_moc_HEADERS
   PVGUI_ViewManager.h
   PVGUI_ViewModel.h
   PVGUI_ViewWindow.h
+  PVGUI_Behaviors.h
 )
 
 # header files / no moc processing
@@ -62,6 +63,7 @@ SET(_other_SOURCES
   PVGUI_ViewModel.cxx
   PVGUI_ViewWindow.cxx
   PVGUI_OutputWindowAdapter.cxx
+  PVGUI_Behaviors.cxx
   )
   
 # sources / to compile
