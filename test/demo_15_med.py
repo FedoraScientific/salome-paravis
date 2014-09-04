@@ -33,7 +33,7 @@ def LoadMultipleFiles_med(FilePath, FilePrefix):
                                                                                FilePath + FilePrefix + '4' + '.med',
                                                                                FilePath + FilePrefix + '5' + '.med',
                                                                                FilePath + FilePrefix + '6' + '.med'])
-  """
+  
   TETRA_dom_fl.CellArrays = ['Pression', 'Temp.C', 'VitesseX']
   TETRA_dom_fl.GlobalFamilyStatus = ['1 1 1', '1 2 1', '1 3 1', '1 4 1', '1 5 1']
   TETRA_dom_fl.GlobalEntityStatus = ['0 203', '0 304']
@@ -65,7 +65,7 @@ def LoadMultipleFiles_med(FilePath, FilePrefix):
   rv.CameraParallelScale = 69.24819492232271
 
   Render()
-  """
+  
 
 
 scriptdir = inspect.getframeinfo(inspect.currentframe())[0]

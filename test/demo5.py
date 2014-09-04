@@ -68,7 +68,7 @@ def LoadMultipleFiles(FilePath, FilePrefix):
 
 scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
 testdir = os.path.dirname( os.path.abspath(scriptdir) )
-
+pvdata = os.getenv("SAMPLES_SRC_DIR")
 
 if __name__ == "__main__":
-  LoadMultipleFiles(FilePath=testdir+"/Data/dualSphereAnimation/", FilePrefix="dualSphereAnimation_P00T000")
+  LoadMultipleFiles(FilePath=pvdata+"/Data/dualSphereAnimation/", FilePrefix="dualSphereAnimation_P00T000")

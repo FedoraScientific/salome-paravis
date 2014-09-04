@@ -44,7 +44,7 @@ def demo4(fname, animpth):
 
 scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
 testdir = os.path.dirname( os.path.abspath(scriptdir) )
-
+pvdata = os.getenv("SAMPLES_SRC_DIR")
 
 if __name__ == "__main__":
-    demo4(fname=testdir+"/Data/can.ex2", animpth=testdir+"/VisuPrs/Animation/")
+    demo4(fname=pvdata+"/Data/can.ex2", animpth=testdir+"/VisuPrs/Animation/")

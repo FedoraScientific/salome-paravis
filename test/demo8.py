@@ -80,7 +80,7 @@ def demo8(fname, impth):
 
 scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
 testdir = os.path.dirname( os.path.abspath(scriptdir) )
-
+pvdata = os.getenv("SAMPLES_SRC_DIR")
 
 if __name__ == "__main__":
-    demo8(fname=testdir+"/Data/can.ex2", impth=testdir+"/Pic/")
+    demo8(fname=pvdata+"/Data/can.ex2", impth=testdir+"/Pic/")

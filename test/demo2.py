@@ -96,7 +96,7 @@ def demo2(fname, impth):
 
 scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
 testdir = os.path.dirname( os.path.abspath(scriptdir) )
-
+pvdata = os.getenv("SAMPLES_SRC_DIR")
 
 if __name__ == "__main__":
-    demo2(fname=testdir+"/Data/disk_out_ref.ex2", impth=testdir+"/Pic/")
+    demo2(fname=pvdata+"/Data/disk_out_ref.ex2", impth=testdir+"/Pic/")
