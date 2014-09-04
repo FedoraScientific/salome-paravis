@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import os
+import os, inspect
 
 def demo7(fname, impth):
     """This method demonstrates the Slice filter."""
@@ -57,8 +57,10 @@ def demo7(fname, impth):
     Render()
     WriteImage(filename = (impth + "sliceFilter_4.png"), view=v, Magnification=2)
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
- demo7(fname=pvdata+"/Data/can.ex2", impth=testdir+"/Pic/")
+    demo7(fname=testdir+"/Data/can.ex2", impth=testdir+"/Pic/")

@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import os
+import os, inspect
 
 def demo6(fname, impth):
     """This method demonstrates the Clip filter."""
@@ -68,8 +68,11 @@ def demo6(fname, impth):
     Render()
     WriteImage(filename = (impth + "clipFilter_4.png"), view=v, Magnification=2)
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+
+
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
- demo6(fname=pvdata+"/Data/can.ex2", impth=testdir+"/Pic/")
+    demo6(fname=testdir+"/Data/can.ex2", impth=testdir+"/Pic/")

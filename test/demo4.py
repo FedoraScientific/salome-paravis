@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import os
+import os, inspect
 
 def demo4(fname, animpth):
     """This method demonstrates the AnimateReader for creating animations."""
@@ -42,8 +42,9 @@ def demo4(fname, animpth):
     r = AnimateReader(reader, view=v, filename=(animpth + "can.png"))
 
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
- demo4(fname=pvdata+"/Data/can.ex2", animpth=testdir+"/Animation/")
+    demo4(fname=testdir+"/Data/can.ex2", animpth=testdir+"/VisuPrs/Animation/")

@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import  os
+import  os, inspect
 
 def demo3(impth):
     """This method demonstrates an artificial data sources,
@@ -90,8 +90,10 @@ def demo3(impth):
     WriteImage(filename = (impth + "demo3_1.png"), view=v, Magnification=2)
     WriteImage(filename = (impth + "demo3_2.png"), view=rv, Magnification=2)
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
- demo3(impth=testdir+"/Pic/")
+    demo3(impth=testdir+"/Pic/")

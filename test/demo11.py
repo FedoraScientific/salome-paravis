@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import os
+import os, inspect
 
 def demo11(fname, impth):
     """This method demonstrates the Contour filter."""
@@ -72,8 +72,10 @@ def demo11(fname, impth):
     Render()
     WriteImage(filename = (impth + "clipFilter_4.png"), view=v, Magnification=2)
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
- demo11(fname=pvdata+"/Data/disk_out_ref.ex2", impth=testdir+"/Pic/")
+    demo11(fname=testdir+"/Data/disk_out_ref.ex2", impth=testdir+"/Pic/")
