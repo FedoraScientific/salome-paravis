@@ -32,13 +32,6 @@ PVGUI_ViewManager::PVGUI_ViewManager( SUIT_Study* study, SUIT_Desktop* desk )
 }
 
 /*!
-  Destructor
-*/
-PVGUI_ViewManager::~PVGUI_ViewManager()
-{
-}
-
-/*!
   \brief Returns the ParaView multi-view manager for the active view window
 */
 pqTabbedMultiViewWidget* PVGUI_ViewManager::getMultiViewManager()

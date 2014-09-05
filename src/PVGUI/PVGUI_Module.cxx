@@ -91,7 +91,7 @@
 #include <QHelpEngine>
 
 #include <pqApplicationCore.h>
-#include <pqPVApplicationCore.h>
+//#include <pqPVApplicationCore.h>
 #include <pqActiveView.h>
 #include <pqObjectBuilder.h>
 #include <pqOptions.h>
@@ -128,7 +128,6 @@
 #include <pqServerConnectReaction.h>
 #include <pqServerDisconnectReaction.h>
 
-#include <pqApplicationCore.h>
 #include <pqServerManagerObserver.h>
 #include <vtkClientServerInterpreterInitializer.h>
 #include <vtkPVConfig.h>
@@ -138,11 +137,7 @@
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 
 //----------------------------------------------------------------------------
-pqPVApplicationCore* PVGUI_Module::MyCoreApp = 0;
-
 PVGUI_Module* ParavisModule = 0;
-
-PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::myEngine;
 
 /*!
   \mainpage
@@ -339,13 +334,7 @@ PVGUI_Module::~PVGUI_Module()
 
 PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetEngine()
 {
-  // initialize PARAVIS module engine (load, if necessary)
-  if ( CORBA::is_nil( myEngine ) ) {
-    Engines::EngineComponent_var comp =
-        SalomeApp_Application::lcc()->FindOrLoad_Component( "FactoryServer", "PARAVIS" );
-    myEngine = PARAVIS_ORB::PARAVIS_Gen::_narrow( comp );
-  }
-  return myEngine;
+  return PVGUI_ViewerModel::GetEngine();
 }
 
 /*!
@@ -489,48 +478,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
   connect(&pqActiveObjects::instance(),
           SIGNAL(representationChanged(pqRepresentation*)),
           this, SLOT(onRepresentationChanged(pqRepresentation*)));
-}
-
-bool PVGUI_Module::connectToExternalPVServer()
-{
-  pqServer* server = pqActiveObjects::instance().activeServer();
-  if (server && server->isRemote())
-    {
-      // Already connected to an external server, do nothing
-      MESSAGE("connectToExternalPVServer(): Already connected to an external PVServer, won't reconnect.");
-      return false;
-    }
-
-  std::stringstream msg;
-
-  // Try to connect to the external PVServer - gives priority to an externally specified URL:
-  QString serverUrlEnv = getenv("PARAVIS_PVSERVER_URL");
-  std::string serverUrl;
-  if (!serverUrlEnv.isEmpty())
-    serverUrl = serverUrlEnv.toStdString();
-  else
-    {
-      // Get the URL from the engine (possibly starting the pvserver)
-      CORBA::String_var url = GetEngine()->FindOrStartPVServer(0);  // take the first free port
-      serverUrl = (char *)url;
-    }
-
-  msg << "connectToExternalPVServer(): Trying to connect to the external PVServer '" << serverUrl << "' ...";
-  MESSAGE(msg.str());
-
-  if (!pqServerConnectReaction::connectToServer(pqServerResource(serverUrl.c_str())))
-    {
-      std::stringstream msg2;
-      msg2 << "Error while connecting to the requested pvserver '" << serverUrl;
-      msg2 << "'. Might use default built-in connection instead!" << std::endl;
-      qWarning(msg2.str().c_str());  // will go to the ParaView console (see ParavisMessageOutput below)
-      SUIT_MessageBox::warning( getApp()->desktop(),
-                                QString("Error connecting to PVServer"), QString(msg2.str().c_str()));
-      return false;
-    }
-  else
-    MESSAGE("connectToExternalPVServer(): Connected!");
-  return true;
 }
 
 void PVGUI_Module::onStartProgress()
@@ -730,75 +677,11 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 }
 
 /*!
-  \brief Static method, performs initialization of ParaView session.
-  \return \c true if ParaView has been initialized successfully, otherwise false
-*/
-bool PVGUI_Module::pvInit()
-{
-  //  if ( !pqImplementation::Core ){
-  if ( ! MyCoreApp) {
-    // Obtain command-line arguments
-    int argc = 0;
-    char** argv = 0;
-    QString aOptions = getenv("PARAVIS_OPTIONS");
-    QStringList aOptList = aOptions.split(":", QString::SkipEmptyParts);
-    argv = new char*[aOptList.size() + 1];
-    QStringList args = QApplication::arguments();
-    argv[0] = (args.size() > 0)? strdup(args[0].toLatin1().constData()) : strdup("paravis");
-    argc++;
-
-    foreach (QString aStr, aOptList) {
-      argv[argc] = strdup( aStr.toLatin1().constData() );
-      argc++;
-    }
-    MyCoreApp = new pqPVApplicationCore (argc, argv);
-    if (MyCoreApp->getOptions()->GetHelpSelected() ||
-        MyCoreApp->getOptions()->GetUnknownArgument() ||
-        MyCoreApp->getOptions()->GetErrorMessage() ||
-        MyCoreApp->getOptions()->GetTellVersion()) {
-      return false;
-      }
-
-    /* VTN: Looks like trash. For porting see branded_paraview_initializer.cxx.in
-    // Not sure why this is needed. Andy added this ages ago with comment saying
-    // needed for Mac apps. Need to check that it's indeed still required.
-    QDir dir(QApplication::applicationDirPath());
-    dir.cdUp();
-    dir.cd("Plugins");
-    QApplication::addLibraryPath(dir.absolutePath());
-    // Load required application plugins.
-    QString plugin_string = "";
-    QStringList plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
-    pqBrandPluginsLoader loader;
-    if (loader.loadPlugins(plugin_list) == false) {
-      printf("Failed to load required plugins for this application\n");
-      return false;
-    }
-
-    // Load optional plugins.
-    plugin_string = "";
-    plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
-    loader.loadPlugins(plugin_list, true); //quietly skip not-found plugins.
-    */
-    // End of Initializer code
-
-    vtkOutputWindow::SetInstance(PVGUI_OutputWindowAdapter::New());
-    
-    new pqTabbedMultiViewWidget(); // it registers as "MULTIVIEW_WIDGET on creation
-    
-    for (int i = 0; i < argc; i++)
-      free(argv[i]);
-    delete[] argv;
-  }
-  
-  return true;
-}
- 
-/*!
   \brief Shows (toShow = true) or hides ParaView view window
 */
 void PVGUI_Module::showView( bool toShow )
 {
+  PVGUI_ViewManager
   SalomeApp_Application* anApp = getApp();
   PVGUI_ViewManager* viewMgr =
     dynamic_cast<PVGUI_ViewManager*>( anApp->getViewManager( PVGUI_Viewer::Type(), false ) );
@@ -853,15 +736,6 @@ void PVGUI_Module::endWaitCursor()
   QApplication::restoreOverrideCursor();
 }
 
-/*!
-  \brief Returns the ParaView multi-view manager.
-*/
-pqTabbedMultiViewWidget* PVGUI_Module::getMultiViewManager() const
-{
-  return qobject_cast<pqTabbedMultiViewWidget*>(pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
-}
-
-
 static void ParavisMessageOutput(QtMsgType type, const char *msg)
 {
   switch(type)
@@ -880,8 +754,6 @@ static void ParavisMessageOutput(QtMsgType type, const char *msg)
     break;
     }
 }
-
-
 
 /*!
   \brief Activate module.
@@ -1071,14 +943,14 @@ void PVGUI_Module::onModelOpened()
   }
 }
 
-/*!
-  \brief Returns IOR of current engine
-*/
-QString PVGUI_Module::engineIOR() const
-{
-  CORBA::String_var anIOR = GetEngine()->GetIOR();
-  return QString(anIOR.in());
-}
+///*!
+//  \brief Returns IOR of current engine
+//*/
+//QString PVGUI_Module::engineIOR() const
+//{
+//  CORBA::String_var anIOR = GetEngine()->GetIOR();
+//  return QString(anIOR.in());
+//}
 
 
 /*!

@@ -31,7 +31,7 @@ class PVGUI_ViewManager : public SUIT_ViewManager
 
 public:
   PVGUI_ViewManager( SUIT_Study*, SUIT_Desktop* );
-  ~PVGUI_ViewManager();
+  ~PVGUI_ViewManager() {}
 
   pqTabbedMultiViewWidget*     getMultiViewManager();
 };
