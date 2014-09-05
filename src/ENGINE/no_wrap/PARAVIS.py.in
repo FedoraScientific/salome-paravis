@@ -26,37 +26,53 @@ import PARAVIS_ORB__POA
 import SALOME_ComponentPy
 import SALOME_DriverPy
 import SALOMEDS
+import SALOME
 import PARAVIS_utils
 import subprocess as subp
+import socket
 from time import sleep
 import os
-from SALOME_utilities import MESSAGE
+#from SALOME_utilities import MESSAGE
+
+def MESSAGE(m):
+    os.system("echo \"%s\" >> /tmp/paravis_log.txt" % m)
 
 class PARAVIS_Impl:
     """ The core implementation (non CORBA, or Study related).
         See the IDL for the documentation.
     """
     MAX_PVSERVER_PORT_TRIES = 10
+    PARAVIEW_ROOT_DIR = "@PARAVIEW_ROOT_DIR@"
+    PVSERVER_DEFAULT_PORT = 11111
     
     def __init__(self):
         self.pvserverPort = -1
         self.pvserverPop = None  # Popen object from subprocess module
         self.liveConnection = None
         self.lastTrace = ""
-    
+            
     """
-    Private. Keeps a connection to the PVServer to prevent 
-    it from stopping because all connections from GUI or scripts have been closed.
+    Private. Identify a free port to launch the PVServer. 
     """
-    def __startKeepAlive(self, host, port):
-        print "[PARAVIS] 0 __startKeepAlive", host, port
-        from paraview import simple as pvs
-        self.liveConnection = pvs.Connect(host, port)
-        print "[PARAVIS] 1 __startKeepAlive", self.liveConnection
+    def __getFreePort(self, startPort):
+        cnt = 0
+        currPort = startPort
+        while cnt < self.MAX_PVSERVER_PORT_TRIES:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.bind(('', currPort))
+                s.close()
+                return currPort
+            except socket.error as e:
+                cnt += 1
+                currPort += 1
+                pass
+        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
+                            "[PARAVIS] maximum number of tries to retrieve a free port for the PVServer",
+                            "PARAVIS.py", 0))
                                            
     def FindOrStartPVServer( self, port ):
-        print "[PARAVIS] FindOrStartPVServer"
-        MESSAGE("[PARAVIS] FindOrStartPVServer")
+        MESSAGE("[PARAVIS] FindOrStartPVServer ...")
         host = "localhost"
         alive = True
         if self.pvserverPop is None:
@@ -71,37 +87,35 @@ class PARAVIS_Impl:
             return "cs://%s:%d" % (host, self.pvserverPort)  
           
         # (else) Server not alive, start it:
-        pvRootDir = os.getenv("PARAVIEW_ROOT_DIR")
-        pvServerPath = os.path.join(pvRootDir, 'bin', 'pvserver')
+        pvServerPath = os.path.join(self.PARAVIEW_ROOT_DIR, 'bin', 'pvserver')
         opt = []
         if port <= 0:
-            port = 11111
-        currPort = port
-        success = False
-        while not success and (currPort - port) < self.MAX_PVSERVER_PORT_TRIES:
-            self.pvserverPop = subp.Popen([pvServerPath, "--multi-clients", "--server-port=%d" % currPort])
-            sleep(2)
-            # Is PID still alive? If yes, consider that the launch was successful
-            self.pvserverPop.poll()
-            if self.pvserverPop.returncode is None:
-                success = True
-                self.pvserverPort = currPort
-                MESSAGE("[PARAVIS] pvserver successfully launched on port %d" % currPort)
-            currPort += 1
-        if (currPort - port) == self.MAX_PVSERVER_PORT_TRIES:
-            self.pvserverPop = None
-            raise SalomeException("Unable to start PVServer after %d tries!" % self.MAX_PVSERVER_PORT_TRIES)
-#         self.__startKeepAlive(host, self.pvserverPort)
+            port = self.__getFreePort(self.PVSERVER_DEFAULT_PORT)
+        self.pvserverPop = subp.Popen([pvServerPath, "--multi-clients", "--server-port=%d" % port])
+        sleep(1)
+        # Is PID still alive? If yes, consider that the launch was successful
+        self.pvserverPop.poll()
+        if self.pvserverPop.returncode is None:
+            success = True
+            self.pvserverPort = port
+            MESSAGE("[PARAVIS] pvserver successfully launched on port %d" % port)
+        else:
+            raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
+                            "[PARAVIS] Unable to start PVServer on port %d!" % port,
+                            "PARAVIS.py", 0))
         return "cs://%s:%d" % (host, self.pvserverPort)
 
     def StopPVServer( self ):
         MESSAGE("[PARAVIS] Trying to stop PVServer (sending KILL) ...")
         if not self.pvserverPop is None:
             self.pvserverPop.poll()
-            if not self.pvserverPop.returncode is None:
-                # Send KILL if still running:
-                self.pvserverPop.kill()
-                self.liveConnection = None
+            if self.pvserverPop.returncode is None:
+                # Terminate if still running:
+                self.pvserverPop.terminate()
+                MESSAGE("[PARAVIS] KILL signal sent.")
+                return True
+        MESSAGE("[PARAVIS] Nothing to kill.")
+        return False
     
     def PutPythonTraceStringToEngine( self, t ):
         self.lastTrace = t
@@ -113,7 +127,6 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
               SALOME_ComponentPy.SALOME_ComponentPy_i,
               SALOME_DriverPy.SALOME_DriverPy_i,
               PARAVIS_Impl):
-  
     """
     Construct an instance of PARAVIS module engine.
     The class PARAVIS implements CORBA interface PARAVIS_Gen (see PARAVIS_Gen.idl).

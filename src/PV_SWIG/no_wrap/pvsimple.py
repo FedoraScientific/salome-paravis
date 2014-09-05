@@ -48,5 +48,5 @@ def SalomeConnectToPVServer():
     __my_log("Connected to %s!" % server_url)
 
 # Automatically connect to the right PVServer when not inside SALOME GUI:
-if not paraview.servermanager.fromGUI: 
+if not paraview.fromGUI: 
   SalomeConnectToPVServer()
