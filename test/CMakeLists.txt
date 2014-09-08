@@ -18,7 +18,6 @@
 #
 
 ADD_SUBDIRECTORY(VisuPrs)
-ADD_SUBDIRECTORY(Data)
 
 SET(_demo_files
   demo0.py
