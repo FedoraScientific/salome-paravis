@@ -41,8 +41,8 @@
 #include <pqApplicationCore.h>
 // #include <pqColorScaleToolbar.h>
 #include <pqProgressManager.h>
-#include <pqRubberBandHelper.h>
-#include <pqScalarBarVisibilityAdaptor.h>
+//#include <pqRubberBandHelper.h>
+//#include <pqScalarBarVisibilityAdaptor.h>
 #include <pqUndoStack.h>
 #include <pqVCRController.h>
 
@@ -61,7 +61,7 @@
 #include <pqDeleteReaction.h>
 #include <pqChangePipelineInputReaction.h>
 #include <pqApplicationSettingsReaction.h>
-#include <pqViewSettingsReaction.h>
+//#include <pqViewSettingsReaction.h>
 #include <pqIgnoreSourceTimeReaction.h>
 #include <pqViewMenuManager.h>
 #include <pqParaViewMenuBuilders.h>
@@ -255,11 +255,11 @@ void PVGUI_Module::pvCreateActions()
   new pqApplicationSettingsReaction(anAction);*/
   
   // View Settings
-  anAction = new QAction(tr("MEN_VIEW_SETTINGS"), this);
-  anAction->setToolTip(tr("TOP_VIEW_SETTINGS"));
-  anAction->setStatusTip(tr("STB_VIEW_SETTINGS"));
-  registerAction(ViewSettingsId, anAction);
-  new pqViewSettingsReaction(anAction);
+//  anAction = new QAction(tr("MEN_VIEW_SETTINGS"), this);
+//  anAction->setToolTip(tr("TOP_VIEW_SETTINGS"));
+//  anAction->setStatusTip(tr("STB_VIEW_SETTINGS"));
+//  registerAction(ViewSettingsId, anAction);
+//  new pqViewSettingsReaction(anAction);
 
   // --- Menu "View"
   //pqViewManager* viewManager = qobject_cast<pqViewManager*>(
@@ -465,7 +465,7 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( separator(), aPVMnu );
 
   //createMenu( SettingsId, aPVMnu );
-  createMenu( ViewSettingsId, aPVMnu );
+  //createMenu( ViewSettingsId, aPVMnu );
   createMenu( separator(), aPVMnu );
 
   // --- Menu "View"

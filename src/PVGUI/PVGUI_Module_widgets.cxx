@@ -54,26 +54,11 @@
 #include <pqMultiBlockInspectorPanel.h>
 #include <pqProgressWidget.h>
 #include <pqProgressManager.h>
-#include <pqObjectInspectorWidget.h>
-#include <pqDisplayProxyEditorWidget.h>
+//#include <pqDisplayProxyEditorWidget.h>
+#include <pqPropertiesPanel.h>
 
-#include <pqAlwaysConnectedBehavior.h>
 #include <pqApplicationCore.h>
-#include <pqAutoLoadPluginXMLBehavior.h>
-#include <pqCommandLineOptionsBehavior.h>
-#include <pqCrashRecoveryBehavior.h>
-#include <pqDataTimeStepBehavior.h>
-#include <pqDefaultViewBehavior.h>
-#include <pqDeleteBehavior.h>
-#include <pqPersistentMainWindowStateBehavior.h>
-#include <pqPluginActionGroupBehavior.h>
-#include <pqPluginDockWidgetsBehavior.h>
 #include <pqPluginManager.h>
-#include <pqPVNewSourceBehavior.h>
-#include <pqSpreadSheetVisibilityBehavior.h>
-#include <pqStandardViewModules.h>
-#include <pqUndoRedoBehavior.h>
-#include <pqViewFrameActionsBehavior.h>
 #include <pqParaViewMenuBuilders.h>
 #include <pqCollaborationPanel.h>
 #include <pqMemoryInspectorPanel.h>
@@ -107,7 +92,8 @@ protected:
 
 /*!
   \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
-  ParaView pqMainWIndowCore class is fully responsible for these dock widgets' contents.
+  ParaView pqMainWindowCore class is fully responsible for these dock widgets' contents.
+  ==> To update this function, see the reference set up of ParaView in Application/Paraview/ParaviewMainWindow.ui
 */
 void PVGUI_Module::setupDockWidgets()
 {
@@ -126,40 +112,39 @@ void PVGUI_Module::setupDockWidgets()
   pipelineBrowserDock->setWidget(browser);
   myDockWidgets[pipelineBrowserDock] = true;
 
-  //Object inspector
-  QDockWidget* objectInspectorDock = new QDockWidget( tr( "TTL_OBJECT_INSPECTOR" ), desk );
-  objectInspectorDock->setObjectName("objectInspectorDock");
-  objectInspectorDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
-  desk->addDockWidget( Qt::LeftDockWidgetArea, objectInspectorDock );
+  // Properties dock (previously called OBJECT_INSPECTOR)
+  QDockWidget* propertiesDock = new QDockWidget( tr( "TTL_OBJECT_INSPECTOR" ), desk );
+  propertiesDock->setObjectName("propertiesDock");
+  propertiesDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
+  desk->addDockWidget( Qt::LeftDockWidgetArea, propertiesDock );
 
-  pqObjectInspectorWidget* objectInspectorWidget = new pqObjectInspectorWidget(objectInspectorDock);
-  objectInspectorDock->setObjectName("objectInspectorWidget");
-  objectInspectorWidget->setShowOnAccept(true);
-  objectInspectorDock->setWidget(objectInspectorWidget);
-  connect( objectInspectorWidget, SIGNAL( helpRequested(const QString&, const QString&) ),  this, SLOT( showHelpForProxy(const QString&, const QString&) ) );
-  myDockWidgets[objectInspectorDock] = true;
+  pqPropertiesPanel* propertiesPanel = new pqPropertiesPanel(propertiesDock);
+  propertiesDock->setObjectName("propertiesPanel");
+  propertiesDock->setWidget(propertiesPanel);
+  connect( propertiesPanel, SIGNAL( helpRequested(const QString&, const QString&) ),  this, SLOT( showHelpForProxy(const QString&, const QString&) ) );
+  myDockWidgets[propertiesDock] = true;
 
   //Display Dock
-  QDockWidget* displayDock = new QDockWidget( tr( "TTL_DISPLAY" ), desk );
-  displayDock->setObjectName("displayDock");
-  QWidget* displayWidgetFrame = new QWidget(displayDock);
-  displayWidgetFrame->setObjectName("displayWidgetFrame");
-  displayDock->setWidget(displayWidgetFrame);
-
-  QScrollArea* displayScrollArea = new QScrollArea(displayWidgetFrame);
-  displayScrollArea->setObjectName("displayScrollArea");
-  displayScrollArea->setWidgetResizable(true);
-
-  QVBoxLayout* verticalLayout = new QVBoxLayout(displayWidgetFrame);
-  verticalLayout->setSpacing(0);
-  verticalLayout->setContentsMargins(0, 0, 0, 0);
-
-  pqDisplayProxyEditorWidget* displayWidget = new pqDisplayProxyEditorWidget(displayDock);
-  displayWidget->setObjectName("displayWidget");
-  displayScrollArea->setWidget(displayWidget);
-  verticalLayout->addWidget(displayScrollArea);
-
-  myDockWidgets[displayDock] = true;
+//  QDockWidget* displayDock = new QDockWidget( tr( "TTL_DISPLAY" ), desk );
+//  displayDock->setObjectName("displayDock");
+//  QWidget* displayWidgetFrame = new QWidget(displayDock);
+//  displayWidgetFrame->setObjectName("displayWidgetFrame");
+//  displayDock->setWidget(displayWidgetFrame);
+//
+//  QScrollArea* displayScrollArea = new QScrollArea(displayWidgetFrame);
+//  displayScrollArea->setObjectName("displayScrollArea");
+//  displayScrollArea->setWidgetResizable(true);
+//
+//  QVBoxLayout* verticalLayout = new QVBoxLayout(displayWidgetFrame);
+//  verticalLayout->setSpacing(0);
+//  verticalLayout->setContentsMargins(0, 0, 0, 0);
+//
+//  pqDisplayProxyEditorWidget* displayWidget = new pqDisplayProxyEditorWidget(displayDock);
+//  displayWidget->setObjectName("displayWidget");
+//  displayScrollArea->setWidget(displayWidget);
+//  verticalLayout->addWidget(displayScrollArea);
+//
+//  myDockWidgets[displayDock] = true;
 
   // information dock
   QDockWidget* informationDock = new QDockWidget(tr( "TTL_INFORMATION" ), desk);
@@ -187,10 +172,8 @@ void PVGUI_Module::setupDockWidgets()
   myDockWidgets[informationDock] = true;
 
   desk->setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
-  desk->tabifyDockWidget(objectInspectorDock, displayDock);
-  desk->tabifyDockWidget(objectInspectorDock, informationDock);
-  objectInspectorDock->raise();
-
+  desk->tabifyDockWidget(propertiesDock, informationDock);
+  propertiesDock->raise();
 
   // Statistic View
   QDockWidget* statisticsViewDock  = new QDockWidget( tr( "TTL_STATISTICS_VIEW" ), desk );

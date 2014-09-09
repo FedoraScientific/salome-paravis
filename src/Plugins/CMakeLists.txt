@@ -29,9 +29,9 @@ ENDIF()
 SET(_subdirs
   #Filter 
   #ToolBar 
-  MEDReader 
-  TableReader 
-  NavigationMode 
+#  MEDReader 
+#  TableReader 
+#  NavigationMode 
   ElevationSurface
   ScaleVector
   EllipseBuilder
