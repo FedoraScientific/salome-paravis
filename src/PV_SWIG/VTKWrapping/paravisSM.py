@@ -728,25 +728,22 @@ class ColorArrayProperty(VectorProperty):
             self._UpdateProperty()
             return
 
-        found = False
-        for a in self.Available:
-            if a[1] == arr and (not att or att == a[0]):
-                att = a[0]
-                found = True
-                break
+        # if the attribute type was not specified, then we need to determine the
+        # attribute type. Thus co-processing scripts and scripts where
+        # data may not be up-to-date should always specify the attribute type to
+        # overcome this check (BUG #13933).
+        if att == None:
+            for a in self.Available:
+                if a[1] == arr:
+                    att = a[0]
+                    break
 
-        if  not found:
+        if att == None:
             pvoptions = vtkProcessModule.GetProcessModule().GetOptions()
-            # if this process is from a parallel batch run in symmetric mpi mode
-            # then we may not have any points or cells on some processes in which
-            # case we'll probably be missing the point and cell data too.  the
-            # check below makes sure that we avoid this situation.
-            if pvoptions.GetProcessType() != 0x40 or pvoptions.GetSymmetricMPIMode() == False \
-                    or len(self.Available) != 0:
+            if pvoptions.GetSymmetricMPIMode() == False:
                 raise ValueError("Could not locate array %s in the input." % arr)
-
-        catt = self.Proxy.GetProperty("ColorAttributeType")
-        if att != None:
+        else:
+            catt = self.Proxy.GetProperty("ColorAttributeType")
             catt.SetData(att)
         self.SMProperty.SetElement(0, arr)
         self._UpdateProperty()
