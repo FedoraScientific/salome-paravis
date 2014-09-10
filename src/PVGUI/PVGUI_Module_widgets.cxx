@@ -63,6 +63,7 @@
 #include <pqCollaborationPanel.h>
 #include <pqMemoryInspectorPanel.h>
 #include <pqColorMapEditor.h>
+#include <pqDeleteReaction.h>
 
 class ResizeHelper : public pqPVAnimationWidget
 {
@@ -122,6 +123,11 @@ void PVGUI_Module::setupDockWidgets()
   propertiesDock->setObjectName("propertiesPanel");
   propertiesDock->setWidget(propertiesPanel);
   connect( propertiesPanel, SIGNAL( helpRequested(const QString&, const QString&) ),  this, SLOT( showHelpForProxy(const QString&, const QString&) ) );
+  //            hook delete to pqDeleteReaction.
+  QAction* tempDeleteAction = new QAction(this);
+  pqDeleteReaction* handler = new pqDeleteReaction(tempDeleteAction);
+  handler->connect(propertiesPanel, SIGNAL(deleteRequested(pqPipelineSource*)), SLOT(deleteSource(pqPipelineSource*)));
+
   myDockWidgets[propertiesDock] = true;
 
   //Display Dock
@@ -279,7 +285,7 @@ void PVGUI_Module::setupDockWidgets()
   // Set up the dock window corners to give the vertical docks more room.
   desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-  
+
   // Setup the default dock configuration ...
   statisticsViewDock->hide();
   comparativePanelDock->hide();
