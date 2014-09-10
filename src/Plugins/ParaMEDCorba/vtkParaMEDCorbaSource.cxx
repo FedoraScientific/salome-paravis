@@ -178,7 +178,8 @@ int vtkParaMEDCorbaSource::RequestInformation(vtkInformation* request, vtkInform
       delete iorTab;
       CORBA::release(objPara);
     }
-    myInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
+    // This vtkInformationRequestKey is no more present in PV4.2
+    //myInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
   }
   return 1;
 }
