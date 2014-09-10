@@ -43,7 +43,7 @@
 #include "PVGUI_ViewManager.h"
 #include "PVGUI_ViewWindow.h"
 #include "PVGUI_Tools.h"
-//#include "PVGUI_ParaViewSettingsPane.h"
+#include "PVGUI_ParaViewSettingsPane.h"
 #include "PVGUI_OutputWindowAdapter.h"
 
 #include <SUIT_DataBrowser.h>
@@ -1272,9 +1272,9 @@ pqServer* PVGUI_Module::getActiveServer()
 void PVGUI_Module::createPreferences()
 {
   // Paraview settings tab
-//  int aParaViewSettingsTab = addPreference( tr( "TIT_PVIEWSETTINGS" ) );
-//  int aPanel = addPreference(QString(), aParaViewSettingsTab, LightApp_Preferences::UserDefined, "PARAVIS", "");
-//  setPreferenceProperty(aPanel, "content", (qint64)(new PVGUI_ParaViewSettingsPane()));
+  int aParaViewSettingsTab = addPreference( tr( "TIT_PVIEWSETTINGS" ) );
+  int aPanel = addPreference(QString(), aParaViewSettingsTab, LightApp_Preferences::UserDefined, "PARAVIS", "");
+  setPreferenceProperty(aPanel, "content", (qint64)(new PVGUI_ParaViewSettingsPane()));
 
   // Paravis settings tab
   int aParaVisSettingsTab = addPreference( tr( "TIT_PVISSETTINGS" ) );

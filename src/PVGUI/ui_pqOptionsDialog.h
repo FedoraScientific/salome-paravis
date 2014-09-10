@@ -24,10 +24,11 @@
 #include <QtGui/QStackedWidget>
 #include <QtGui/QTreeView>
 #include <QtGui/QWidget>
+#include <QtGui/QPushButton>
 
 QT_BEGIN_NAMESPACE
 
-class Ui_pqOptionsFrame
+class Ui_PVGUIOptionsFrame
 {
 public:
     QGridLayout *gridLayout;
@@ -40,13 +41,14 @@ public:
     QWidget *BlankPage;
     QTreeView *PageNames;
     QFrame *Separator;
+    QPushButton * pvButton;
 
-    void setupUi(QWidget *pqOptionsFrame)
+    void setupUi(QWidget *pvguiOptionsFrame)
     {
-        if (pqOptionsFrame->objectName().isEmpty())
-            pqOptionsFrame->setObjectName(QString::fromUtf8("pqOptionsFrame"));
-        pqOptionsFrame->resize(514, 382);
-        gridLayout = new QGridLayout(pqOptionsFrame);
+        if (pvguiOptionsFrame->objectName().isEmpty())
+          pvguiOptionsFrame->setObjectName(QString::fromUtf8("pvguiOptionsFrame"));
+        pvguiOptionsFrame->resize(514, 382);
+        gridLayout = new QGridLayout(pvguiOptionsFrame);
 #ifndef Q_OS_MAC
         gridLayout->setSpacing(6);
 #endif
@@ -54,90 +56,93 @@ public:
         gridLayout->setMargin(9);
 #endif
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        hboxLayout = new QHBoxLayout();
-#ifndef Q_OS_MAC
-        hboxLayout->setSpacing(6);
-#endif
-        hboxLayout->setMargin(4);
-        hboxLayout->setObjectName(QString::fromUtf8("hboxLayout"));
-        spacerItem = new QSpacerItem(0, 26, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        hboxLayout->addItem(spacerItem);
+        pvButton = new QPushButton("Edit ParaView settings ...", pvguiOptionsFrame);
+        gridLayout->addWidget(pvButton, 0, 0, 1, 1);
+//        hboxLayout = new QHBoxLayout();
+//#ifndef Q_OS_MAC
+//        hboxLayout->setSpacing(6);
+//#endif
+//        hboxLayout->setMargin(4);
+//        hboxLayout->setObjectName(QString::fromUtf8("hboxLayout"));
+//        spacerItem = new QSpacerItem(0, 26, QSizePolicy::Expanding, QSizePolicy::Minimum);
+//
+//        hboxLayout->addItem(spacerItem);
+//
+//        //ApplyButton = new QPushButton(pqOptionsFrame);
+//        //ApplyButton->setObjectName(QString::fromUtf8("ApplyButton"));
+//
+//        //hboxLayout->addWidget(ApplyButton);
+//
+//        //ResetButton = new QPushButton(pqOptionsFrame);
+//        //ResetButton->setObjectName(QString::fromUtf8("ResetButton"));
+//
+//        //hboxLayout->addWidget(ResetButton);
+//
+//        //CloseButton = new QPushButton(pqOptionsFrame);
+//        //CloseButton->setObjectName(QString::fromUtf8("CloseButton"));
+//        //CloseButton->setDefault(true);
+//
+//        //hboxLayout->addWidget(CloseButton);
+//
+//
+//        gridLayout->addLayout(hboxLayout, 2, 0, 1, 2);
+//
+//        Stack = new QStackedWidget(pqOptionsFrame);
+//        Stack->setObjectName(QString::fromUtf8("Stack"));
+//        BlankPage = new QWidget();
+//        BlankPage->setObjectName(QString::fromUtf8("BlankPage"));
+//        Stack->addWidget(BlankPage);
+//
+//        gridLayout->addWidget(Stack, 0, 1, 1, 1);
+//
+//        PageNames = new QTreeView(pqOptionsFrame);
+//        PageNames->setObjectName(QString::fromUtf8("PageNames"));
+//        QSizePolicy sizePolicy(static_cast<QSizePolicy::Policy>(0), static_cast<QSizePolicy::Policy>(7));
+//        sizePolicy.setHorizontalStretch(0);
+//        sizePolicy.setVerticalStretch(0);
+//        sizePolicy.setHeightForWidth(PageNames->sizePolicy().hasHeightForWidth());
+//        PageNames->setSizePolicy(sizePolicy);
+//        PageNames->setMinimumSize(QSize(160, 0));
+//        PageNames->setMaximumSize(QSize(160, 16777215));
+//
+//        gridLayout->addWidget(PageNames, 0, 0, 1, 1);
+//
+//        Separator = new QFrame(pqOptionsFrame);
+//        Separator->setObjectName(QString::fromUtf8("Separator"));
+//        Separator->setFrameShape(QFrame::HLine);
+//        Separator->setFrameShadow(QFrame::Sunken);
+//
+//        gridLayout->addWidget(Separator, 1, 0, 1, 2);
+//
+//        //QWidget::setTabOrder(CloseButton, PageNames);
+//        //QWidget::setTabOrder(PageNames, ApplyButton);
+//        //QWidget::setTabOrder(ApplyButton, ResetButton);
+//
+//        retranslateUi(pqOptionsFrame);
+//
+//        Stack->setCurrentIndex(0);
 
-        //ApplyButton = new QPushButton(pqOptionsFrame);
-        //ApplyButton->setObjectName(QString::fromUtf8("ApplyButton"));
 
-        //hboxLayout->addWidget(ApplyButton);
-
-        //ResetButton = new QPushButton(pqOptionsFrame);
-        //ResetButton->setObjectName(QString::fromUtf8("ResetButton"));
-
-        //hboxLayout->addWidget(ResetButton);
-
-        //CloseButton = new QPushButton(pqOptionsFrame);
-        //CloseButton->setObjectName(QString::fromUtf8("CloseButton"));
-        //CloseButton->setDefault(true);
-
-        //hboxLayout->addWidget(CloseButton);
-
-
-        gridLayout->addLayout(hboxLayout, 2, 0, 1, 2);
-
-        Stack = new QStackedWidget(pqOptionsFrame);
-        Stack->setObjectName(QString::fromUtf8("Stack"));
-        BlankPage = new QWidget();
-        BlankPage->setObjectName(QString::fromUtf8("BlankPage"));
-        Stack->addWidget(BlankPage);
-
-        gridLayout->addWidget(Stack, 0, 1, 1, 1);
-
-        PageNames = new QTreeView(pqOptionsFrame);
-        PageNames->setObjectName(QString::fromUtf8("PageNames"));
-        QSizePolicy sizePolicy(static_cast<QSizePolicy::Policy>(0), static_cast<QSizePolicy::Policy>(7));
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(PageNames->sizePolicy().hasHeightForWidth());
-        PageNames->setSizePolicy(sizePolicy);
-        PageNames->setMinimumSize(QSize(160, 0));
-        PageNames->setMaximumSize(QSize(160, 16777215));
-
-        gridLayout->addWidget(PageNames, 0, 0, 1, 1);
-
-        Separator = new QFrame(pqOptionsFrame);
-        Separator->setObjectName(QString::fromUtf8("Separator"));
-        Separator->setFrameShape(QFrame::HLine);
-        Separator->setFrameShadow(QFrame::Sunken);
-
-        gridLayout->addWidget(Separator, 1, 0, 1, 2);
-
-        //QWidget::setTabOrder(CloseButton, PageNames);
-        //QWidget::setTabOrder(PageNames, ApplyButton);
-        //QWidget::setTabOrder(ApplyButton, ResetButton);
-
-        retranslateUi(pqOptionsFrame);
-
-        Stack->setCurrentIndex(0);
-
-
-        QMetaObject::connectSlotsByName(pqOptionsFrame);
+        QMetaObject::connectSlotsByName(pvguiOptionsFrame);
     } // setupUi
 
-    void retranslateUi(QWidget *pqOptionsFrame)
+    void retranslateUi(QWidget *pvguiOptionsFrame)
     {
-        pqOptionsFrame->setWindowTitle(QApplication::translate("pqOptionsFrame", "Options", 0, QApplication::UnicodeUTF8));
+      pvguiOptionsFrame->setWindowTitle(QApplication::translate("pvguiOptionsFrame", "Options", 0, QApplication::UnicodeUTF8));
         //ApplyButton->setText(QApplication::translate("pqOptionsFrame", "&Apply", 0, QApplication::UnicodeUTF8));
         //ResetButton->setText(QApplication::translate("pqOptionsFrame", "&Reset", 0, QApplication::UnicodeUTF8));
         //CloseButton->setText(QApplication::translate("pqOptionsFrame", "&Ok", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_WHATSTHIS
-        PageNames->setWhatsThis(QApplication::translate("pqOptionsFrame", "Select a category to show the options for that category.", 0, QApplication::UnicodeUTF8));
+//        PageNames->setWhatsThis(QApplication::translate("pvguiOptionsFrame", "Select a category to show the options for that category.", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_WHATSTHIS
-        Q_UNUSED(pqOptionsFrame);
+        Q_UNUSED(pvguiOptionsFrame);
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class pqOptionsFrame: public Ui_pqOptionsFrame {};
+    class PVGUIOptionsFrame: public Ui_PVGUIOptionsFrame {};
 } // namespace Ui
 
 QT_END_NAMESPACE

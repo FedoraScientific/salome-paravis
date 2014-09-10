@@ -64,7 +64,7 @@ SET(_moc_HEADERS
   PVGUI_ViewManager.h
   PVGUI_ViewModel.h
   PVGUI_ViewWindow.h
- # PVGUI_ParaViewSettingsPane.h
+  PVGUI_ParaViewSettingsPane.h
 )
 
 # header files / no moc processing
@@ -136,7 +136,7 @@ SET(_other_SOURCES
   PVGUI_ViewWindow.cxx
   PVGUI_OutputWindowAdapter.cxx
   PVGUI_Tools.cxx
-#  PVGUI_ParaViewSettingsPane.cxx
+  PVGUI_ParaViewSettingsPane.cxx
   #PVGUI_MatplotlibMathTextUtilities.cxx
   PARAVIS_Gen_i.cc
   PV_Tools.cxx
