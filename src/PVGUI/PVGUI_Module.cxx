@@ -42,6 +42,7 @@
 #include "PVGUI_OutputWindowAdapter.h"
 #include "PVGUI_Behaviors.h"
 
+// SALOME Includes
 #include <SUIT_DataBrowser.h>
 #include <SUIT_Desktop.h>
 #include <SUIT_MessageBox.h>
@@ -50,26 +51,25 @@
 #include <SUIT_OverrideCursor.h>
 #include <SUIT_ExceptionHandler.h>
 
-// SALOME Includes
-#include "SALOME_LifeCycleCORBA.hxx"
-#include "SALOMEDS_SObject.hxx"
+#include <SALOME_LifeCycleCORBA.hxx>
+#include <SALOMEDS_SObject.hxx>
 
-#include "LightApp_SelectionMgr.h"
-#include "LightApp_NameDlg.h"
-
+#include <LightApp_SelectionMgr.h>
+#include <LightApp_NameDlg.h>
 #include <SalomeApp_Application.h>
 #include <SalomeApp_Study.h>
 #include <SALOME_ListIO.hxx>
 #include <SALOMEDS_Tool.hxx>
-#include <PyInterp_Interp.h>
-#include <PyInterp_Dispatcher.h>
-#include <PyConsole_Console.h>
-#include <PyConsole_Interp.h>
-
-#include <sstream>
+#include <Utils_ORB_INIT.hxx>
+#include <Utils_SINGLETON.hxx>
 
 #include <QtxActionMenuMgr.h>
 #include <QtxActionToolMgr.h>
+
+#include <PARAVIS_version.h>
+
+// External includes
+#include <sstream>
 
 #include <QAction>
 #include <QApplication>
@@ -90,81 +90,44 @@
 #include <QDockWidget>
 #include <QHelpEngine>
 
+// Paraview includes
+#include <vtkPVConfig.h>  // for symbol PARAVIEW_VERSION
+#include <vtkProcessModule.h>
+#include <vtkPVSession.h>
+#include <vtkPVProgressHandler.h>
+#include <vtkOutputWindow.h>
+#include <vtkEventQtSlotConnect.h>
+#include <vtkNew.h>
+#include <vtkSMProxy.h>
+#include <vtkSmartPointer.h>
+#include <vtkSMSession.h>
+#include <vtkSMTrace.h>
+#include <vtkSMSessionProxyManager.h>
+#include <vtkSMParaViewPipelineController.h>
+
 #include <pqApplicationCore.h>
 #include <pqPVApplicationCore.h>
 #include <pqActiveView.h>
 #include <pqObjectBuilder.h>
 #include <pqOptions.h>
-#include <pqRenderView.h>
+#include <pqSettings.h>
 #include <pqServer.h>
 #include <pqUndoStack.h>
-#include <pqVCRController.h>
 #include <pqTabbedMultiViewWidget.h>
-#include <pqPipelineSource.h>
 #include <pqActiveObjects.h>
-#include <vtkProcessModule.h>
-#include <vtkSMSession.h>
-#include <vtkPVSession.h>
-#include <vtkPVProgressHandler.h>
-#include <pqParaViewBehaviors.h>
 #include <pqHelpReaction.h>
-#include <vtkOutputWindow.h>
 #include <pqPluginManager.h>
-#include <pqSettings.h>
 #include <pqPythonDialog.h>
 #include <pqPythonManager.h>
-#include <pqPythonShell.h>
 #include <pqLoadDataReaction.h>
-#include <vtkEventQtSlotConnect.h>
 #include <pqPythonScriptEditor.h>
 #include <pqDataRepresentation.h>
-#include <pqPipelineRepresentation.h>
-//#include <pqLookupTableManager.h>
 #include <pqDisplayColorWidget.h>
 #include <pqColorToolbar.h>
 #include <pqScalarBarVisibilityReaction.h>
-#include <pqStandardPropertyWidgetInterface.h>
-#include <pqStandardViewFrameActionsImplementation.h>
-#include <pqViewStreamingBehavior.h>
-
-#include <PARAVIS_version.h>
-
-#include <vtkPVConfig.h>
-
 #include <pqServerResource.h>
 #include <pqServerConnectReaction.h>
 #include <pqServerDisconnectReaction.h>
-
-#include <pqApplicationCore.h>
-#include <pqAutoLoadPluginXMLBehavior.h>
-#include <pqCommandLineOptionsBehavior.h>
-#include <pqCrashRecoveryBehavior.h>
-#include <pqDataTimeStepBehavior.h>
-#include <pqDefaultViewBehavior.h>
-#include <pqObjectPickingBehavior.h>
-#include <pqPersistentMainWindowStateBehavior.h>
-#include <pqPipelineContextMenuBehavior.h>
-#include <pqPluginActionGroupBehavior.h>
-#include <pqPluginDockWidgetsBehavior.h>
-#include <pqPluginManager.h>
-#include <pqSpreadSheetVisibilityBehavior.h>
-#include <pqUndoRedoBehavior.h>
-#include <pqServerManagerObserver.h>
-#include <pqVerifyRequiredPluginBehavior.h>
-#include <pqFixPathsInStateFilesBehavior.h>
-#include <pqPluginSettingsBehavior.h>
-#include <pqPropertiesPanel.h>
-
-#include <pqApplyBehavior.h>
-
-#include <vtkClientServerInterpreterInitializer.h>
-#include <vtkPVConfig.h>
-
-// Trace related
-#include <vtkNew.h>
-#include <vtkSMTrace.h>
-#include <vtkSMSessionProxyManager.h>
-#include <vtkSMParaViewPipelineController.h>
 
 //----------------------------------------------------------------------------
 pqPVApplicationCore* PVGUI_Module::MyCoreApp = 0;
@@ -254,9 +217,9 @@ PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::myEngine;
         aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
       _PTR(AttributeName) aName (anAttr);
 
-      //CORBA::ORB_var anORB = PARAVIS::PARAVIS_Gen_i::GetORB();
-      int dnu;
-      CORBA::ORB_var anORB = CORBA::ORB_init(dnu, 0); // suppose ORB was already initialized
+      ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
+      CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
+
       SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
       CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
       SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
@@ -642,6 +605,7 @@ void PVGUI_Module::onInitTimer()
 #ifndef PARAVIS_WITH_FULL_CORBA
   connectToExternalPVServer();
 #endif
+  startTrace();
 }
   
 /*!
