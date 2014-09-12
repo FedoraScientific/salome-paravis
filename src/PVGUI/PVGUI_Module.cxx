@@ -242,25 +242,6 @@ PVGUI_Module* ParavisModule = 0;
          SALOME module wrapping ParaView GUI.
 */
 
-
-/*
-  Fix for the issue 21730: [CEA 596] Slice of polyhedron in PARAVIS returns no cell.
-  Wrap vtkEDFCutter filter.
-*/
-
-extern "C" void vtkEDFCutterCS_Initialize(vtkClientServerInterpreter*);
-static void vtkEDFHelperInit();
-
-void vtkEDFHelperInit(vtkClientServerInterpreter* interp){
-    vtkEDFCutterCS_Initialize(interp);
-}
-
-void vtkEDFHelperInit() {
-    vtkClientServerInterpreterInitializer::GetInitializer()->
-        RegisterCallback(&vtkEDFHelperInit);
-}
-
-
   _PTR(SComponent)
   ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
   {
@@ -1690,10 +1671,10 @@ extern "C" {
 
   bool flag = false;
   PVGUI_EXPORT CAM_Module* createModule() {
-    if(!flag) {
-        vtkEDFHelperInit();
-        flag = true;
-    }      
+//    if(!flag) {
+//        vtkEDFHelperInit();
+//        flag = true;
+//    }
     return new PVGUI_Module();
   }
   
