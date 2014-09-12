@@ -30,6 +30,7 @@ INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${QT_INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 # additional preprocessor / compiler flags
@@ -58,6 +59,12 @@ SET(_link_LIBRARIES
 
 # --- headers ---
 
+SET(_ui_files
+    resources/pqCustomSettingsWidget.ui
+    )
+
+QT4_WRAP_UI(_ui_FORMS_HEADERS ${_ui_files})
+
 # header files / to be processed by moc
 SET(_moc_HEADERS
   PVGUI_Module.h
@@ -79,7 +86,7 @@ SET(_other_HEADERS
 )
 
 # header files / to install
-SET(PVGUI_HEADERS ${_moc_HEADERS} ${_other_HEADERS})
+SET(PVGUI_HEADERS ${_moc_HEADERS} ${_other_HEADERS} ${_ui_FORMS_HEADERS})
 
 # --- resources ---
 
@@ -167,6 +174,7 @@ SET(PVGUI_SOURCES
   ${_rcc_SOURCES} 
   ${vtkEDFCutter_SRCS} 
   ${_VTK_wrap_SOURCES}
+  ${_ui_FORMS_HEADERS}
   )
 
 # --- rules ---

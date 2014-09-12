@@ -130,29 +130,7 @@ void PVGUI_Module::setupDockWidgets()
 
   myDockWidgets[propertiesDock] = true;
 
-  //Display Dock
-//  QDockWidget* displayDock = new QDockWidget( tr( "TTL_DISPLAY" ), desk );
-//  displayDock->setObjectName("displayDock");
-//  QWidget* displayWidgetFrame = new QWidget(displayDock);
-//  displayWidgetFrame->setObjectName("displayWidgetFrame");
-//  displayDock->setWidget(displayWidgetFrame);
-//
-//  QScrollArea* displayScrollArea = new QScrollArea(displayWidgetFrame);
-//  displayScrollArea->setObjectName("displayScrollArea");
-//  displayScrollArea->setWidgetResizable(true);
-//
-//  QVBoxLayout* verticalLayout = new QVBoxLayout(displayWidgetFrame);
-//  verticalLayout->setSpacing(0);
-//  verticalLayout->setContentsMargins(0, 0, 0, 0);
-//
-//  pqDisplayProxyEditorWidget* displayWidget = new pqDisplayProxyEditorWidget(displayDock);
-//  displayWidget->setObjectName("displayWidget");
-//  displayScrollArea->setWidget(displayWidget);
-//  verticalLayout->addWidget(displayScrollArea);
-//
-//  myDockWidgets[displayDock] = true;
-
-  // information dock
+  // Information dock
   QDockWidget* informationDock = new QDockWidget(tr( "TTL_INFORMATION" ), desk);
   informationDock->setObjectName("informationDock");
 
@@ -178,7 +156,7 @@ void PVGUI_Module::setupDockWidgets()
   myDockWidgets[informationDock] = true;
 
   desk->setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
-  desk->tabifyDockWidget(propertiesDock, informationDock);
+  desk->tabifyDockWidget(informationDock, propertiesDock);
   propertiesDock->raise();
 
   // Statistic View

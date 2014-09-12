@@ -23,625 +23,354 @@
 //
 
 #include "PVGUI_ParaViewSettingsPane.h"
-#include "ui_pqOptionsDialog.h"
+#include "ui_pqCustomSettingsWidget.h"
 
-#include <pqApplicationSettingsReaction.h>
+#include <QtxDialog.h>
 
 #include <QString>
 
 
-//class OptionsDialogModelItem
-//{
-//public:
-//  OptionsDialogModelItem();
-//  OptionsDialogModelItem(const QString &name);
-//  ~OptionsDialogModelItem();
-//
-//  OptionsDialogModelItem *Parent;
-//  QString Name;
-//  QList<OptionsDialogModelItem *> Children;
-//};
-//
-//
-//class OptionsDialogModel : public QAbstractItemModel
-//{
-//public:
-//  OptionsDialogModel(QObject *parent=0);
-//  virtual ~OptionsDialogModel();
-//
-//  virtual int rowCount(const QModelIndex &parent=QModelIndex()) const;
-//  virtual int columnCount(const QModelIndex &parent=QModelIndex()) const;
-//  virtual QModelIndex index(int row, int column,
-//      const QModelIndex &parent=QModelIndex()) const;
-//  virtual QModelIndex parent(const QModelIndex &child) const;
-//
-//  virtual QVariant data(const QModelIndex &index,
-//      int role=Qt::DisplayRole) const;
-//
-//  QModelIndex getIndex(const QString &path) const;
-//  QString getPath(const QModelIndex &index) const;
-//  void addPath(const QString &path);
-//  bool removeIndex(const QModelIndex &index);
-//
-//private:
-//  QModelIndex getIndex(OptionsDialogModelItem *item) const;
-//
-//private:
-//  OptionsDialogModelItem *Root;
-//};
+#include "pqActiveObjects.h"
+#include "pqApplicationCore.h"
+#include "pqProxyWidget.h"
+#include "pqSearchBox.h"
+#include "pqServer.h"
+#include "pqSettings.h"
+#include "pqUndoStack.h"
+#include "vtkNew.h"
+#include "vtkPVXMLElement.h"
+#include "vtkSmartPointer.h"
+#include "vtkSMProperty.h"
+#include "vtkSMPropertyHelper.h"
+#include "vtkSMPropertyIterator.h"
+#include "vtkSMProxy.h"
+#include "vtkSMProxyIterator.h"
+#include "vtkSMSessionProxyManager.h"
+#include "vtkSMSettings.h"
 
+#include <QKeyEvent>
+#include <QMap>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QSpacerItem>
+#include <QVBoxLayout>
+#include <QShowEvent>
+#include <QHideEvent>
 
-class OptionsDialogForm : public Ui::PVGUIOptionsFrame
+// This class is revisited to hack on the SALOME's Preferences "Default" button
+// to ParaView's "Default" behavior.
+class PVGUI_ParaViewSettingsPane::pqInternals
 {
 public:
-  OptionsDialogForm();
-  ~OptionsDialogForm();
+  pqInternals()
+  {
+    // Get the containing preference tab to identify when it has focus
 
-//  QMap<QString, pqOptionsPage *> Pages;
-//  OptionsDialogModel *Model;
-//  int ApplyUseCount;
-  //bool ApplyNeeded;
+  }
+  ~pqInternals();
+
+  Ui::CustomSettingsWidget Ui;
+
+  // Map from tab indices to stack widget indices. This is needed because there
+  // are more widgets in the stacked widgets than just what we add.
+  QMap<int, int> TabToStackedWidgets;
 };
 
-
-//----------------------------------------------------------------------------
-//OptionsDialogModelItem::OptionsDialogModelItem()
-//  : Name(), Children()
-//{
-//  this->Parent = 0;
-//}
-//
-//OptionsDialogModelItem::OptionsDialogModelItem(const QString &name)
-//  : Name(name), Children()
-//{
-//  this->Parent = 0;
-//}
-//
-//OptionsDialogModelItem::~OptionsDialogModelItem()
-//{
-//  QList<OptionsDialogModelItem *>::Iterator iter = this->Children.begin();
-//  for( ; iter != this->Children.end(); ++iter)
-//    {
-//    delete *iter;
-//    }
-//}
-
-
-//----------------------------------------------------------------------------
-//OptionsDialogModel::OptionsDialogModel(QObject *parentObject)
-//  : QAbstractItemModel(parentObject)
-//{
-//  this->Root = new OptionsDialogModelItem();
-//}
-//
-//OptionsDialogModel::~OptionsDialogModel()
-//{
-//  delete this->Root;
-//}
-//
-//int OptionsDialogModel::rowCount(const QModelIndex &parentIndex) const
-//{
-//  OptionsDialogModelItem *item = this->Root;
-//  if(parentIndex.isValid())
-//    {
-//    item = reinterpret_cast<OptionsDialogModelItem *>(
-//        parentIndex.internalPointer());
-//    }
-//
-//  return item->Children.size();
-//}
-//
-//int OptionsDialogModel::columnCount(const QModelIndex &) const
-//{
-//  return 1;
-//}
-//
-//QModelIndex OptionsDialogModel::index(int row, int column,
-//    const QModelIndex &parentIndex) const
-//{
-//  OptionsDialogModelItem *item = this->Root;
-//  if(parentIndex.isValid())
-//    {
-//    item = reinterpret_cast<OptionsDialogModelItem *>(
-//        parentIndex.internalPointer());
-//    }
-//
-//  if(column == 0 && row >= 0 && row < item->Children.size())
-//    {
-//    return this->createIndex(row, column, item->Children[row]);
-//    }
-//
-//  return QModelIndex();
-//}
-//
-//QModelIndex OptionsDialogModel::parent(const QModelIndex &child) const
-//{
-//  if(child.isValid())
-//    {
-//    OptionsDialogModelItem *item =
-//        reinterpret_cast<OptionsDialogModelItem *>(child.internalPointer());
-//    return this->getIndex(item->Parent);
-//    }
-//
-//  return QModelIndex();
-//}
-//
-//QVariant OptionsDialogModel::data(const QModelIndex &idx, int role) const
-//{
-//  if(idx.isValid())
-//    {
-//    OptionsDialogModelItem *item =
-//        reinterpret_cast<OptionsDialogModelItem *>(idx.internalPointer());
-//    if(role == Qt::DisplayRole || role == Qt::ToolTipRole)
-//      {
-//      return QVariant(item->Name);
-//      }
-//    }
-//
-//  return QVariant();
-//}
-//
-//QModelIndex OptionsDialogModel::getIndex(const QString &path) const
-//{
-//  OptionsDialogModelItem *item = this->Root;
-//  QStringList names = path.split(".");
-//  QStringList::Iterator iter = names.begin();
-//  for( ; item && iter != names.end(); ++iter)
-//    {
-//    OptionsDialogModelItem *child = 0;
-//    QList<OptionsDialogModelItem *>::Iterator jter = item->Children.begin();
-//    for( ; jter != item->Children.end(); ++jter)
-//      {
-//      if((*jter)->Name == *iter)
-//        {
-//        child = *jter;
-//        break;
-//        }
-//      }
-//
-//    item = child;
-//    }
-//
-//  if(item && item != this->Root)
-//    {
-//    return this->getIndex(item);
-//    }
-//
-//  return QModelIndex();
-//}
-//
-//QString OptionsDialogModel::getPath(const QModelIndex &idx) const
-//{
-//  if(idx.isValid())
-//    {
-//    QString path;
-//    OptionsDialogModelItem *item =
-//        reinterpret_cast<OptionsDialogModelItem *>(idx.internalPointer());
-//    if(item)
-//      {
-//      path = item->Name;
-//      item = item->Parent;
-//      }
-//
-//    while(item && item != this->Root)
-//      {
-//      path.prepend(".").prepend(item->Name);
-//      item = item->Parent;
-//      }
-//
-//    return path;
-//    }
-//
-//  return QString();
-//}
-//
-//void OptionsDialogModel::addPath(const QString &path)
-//{
-//  OptionsDialogModelItem *item = this->Root;
-//  QStringList names = path.split(".");
-//  QStringList::Iterator iter = names.begin();
-//  for( ; iter != names.end(); ++iter)
-//    {
-//    OptionsDialogModelItem *child = 0;
-//    QList<OptionsDialogModelItem *>::Iterator jter = item->Children.begin();
-//    for( ; jter != item->Children.end(); ++jter)
-//      {
-//      if((*jter)->Name == *iter)
-//        {
-//        child = *jter;
-//        break;
-//        }
-//      }
-//
-//    if(!child)
-//      {
-//      child = new OptionsDialogModelItem(*iter);
-//      child->Parent = item;
-//      QModelIndex parentIndex = this->getIndex(item);
-//      int row = item->Children.size();
-//      this->beginInsertRows(parentIndex, row, row);
-//      item->Children.append(child);
-//      this->endInsertRows();
-//      }
-//
-//    item = child;
-//    }
-//}
-//
-//bool OptionsDialogModel::removeIndex(const QModelIndex &idx)
-//{
-//  if(idx.isValid())
-//    {
-//    OptionsDialogModelItem *item =
-//        reinterpret_cast<OptionsDialogModelItem *>(idx.internalPointer());
-//    if(item->Children.size() == 0)
-//      {
-//      QModelIndex parentIndex = this->getIndex(item->Parent);
-//      this->beginRemoveRows(parentIndex, idx.row(), idx.row());
-//      item->Parent->Children.removeAt(idx.row());
-//      this->endRemoveRows();
-//      delete item;
-//      return true;
-//      }
-//    }
-//
-//  return false;
-//}
-//
-//QModelIndex OptionsDialogModel::getIndex(
-//    OptionsDialogModelItem *item) const
-//{
-//  if(item && item->Parent)
-//    {
-//    return this->createIndex(item->Parent->Children.indexOf(item), 0, item);
-//    }
-//
-//  return QModelIndex();
-//}
-
-
-//----------------------------------------------------------------------------
-OptionsDialogForm::OptionsDialogForm()
-  : Ui::PVGUIOptionsFrame()
-{
-//  this->Model = new OptionsDialogModel();
-//  this->ApplyUseCount = 0;
-//  //this->ApplyNeeded = false;
-}
-
-OptionsDialogForm::~OptionsDialogForm()
-{
-//  delete this->Model;
-}
-
+bool PVGUI_ParaViewSettingsPane::ShowRestartRequired = false;
 
 //----------------------------------------------------------------------------
 PVGUI_ParaViewSettingsPane::PVGUI_ParaViewSettingsPane(QWidget *widgetParent)
-  : QtxUserDefinedContent(widgetParent)
+  : QtxUserDefinedContent(widgetParent),
+    Internals (new PVGUI_ParaViewSettingsPane::pqInternals())
 {
-  Form = new OptionsDialogForm();
-  Form->setupUi(this);
-  
-  // Connect the button to the standard ParaView 4.2 setting reaction for now:
-  connect(Form->pvButton, SIGNAL(clicked()),
-          this, SLOT(onRequestParaviewSettings()));
+  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+  ui.setupUi(this);
+  ui.tabBar->setDocumentMode(false);
+  ui.tabBar->setDrawBase(false);
+  ui.tabBar->setExpanding(false);
+  ui.tabBar->setUsesScrollButtons(true);
 
-  
-////  this->Form->PageNames->setModel(this->Form->Model);
-//
-//  // Hide the tree widget header view.
-//  this->Form->PageNames->header()->hide();
-//
-//  // Hide the apply and reset buttons until they are needed.
-//  //this->Form->ApplyButton->setEnabled(false);
-//  //this->Form->ResetButton->setEnabled(false);
-//  //this->Form->ApplyButton->hide();
-//  //this->Form->ResetButton->hide();
-//
-//  this->connect(this->Form->PageNames->selectionModel(),
-//      SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-//      this, SLOT(changeCurrentPage()));
-//  //this->connect(this->Form->ApplyButton, SIGNAL(clicked()),
-//  //    this, SLOT(applyChanges()));
-//  //this->connect(this->Form->ResetButton, SIGNAL(clicked()),
-//  //    this, SLOT(resetChanges()));
-//  //this->connect(this->Form->CloseButton, SIGNAL(clicked()),
-//  //    this, SLOT(accept()));
-//
-//  // Code From pqApplicationOptionsDialog
-//  //this->setApplyNeeded(true);
-//
-//  pqApplicationOptions* appOptions = new pqApplicationOptions;
-//  this->addOptions(appOptions);
-//
-//  pqGlobalRenderViewOptions* renOptions = new pqGlobalRenderViewOptions;
-//  this->addOptions(renOptions);
-//
-//  QStringList pages = appOptions->getPageList();
-//  if(pages.size())
-//    {
-//    this->setCurrentPage(pages[0]);
-//    }
-//
-//  /// Add panes as plugins are loaded.
-//  QObject::connect(pqApplicationCore::instance()->getPluginManager(),
-//    SIGNAL(guiInterfaceLoaded(QObject*)),
-//    this, SLOT(pluginLoaded(QObject*)));
-//
-//  // Load panes from already loaded plugins.
-//  foreach (QObject* plugin_interface, pqApplicationCore::instance()->interfaceTracker()->interfaces())
-//           //pqApplicationCore::instance()->getPluginManager()->interfaces())
-//    {
-//    this->pluginLoaded(plugin_interface);
-//    }
-}
+  // Hide restart message
+  ui.restartRequiredLabel->setVisible(PVGUI_ParaViewSettingsPane::ShowRestartRequired);
 
-PVGUI_ParaViewSettingsPane::~PVGUI_ParaViewSettingsPane()
-{
-  delete this->Form;
-}
+  QList<vtkSMProxy*> proxies_to_show;
 
-void PVGUI_ParaViewSettingsPane::onRequestParaviewSettings()
-{
-  pqApplicationSettingsReaction::showApplicationSettingsDialog();
-}
-
-/*
-bool PVGUI_ParaViewSettingsPane::isApplyNeeded() const
-{
-  return this->Form->ApplyNeeded;
-}
-*/
-/*
-void PVGUI_ParaViewSettingsPane::setApplyNeeded(bool applyNeeded)
-{
-  if(applyNeeded != this->Form->ApplyNeeded)
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  vtkNew<vtkSMProxyIterator> iter;
+  iter->SetSession(server->session());
+  iter->SetModeToOneGroup();
+  for (iter->Begin("settings"); !iter->IsAtEnd(); iter->Next())
     {
-    if(!applyNeeded)
+    vtkSMProxy* proxy = iter->GetProxy();
+    if (proxy)
       {
-      this->Form->ApplyNeeded = false;
-      //this->Form->ApplyButton->setEnabled(false);
-      //this->Form->ResetButton->setEnabled(false);
-      }
-    else if(this->Form->ApplyUseCount > 0)
-      {
-      this->Form->ApplyNeeded = true;
-      //this->Form->ApplyButton->setEnabled(true);
-      //this->Form->ResetButton->setEnabled(true);
+      proxies_to_show.push_back(proxy);
       }
     }
-}
-*/
-//void PVGUI_ParaViewSettingsPane::addOptions(const QString &path, pqOptionsPage *options)
-//{
-//  if(!options)
-//    {
-//    return;
-//    }
-//
-//  // See if the page is a container.
-//  pqOptionsContainer *container = qobject_cast<pqOptionsContainer *>(options);
-//  if(!container && path.isEmpty())
-//    {
-//    return;
-//    }
-//
-//  // See if the page/container uses the apply button.
-//  if(options->isApplyUsed())
-//    {
-//    this->Form->ApplyUseCount++;
-//    /*if(this->Form->ApplyUseCount == 1)
-//      {
-//        //this->Form->ApplyButton->show();
-//        //this->Form->ResetButton->show();
-//        //QObject::connect(this, SIGNAL(accepted()), this, SLOT(applyChanges()));
-//        }*/
-//
-//    //this->connect(options, SIGNAL(changesAvailable()),
-//    //this, SLOT(enableButtons()));
-//    }
-//
-//  // Add the widget to the stack.
-//  this->Form->Stack->addWidget(options);
-//
-//  // Add the page(s) to the map and the model.
-//  if(container)
-//    {
-//    // If the path is not empty, use it as the page prefix.
-//    QString prefix;
-//    if(!path.isEmpty())
-//      {
-//      prefix = path;
-//      prefix.append(".");
-//      }
-//
-//    container->setPagePrefix(prefix);
-//
-//    // Get the list of pages from the container.
-//    QStringList pathList = container->getPageList();
-//    QStringList::Iterator iter = pathList.begin();
-//    for( ; iter != pathList.end(); ++iter)
-//      {
-//      this->Form->Pages.insert(prefix + *iter, options);
-//      this->Form->Model->addPath(prefix + *iter);
-//      }
-//    }
-//  else
-//    {
-//    this->Form->Pages.insert(path, options);
-//    this->Form->Model->addPath(path);
-//    }
-//}
-//
-//void PVGUI_ParaViewSettingsPane::addOptions(pqOptionsContainer *options)
-//{
-//  this->addOptions(QString(), options);
-//}
-//
-//void PVGUI_ParaViewSettingsPane::removeOptions(pqOptionsPage *options)
-//{
-//  if(!options)
-//    {
-//    return;
-//    }
-//
-//  // Remove the widget from the stack.
-//  this->Form->Stack->removeWidget(options);
-//
-//  // See if the options use the apply button.
-//  if(options->isApplyUsed())
-//    {
-//    this->Form->ApplyUseCount--;
-//    /*if(this->Form->ApplyUseCount == 0)
-//      {
-//        //this->Form->ApplyNeeded = false;
-//      //this->Form->ApplyButton->setEnabled(false);
-//      //this->Form->ResetButton->setEnabled(false);
-//      //this->Form->ApplyButton->hide();
-//      //this->Form->ResetButton->hide();
-//      //QObject::disconnect(this, SIGNAL(accepted()), this, SLOT(applyChanges()));
-//      }*/
-//
-//    this->disconnect(options, 0, this, 0);
-//    }
-//
-//  // Search the map for the paths to remove.
-//  QMap<QString, pqOptionsPage *>::Iterator iter = this->Form->Pages.begin();
-//  while(iter != this->Form->Pages.end())
-//    {
-//    if(*iter == options)
-//      {
-//      QString path = iter.key();
-//      iter = this->Form->Pages.erase(iter);
-//
-//      // Remove the item from the tree model as well.
-//      QModelIndex index = this->Form->Model->getIndex(path);
-//      QPersistentModelIndex parentIndex = index.parent();
-//      if(this->Form->Model->removeIndex(index))
-//        {
-//        // Remove any empty parent items.
-//        while(parentIndex.isValid() &&
-//            this->Form->Model->rowCount(parentIndex) == 0)
-//          {
-//          index = parentIndex;
-//          parentIndex = index.parent();
-//
-//          // Make sure the index path isn't in the map.
-//          path = this->Form->Model->getPath(index);
-//          if(this->Form->Pages.find(path) == this->Form->Pages.end())
-//            {
-//            if(!this->Form->Model->removeIndex(index))
-//              {
-//              break;
-//              }
-//            }
-//          }
-//        }
-//      }
-//    else
-//      {
-//      ++iter;
-//      }
-//    }
-//}
-//
-//void PVGUI_ParaViewSettingsPane::setCurrentPage(const QString &path)
-//{
-//  QModelIndex current = this->Form->Model->getIndex(path);
-//  this->Form->PageNames->setCurrentIndex(current);
-//}
 
-void PVGUI_ParaViewSettingsPane::applyChanges()
+  // Add color palette.
+  if (vtkSMProxy* proxy = server->proxyManager()->GetProxy("global_properties", "ColorPalette"))
+    {
+    proxies_to_show.push_back(proxy);
+    }
+
+  foreach (vtkSMProxy* proxy, proxies_to_show)
+    {
+    QString proxyName = proxy->GetXMLName();
+
+    QScrollArea *scrollArea = new QScrollArea(this);
+    scrollArea->setObjectName(QString("ScrollArea%1").arg(proxyName));
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+
+    QWidget* container = new QWidget(scrollArea);
+    container->setObjectName("Container");
+    container->setContentsMargins(6, 0, 6, 0);
+
+    QVBoxLayout* vbox = new QVBoxLayout(container);
+    vbox->setMargin(0);
+    vbox->setSpacing(0);
+
+    pqProxyWidget* widget = new pqProxyWidget(proxy, container);
+    widget->setObjectName("ProxyWidget");
+    widget->setApplyChangesImmediately(false);
+    widget->setView(NULL);
+
+    widget->connect(this, SIGNAL(accepted()), SLOT(apply()));
+    widget->connect(this, SIGNAL(rejected()), SLOT(reset()));
+    this->connect(widget, SIGNAL(restartRequired()), SLOT(showRestartRequiredMessage()));
+    vbox->addWidget(widget);
+
+    QSpacerItem* spacer = new QSpacerItem(0, 0,QSizePolicy::Fixed,
+      QSizePolicy::MinimumExpanding);
+    vbox->addItem(spacer);
+
+    scrollArea->setWidget(container);
+    // show panel widgets
+    widget->updatePanel();
+
+    int tabIndex = ui.tabBar->addTab(proxy->GetXMLLabel());
+    int stackIndex = ui.stackedWidget->addWidget(scrollArea);
+    this->Internals->TabToStackedWidgets[tabIndex] = stackIndex;
+
+    this->connect(widget, SIGNAL(changeAvailable()), SLOT(onChangeAvailable()));
+    widget->connect(this, SIGNAL(filterWidgets(bool, QString)), SLOT(filterWidgets(bool, QString)));
+    }
+
+  // Disable some buttons to start
+//  ui.buttonBox->button(QDialogButtonBox::Reset)->setEnabled(false);
+//  ui.buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+
+//  this->connect(ui.buttonBox->button(QDialogButtonBox::RestoreDefaults), SIGNAL(clicked()),
+//                SLOT(onRestoreDefaults()));
+//  this->connect(ui.buttonBox, SIGNAL(clicked(QAbstractButton*)), SLOT(clicked(QAbstractButton*)));
+  this->connect(this, SIGNAL(accepted()), SLOT(onAccepted()));
+  this->connect(this, SIGNAL(rejected()), SLOT(onRejected()));
+  this->connect(ui.tabBar, SIGNAL(currentChanged(int)), this, SLOT(onTabIndexChanged(int)));
+
+  this->connect(ui.SearchBox, SIGNAL(advancedSearchActivated(bool)), SLOT(filterPanelWidgets()));
+  this->connect(ui.SearchBox, SIGNAL(textChanged(QString)), SLOT(filterPanelWidgets()));
+
+  // After all the tabs are set up, select the first
+  this->onTabIndexChanged(0);
+
+  this->filterPanelWidgets();
+}
+
+//-----------------------------------------------------------------------------
+PVGUI_ParaViewSettingsPane::~PVGUI_ParaViewSettingsPane()
 {
-  //if(this->Form->ApplyNeeded)
-  //  {
-//    BEGIN_UNDO_SET("Changed View Settings");
-//    emit this->aboutToApplyChanges();
-//    QMap<QString, pqOptionsPage *>::Iterator iter = this->Form->Pages.begin();
-//    for( ; iter != this->Form->Pages.end(); ++iter)
-//      {
-//      (*iter)->applyChanges();
-//      }
-//
-//    //this->setApplyNeeded(false);
-//    emit this->appliedChanges();
-//    END_UNDO_SET();
-    //}
+  delete this->Internals;
+  this->Internals = NULL;
 }
-
-void PVGUI_ParaViewSettingsPane::resetChanges()
-{
-  //if(this->Form->ApplyNeeded)
-  //{
-//    QMap<QString, pqOptionsPage *>::Iterator iter = this->Form->Pages.begin();
-//    for( ; iter != this->Form->Pages.end(); ++iter)
-//      {
-//      (*iter)->resetChanges();
-//      }
-
-    //this->setApplyNeeded(false);
-    //}
-}
-
-//void PVGUI_ParaViewSettingsPane::changeCurrentPage()
-//{
-//  // Get the current index from the view.
-//  QModelIndex current = this->Form->PageNames->currentIndex();
-//
-//  // Look up the path for the current index.
-//  QString path = this->Form->Model->getPath(current);
-//  QMap<QString, pqOptionsPage *>::Iterator iter = this->Form->Pages.find(path);
-//  if(iter == this->Form->Pages.end())
-//    {
-//    // If no page is found, show the blank page.
-//    this->Form->Stack->setCurrentWidget(this->Form->BlankPage);
-//    }
-//  else
-//    {
-//    this->Form->Stack->setCurrentWidget(*iter);
-//    pqOptionsContainer *container = qobject_cast<pqOptionsContainer *>(*iter);
-//    if(container)
-//      {
-//      // Get the path prefix from the container.
-//      QString prefix = container->getPagePrefix();
-//      if(!prefix.isEmpty())
-//        {
-//        // Remove the prefix from the path.
-//        path.remove(0, prefix.length());
-//        }
-//
-//      // Set the page on the container object.
-//      container->setPage(path);
-//      }
-//    }
-//}
-//
-////-----------------------------------------------------------------------------
-//void PVGUI_ParaViewSettingsPane::pluginLoaded(QObject* iface)
-//{
-//  pqViewOptionsInterface* viewOptions =
-//    qobject_cast<pqViewOptionsInterface*>(iface);
-//  if (viewOptions)
-//    {
-//    foreach(QString viewtype, viewOptions->viewTypes())
-//      {
-//      // Try to create global view options
-//      pqOptionsContainer* globalOptions =
-//        viewOptions->createGlobalViewOptions(viewtype, this);
-//      if (globalOptions)
-//        {
-//        this->addOptions(globalOptions);
-//        }
-//      }
-//    }
-//}
 
 void PVGUI_ParaViewSettingsPane::store(QtxResourceMgr* , QtxPreferenceMgr* )
 {
-  applyChanges();
+  emit this->accepted();
 }
 
 void PVGUI_ParaViewSettingsPane::retrieve(QtxResourceMgr* , QtxPreferenceMgr* )
 {
+//  onRestoreDefaults();
+}
+
+void PVGUI_ParaViewSettingsPane::showEvent(QShowEvent * ev)
+{
+//  // Connect SALOME's default button to ParaView's default restore.
+//  LightApp_PreferencesDlg * prefDg;
+//  QWidget *w = this->parentWidget();
+//  // UGLY!!!
+//  while (w)
+//    {
+//      LightApp_PreferencesDlg * prefDg = dynamic_cast<LightApp_PreferencesDlg *>( w );
+//      if (prefDg)
+//        break;
+//      w = w->parentWidget();
+//    }
+//  if (prefDg)
+//    prefDg->connect(btn, SIGNAL(clicked()), this, SLOT(onRestoreDefaults()));
+  ev->accept();
+}
+
+void PVGUI_ParaViewSettingsPane::hideEvent(QHideEvent * ev)
+{
+  // Connect SALOME's default button to ParaView's default restore.
+  ev->accept();
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::clicked(QAbstractButton *button)
+{
+//  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+//  QDialogButtonBox::ButtonRole role = ui.buttonBox->buttonRole(button);
+//  switch (role)
+//    {
+//  case QDialogButtonBox::AcceptRole:
+//  case QDialogButtonBox::ApplyRole:
+//    emit this->accepted();
+//    break;
+//
+//  case QDialogButtonBox::ResetRole:
+//  case QDialogButtonBox::RejectRole:
+//    emit this->rejected();
+//    break;
+//  default:
+//    break;
+//    }
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::onAccepted()
+{
+  // If there are any properties that needed to save their values in QSettings,
+  // do that. Otherwise, save to the vtkSMSettings singleton.
+  vtkSMSettings * settings = vtkSMSettings::GetInstance();
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  vtkNew<vtkSMProxyIterator> iter;
+  iter->SetSession(server->session());
+  iter->SetModeToOneGroup();
+  for (iter->Begin("settings"); !iter->IsAtEnd(); iter->Next())
+    {
+    vtkSMProxy* proxy = iter->GetProxy();
+    settings->SetProxySettings(proxy);
+    vtkSmartPointer<vtkSMPropertyIterator> iter2;
+    iter2.TakeReference(proxy->NewPropertyIterator());
+    for (iter2->Begin(); !iter2->IsAtEnd(); iter2->Next())
+      {
+      vtkSMProperty* smproperty = iter2->GetProperty();
+      if (smproperty && smproperty->GetHints() &&
+        smproperty->GetHints()->FindNestedElementByName("SaveInQSettings"))
+        {
+        QString key = QString("%1.%2").arg(iter->GetKey()).arg(iter2->GetKey());
+        this->saveInQSettings(key.toLatin1().data(), smproperty);
+        }
+      }
+    }
+
+  // Save color palette settings
+  vtkSMProxy* paletteProxy = server->proxyManager()->GetProxy("global_properties", "ColorPalette");
+  if (paletteProxy)
+    {
+    settings->SetProxySettings(paletteProxy);
+    }
+
+  // Disable buttons
+//  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+//  ui.buttonBox->button(QDialogButtonBox::Reset)->setEnabled(false);
+//  ui.buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+
+  // In theory, the above changes are undo-redo able, the only things that's not
+  // undo-able is the "serialized" values. Hence we just clear the undo stack.
+  CLEAR_UNDO_STACK();
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::onRejected()
+{
+  // Disable buttons
+//  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+//  ui.buttonBox->button(QDialogButtonBox::Reset)->setEnabled(false);
+//  ui.buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::onRestoreDefaults()
+{
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  vtkSMSession * session = server->session();
+
+  vtkNew<vtkSMProxyIterator> iter;
+  iter->SetSession(session);
+  iter->SetModeToOneGroup();
+  for (iter->Begin("settings"); !iter->IsAtEnd(); iter->Next())
+    {
+    vtkSMProxy* proxy = iter->GetProxy();
+    if (proxy)
+      {
+      proxy->ResetPropertiesToXMLDefaults();
+      }
+    }
+
+  vtkSMProxy* paletteProxy = server->proxyManager()->GetProxy("global_properties", "ColorPalette");
+  if (paletteProxy)
+    {
+    paletteProxy->ResetPropertiesToXMLDefaults();
+    }
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::onTabIndexChanged(int index)
+{
+  int stackWidgetIndex = this->Internals->TabToStackedWidgets[index];
+  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+  ui.stackedWidget->setCurrentIndex(stackWidgetIndex);
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::filterPanelWidgets()
+{
+  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+  emit this->filterWidgets(
+    ui.SearchBox->isAdvancedSearchActive(), ui.SearchBox->text());
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::onChangeAvailable()
+{
+//  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+//  ui.buttonBox->button(QDialogButtonBox::Reset)->setEnabled(true);
+//  ui.buttonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::showRestartRequiredMessage()
+{
+  Ui::CustomSettingsWidget &ui = this->Internals->Ui;
+  ui.restartRequiredLabel->setVisible(true);
+  PVGUI_ParaViewSettingsPane::ShowRestartRequired = true;
+}
+
+//-----------------------------------------------------------------------------
+void PVGUI_ParaViewSettingsPane::saveInQSettings(
+  const char* key, vtkSMProperty* smproperty)
+{
+  pqSettings* settings = pqApplicationCore::instance()->settings();
+
+  // FIXME: handle all property types. This will only work for single value
+  // properties.
+  if (smproperty->IsA("vtkSMIntVectorProperty") ||
+    smproperty->IsA("vtkSMIdTypeVectorProperty"))
+    {
+    settings->setValue(key, vtkSMPropertyHelper(smproperty).GetAsInt());
+    }
+  else if (smproperty->IsA("vtkSMDoubleVectorProperty"))
+    {
+    settings->setValue(key, vtkSMPropertyHelper(smproperty).GetAsDouble());
+    }
+  else if (smproperty->IsA("vtkSMStringVectorProperty"))
+    {
+    settings->setValue(key, vtkSMPropertyHelper(smproperty).GetAsString());
+    }
 }
 

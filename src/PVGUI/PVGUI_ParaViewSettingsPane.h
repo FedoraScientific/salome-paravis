@@ -28,16 +28,18 @@
 
 #include <QtxPagePrefMgr.h>
 
-#include <QWidget>
+class QAbstractButton;
+class vtkSMProperty;
+class QShowEvent;
+class QHideEvent;
 
-#include "vtkPVConfig.h"
-
-class pqOptionsContainer;
-class OptionsDialogForm;
-class pqOptionsPage;
-class QString;
-
-
+/**!
+ * Almost identical copy/paste of what is found in
+ *    <PARAVIEW>/Qt/Components/pqSettingsDialog.h
+ * This is (almost) the same, except for the inheritance to QtxUserDefinedContent providing the link
+ * to SALOME preference mechanism.
+ * The UI content of pqSettingsDialog is put in a (PARAVIS) widget called pqCustomSettingsWidget.
+ */
 class PVGUI_ParaViewSettingsPane : public QtxUserDefinedContent
 {
   Q_OBJECT
@@ -50,25 +52,41 @@ public:
   virtual void store(QtxResourceMgr* theRes, QtxPreferenceMgr* thePref);
   virtual void retrieve(QtxResourceMgr* theRes, QtxPreferenceMgr* thePref);
 
+  signals:
+    void accepted(); // emulate the initial QDialogBox signal since some stuff are connected to it.
 
-public slots:
-  /// Calls each page to apply any changes.
-  void applyChanges();
+protected:
+    virtual void showEvent(QShowEvent * ev);
+    virtual void hideEvent(QHideEvent * ev);
 
-  /// Calls each page to reset any changes.
-  void resetChanges();
+  // ---- From now on, this the same interface as in pqSettingsDialog
+  private slots:
+    void clicked(QAbstractButton*);
+    void onAccepted();
+    void onRejected();
+    void onRestoreDefaults();
 
-  void onRequestParaviewSettings();
+    void onTabIndexChanged(int index);
+    void onChangeAvailable();
+    void showRestartRequiredMessage();
 
-signals:
-  /// Emitted before the option changes are applied.
-  void aboutToApplyChanges();
+    void filterPanelWidgets();
 
-  /// Emitted after the option changes have been applied.
-  void appliedChanges();
+  signals:
+    void filterWidgets(bool showAdvanced, const QString& text);
 
-private:
-  OptionsDialogForm *Form; /// Stores the form and class data.
+  private:
+    void saveInQSettings(const char* key, vtkSMProperty* smproperty);
+
+  private:
+    Q_DISABLE_COPY(PVGUI_ParaViewSettingsPane);
+    class pqInternals;
+    pqInternals* Internals;
+
+    /// Set to true if a setting that requires a restart to take effect
+    /// is modified. Made static to persist across instantiations of
+    /// this class.
+    static bool ShowRestartRequired;
 };
 
 #endif

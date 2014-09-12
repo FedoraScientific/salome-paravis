@@ -749,6 +749,8 @@ bool PVGUI_Module::pvInit()
     */
     // End of Initializer code
 
+    MyCoreApp->settings();
+
     vtkOutputWindow::SetInstance(PVGUI_OutputWindowAdapter::New());
     
     new pqTabbedMultiViewWidget(); // it registers as "MULTIVIEW_WIDGET on creation
@@ -1293,8 +1295,9 @@ void PVGUI_Module::createPreferences()
   setPreferenceProperty(aSaveType, "indexes", aIndices);
 
   //rnv: imp 21712: [CEA 581] Preference to display legend by default 
-  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
-                                        LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
+  // [ABN]: now fixed in ParaView.
+//  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
+//                                        LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
 }
 
 /*!
