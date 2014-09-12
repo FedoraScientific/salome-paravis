@@ -130,8 +130,8 @@ QT4_ADD_RESOURCES(_rcc_SOURCES ${_rcc_RESOURCES})
 QT4_WRAP_CPP(_moc_SOURCES ${_moc_HEADERS})
 
 # sources / EDF specific stuff
-INCLUDE(vtkWrapClientServer)
-VTK_WRAP_ClientServer(vtkEDFCutterCS vtkEDFCutter_SRCS ${GUI_ROOT_DIR}/include/salome/vtkEDFCutter.h)
+#INCLUDE(vtkWrapClientServer)
+#VTK_WRAP_ClientServer(vtkEDFCutterCS vtkEDFCutter_SRCS ${GUI_ROOT_DIR}/include/salome/vtkEDFCutter.h)
 
 # sources / static
 SET(_other_SOURCES
@@ -172,7 +172,7 @@ SET(PVGUI_SOURCES
   ${_other_SOURCES} 
   ${_moc_SOURCES} 
   ${_rcc_SOURCES} 
-  ${vtkEDFCutter_SRCS} 
+#  ${vtkEDFCutter_SRCS} 
   ${_VTK_wrap_SOURCES}
   ${_ui_FORMS_HEADERS}
   )
