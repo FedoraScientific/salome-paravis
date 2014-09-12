@@ -57,18 +57,9 @@
 #include <QShowEvent>
 #include <QHideEvent>
 
-// This class is revisited to hack on the SALOME's Preferences "Default" button
-// to ParaView's "Default" behavior.
 class PVGUI_ParaViewSettingsPane::pqInternals
 {
 public:
-  pqInternals()
-  {
-    // Get the containing preference tab to identify when it has focus
-
-  }
-  ~pqInternals();
-
   Ui::CustomSettingsWidget Ui;
 
   // Map from tab indices to stack widget indices. This is needed because there
