@@ -1,1 +1,9 @@
- 
+configuration, 31872, 63872
+"display lists, no triangle strips, solid color", 5.33782e+06, 1.1648e+07
+"display lists, triangle strips, solid color", 5.29391e+06, 1.11396e+07
+"no display lists, no triangle strips, solid color", 5.94383e+06, 1.10739e+07
+"no display lists, triangle strips, solid color", 5.38415e+06, 1.13332e+07
+"display lists, no triangle strips, color by array", 4.43312e+06, 9.86713e+06
+"display lists, triangle strips, color by array", 5.77079e+06, 1.13502e+07
+"no display lists, no triangle strips, color by array", 5.84816e+06, 1.11314e+07
+"no display lists, triangle strips, color by array", 5.74416e+06, 1.14088e+07

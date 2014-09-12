@@ -19,7 +19,7 @@
 
 """ 
 MEDReader test script. 
-Before launching the script necessary MED files has to be placed into ${TESTDIR}/MedData directory 
+Before launching the script necessary MED files has to be placed into ./MedData directory 
 """
 
 if not ('servermanager' in dir()):
@@ -28,6 +28,7 @@ if not ('servermanager' in dir()):
 import sys
 import os
 import time
+import inspect
 
 def medread (path, impth):
   print '============================================================'
@@ -65,8 +66,9 @@ def medread (path, impth):
         SetActiveView(v1)
         
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
   medread(path=testdir+"/MedData/", impth=testdir+"/Pic/")

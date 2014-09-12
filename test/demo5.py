@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import os
+import os, inspect
 
 def LoadMultipleFiles(FilePath, FilePrefix):
 
@@ -65,8 +65,10 @@ def LoadMultipleFiles(FilePath, FilePrefix):
   Render()
 
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+pvdata = os.getenv("SAMPLES_SRC_DIR")
 
 if __name__ == "__main__":
   LoadMultipleFiles(FilePath=pvdata+"/Data/dualSphereAnimation/", FilePrefix="dualSphereAnimation_P00T000")

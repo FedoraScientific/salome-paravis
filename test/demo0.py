@@ -24,7 +24,7 @@ rate achieved in triangles/sec. """
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import time, sys, os
+import time, sys, os, inspect
 
 def render(ss, v, title, nframes):
   print '============================================================'
@@ -151,8 +151,10 @@ def run(filesour, impth, nframes):
     print >>f, '"%s", %g, %g' % (i[0], i[1][1], i[2][1])  
 
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
   run(filesour=testdir + "/Pic/Information.txt", impth=testdir + "/Pic/", nframes=10)

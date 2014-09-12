@@ -26,8 +26,9 @@
 #include <pqInterfaceTracker.h>
 #include <pqApplicationCore.h>
 #include <pqPluginManager.h>
-#include <pqStandardViewModules.h>
 #include <pqStandardPropertyWidgetInterface.h>
+#include <pqStandardViewFrameActionsImplementation.h>
+#include <pqPropertiesPanel.h>
 
 #include <pqAlwaysConnectedBehavior.h>
 #include <pqAutoLoadPluginXMLBehavior.h>
@@ -35,18 +36,19 @@
 #include <pqCrashRecoveryBehavior.h>
 #include <pqDataTimeStepBehavior.h>
 #include <pqDefaultViewBehavior.h>
-#include <pqDeleteBehavior.h>
 #include <pqObjectPickingBehavior.h>
 #include <pqPersistentMainWindowStateBehavior.h>
 #include <pqPipelineContextMenuBehavior.h>
 #include <pqPluginActionGroupBehavior.h>
 #include <pqPluginDockWidgetsBehavior.h>
-#include <pqPVNewSourceBehavior.h>
 #include <pqSpreadSheetVisibilityBehavior.h>
 #include <pqUndoRedoBehavior.h>
-#include <pqViewFrameActionsBehavior.h>
 #include <pqViewStreamingBehavior.h>
 #include <pqCollaborationBehavior.h>
+#include <pqVerifyRequiredPluginBehavior.h>
+#include <pqPluginSettingsBehavior.h>
+#include <pqFixPathsInStateFilesBehavior.h>
+#include <pqApplyBehavior.h>
 
 bool PVGUI_Behaviors::hasMinimalInstanciated = false;
 
@@ -66,18 +68,22 @@ void PVGUI_Behaviors::instanciateMinimalBehaviors(SUIT_Desktop * desk)
   // Register ParaView interfaces.
   pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
 
-  // * adds support for standard paraview views.
-  pgm->addInterface(new pqStandardViewModules(pgm));
+  // Register standard types of property widgets.
   pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
+  // Register standard types of view-frame actions.
+  pgm->addInterface(new pqStandardViewFrameActionsImplementation(pgm));
 
   // Load plugins distributed with application.
   pqApplicationCore::instance()->loadDistributedPlugins();
 
-  new pqViewFrameActionsBehavior(this);     // button above the view port controlling selection and camera undos
   new pqDefaultViewBehavior(this);  // shows a 3D view as soon as a server connection is made
   new pqAlwaysConnectedBehavior(this);  // client always connected to a server
-  new pqPVNewSourceBehavior(this);  // new source is made active, ...
   new pqAutoLoadPluginXMLBehavior(this);  // auto load plugins
+  new pqVerifyRequiredPluginBehavior(this);
+  new pqPluginSettingsBehavior(this);
+  new pqFixPathsInStateFilesBehavior(this);
+  new pqCrashRecoveryBehavior(this);
+  new pqCommandLineOptionsBehavior(this);
 }
 
 /**! Instanciate usual ParaView behaviors.
@@ -97,19 +103,18 @@ void PVGUI_Behaviors::instanciateAllBehaviors(SUIT_Desktop * desk)
   new pqDataTimeStepBehavior(this);
   new pqSpreadSheetVisibilityBehavior(this);
   new pqPipelineContextMenuBehavior(this);
-  new pqObjectPickingBehavior(this); // NEW in 4.1
-  new pqDeleteBehavior(this);
   new pqUndoRedoBehavior(this);
-  new pqCrashRecoveryBehavior(this);
   new pqPluginDockWidgetsBehavior(desk);
-  //new pqVerifyRequiredPluginBehavior(this);
   new pqPluginActionGroupBehavior(desk);
-  //new pqFixPathsInStateFilesBehavior(this);
-  new pqCommandLineOptionsBehavior(this);
   new pqPersistentMainWindowStateBehavior(desk);
   new pqObjectPickingBehavior(desk);
   new pqCollaborationBehavior(this);
-  //new pqMultiServerBehavior(this);
   new pqViewStreamingBehavior(this);
+
+  pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
+  foreach (pqPropertiesPanel* ppanel, desk->findChildren<pqPropertiesPanel*>())
+    {
+    applyBehavior->registerPanel(ppanel);
+    }
 
 }

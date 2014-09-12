@@ -21,7 +21,7 @@
 if not ('servermanager' in dir()):
   from pvsimple import *
 
-import os
+import os, inspect
 
 def demo2(fname, impth):
     """This demo shows the use of readers, data information and display properties."""
@@ -94,9 +94,9 @@ def demo2(fname, impth):
     Render()
 
 
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+pvdata = os.getenv("SAMPLES_SRC_DIR")
 
 if __name__ == "__main__":
- demo2(fname=pvdata+"/Data/disk_out_ref.ex2", impth=testdir+"/Pic/")
-
+    demo2(fname=pvdata+"/Data/disk_out_ref.ex2", impth=testdir+"/Pic/")

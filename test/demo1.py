@@ -16,11 +16,10 @@
 #
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-
 if not ('servermanager' in dir()):
   from pvsimple import *
-
-import os
+  
+import os, inspect
 
 def demo1(impth):
     """Simple demo that create the following pipeline
@@ -66,8 +65,9 @@ def demo1(impth):
     Render()
 
     
-testdir = os.getenv("TESTDIR")
-pvdata = os.getenv("PVDATA")
+scriptdir = inspect.getframeinfo(inspect.currentframe())[0]
+testdir = os.path.dirname( os.path.abspath(scriptdir) )
+
 
 if __name__ == "__main__":
-  demo1(impth =testdir+"/Pic/")
+    demo1(impth =testdir+"/Pic/")
