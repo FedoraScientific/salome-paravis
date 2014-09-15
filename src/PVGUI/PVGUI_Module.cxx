@@ -203,46 +203,6 @@ PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::myEngine;
          SALOME module wrapping ParaView GUI.
 */
 
-  _PTR(SComponent)
-  ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
-  {
-    _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
-    if (!aSComponent) {
-      _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
-      aStudyBuilder->NewCommand();
-      int aLocked = theStudyDocument->GetProperties()->IsLocked();
-      if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
-      aSComponent = aStudyBuilder->NewComponent("PARAVIS");
-      _PTR(GenericAttribute) anAttr =
-        aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
-      _PTR(AttributeName) aName (anAttr);
-
-      ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
-      CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
-
-      SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
-      CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
-      SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
-        SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
-      SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
-      if (!Comp->_is_nil()) {
-        aName->SetValue(Comp->componentusername());
-      }
-
-      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
-      _PTR(AttributePixMap) aPixmap (anAttr);
-      aPixmap->SetPixMap( "pqAppIcon16.png" );
-
-      // Create Attribute parameters for future using
-      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
-
-      aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetEngine()->GetIOR());
-      if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
-      aStudyBuilder->CommitCommand();
-    }
-    return aSComponent;
-  }
-
 /*!
   Clean up function; used to stop ParaView progress events when
   exception is caught by global exception handler.
@@ -420,13 +380,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   updateMacros();
  
-  // we need to start trace after connection is done
-  connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(finishedAddingServer(pqServer*)), 
-          this, SLOT(onFinishedAddingServer(pqServer*)));
-
-  connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(dataRepresentationCreated(pqDataRepresentation*)), 
-          this, SLOT(onDataRepresentationCreated(pqDataRepresentation*)));
-
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
   bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
   if(!isStop)
@@ -461,10 +414,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
       }
     }
   }
-  
-  connect(&pqActiveObjects::instance(),
-          SIGNAL(representationChanged(pqRepresentation*)),
-          this, SLOT(onRepresentationChanged(pqRepresentation*)));
 }
 
 bool PVGUI_Module::connectToExternalPVServer()
@@ -519,81 +468,11 @@ void PVGUI_Module::onEndProgress()
   QApplication::restoreOverrideCursor();
 }
 
-void PVGUI_Module::onFinishedAddingServer(pqServer* /*server*/)
-{
-  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-  bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
-  if(!isStop) 
-    startTimer( 500 );
-}
-
-void PVGUI_Module::onDataRepresentationCreated(pqDataRepresentation* data) {
-//  if(!data)
-//    return;
-//
-//  if(!data->getLookupTable())
-//    return;
-//
-//  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-//  if(!aResourceMgr)
-//    return;
-//
-//  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
-//  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
-//
-//  if(lut_mgr) {
-//    lut_mgr->setScalarBarVisibility(data,visible);
-//  }
-//
-//  connect(data, SIGNAL(dataUpdated()), this, SLOT(onDataRepresentationUpdated()));
-}
-
 void PVGUI_Module::onDataRepresentationUpdated() {
   SalomeApp_Study* activeStudy = dynamic_cast<SalomeApp_Study*>(application()->activeStudy());
   if(!activeStudy) return;
   
   activeStudy->Modified();
-}
-
-void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
-  
-  pqDisplayColorWidget* colorWidget = qobject_cast<pqDisplayColorWidget*>(sender());
-  if( !colorWidget )
-    return;
-
-  if( t == VARIABLE_TYPE_NONE )
-    return;
-
-  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-  
-  if(!aResourceMgr)
-    return;
-
-  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
-  
-  if(!visible)
-    return;
-  
-  /*//VTN: getRepresentation is protected
-  pqDataRepresentation* data  = colorWidget->getRepresentation();
-
-  if( !data->getLookupTable() )
-    return;
-
-  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
-
-  if(lut_mgr) {
-    lut_mgr->setScalarBarVisibility(data,visible);
-  }
-  */
-  pqColorToolbar* colorTooBar = qobject_cast<pqColorToolbar*>(colorWidget->parent());
-  if( !colorTooBar )
-    return;
-
-  pqScalarBarVisibilityReaction* scalarBarVisibility = colorTooBar->findChild<pqScalarBarVisibilityReaction *>();
-  if(scalarBarVisibility) {
-    scalarBarVisibility->setScalarBarVisibility(visible);
-  }
 }
 
 /*!
@@ -683,35 +562,11 @@ bool PVGUI_Module::pvInit()
         MyCoreApp->getOptions()->GetTellVersion()) {
       return false;
       }
-
-    /* VTN: Looks like trash. For porting see branded_paraview_initializer.cxx.in
-    // Not sure why this is needed. Andy added this ages ago with comment saying
-    // needed for Mac apps. Need to check that it's indeed still required.
-    QDir dir(QApplication::applicationDirPath());
-    dir.cdUp();
-    dir.cd("Plugins");
-    QApplication::addLibraryPath(dir.absolutePath());
-    // Load required application plugins.
-    QString plugin_string = "";
-    QStringList plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
-    pqBrandPluginsLoader loader;
-    if (loader.loadPlugins(plugin_list) == false) {
-      printf("Failed to load required plugins for this application\n");
-      return false;
-    }
-
-    // Load optional plugins.
-    plugin_string = "";
-    plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
-    loader.loadPlugins(plugin_list, true); //quietly skip not-found plugins.
-    */
-    // End of Initializer code
-
-    MyCoreApp->settings();
-
+    // Connect VTK log messages to SALOME messages (TODO: review this)
     vtkOutputWindow::SetInstance(PVGUI_OutputWindowAdapter::New());
     
-    new pqTabbedMultiViewWidget(); // it registers as "MULTIVIEW_WIDGET on creation
+    // Create render view:
+    new pqTabbedMultiViewWidget(); // it registers as "MULTIVIEW_WIDGET" on creation
     
     for (int i = 0; i < argc; i++)
       free(argv[i]);
@@ -780,13 +635,13 @@ void PVGUI_Module::endWaitCursor()
   QApplication::restoreOverrideCursor();
 }
 
-/*!
-  \brief Returns the ParaView multi-view manager.
-*/
-pqTabbedMultiViewWidget* PVGUI_Module::getMultiViewManager() const
-{
-  return qobject_cast<pqTabbedMultiViewWidget*>(pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
-}
+///*!
+//  \brief Returns the ParaView multi-view manager.
+//*/
+//pqTabbedMultiViewWidget* PVGUI_Module::getMultiViewManager() const
+//{
+//  return qobject_cast<pqTabbedMultiViewWidget*>(pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
+//}
 
 
 static void ParavisMessageOutput(QtMsgType type, const char *msg)
@@ -856,7 +711,7 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   if ( myRecentMenuId != -1 ) menuMgr()->show(myRecentMenuId);
 
-  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
+//  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
 
   return isDone;
 }
@@ -1193,11 +1048,6 @@ void PVGUI_Module::createPreferences()
   aStrings<<tr("PREF_SAVE_TYPE_2");
   setPreferenceProperty(aSaveType, "strings", aStrings);
   setPreferenceProperty(aSaveType, "indexes", aIndices);
-
-  //rnv: imp 21712: [CEA 581] Preference to display legend by default 
-  // [ABN]: now fixed in ParaView.
-//  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
-//                                        LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
 }
 
 /*!
@@ -1561,24 +1411,6 @@ void PVGUI_Module::loadSelectedState(bool toClear)
   }
 }
 
-void PVGUI_Module::onRepresentationChanged(pqRepresentation*) {
-
-
-  //rnv: to fix the issue "21712: [CEA 581] Preference to display legend by default"
-  //     find the pqDisplayColorWidget instances and connect the variableChanged SIGNAL on the 
-  //     onVariableChanged slot of this class. This connection needs to change visibility 
-  //     of the "Colored Legend" after change the "Color By" array.
-  QList<pqDisplayColorWidget*> aWidget = getApp()->desktop()->findChildren<pqDisplayColorWidget*>();
-  
-  for (int i = 0; i < aWidget.size() ; i++ ) {
-    if( aWidget[i] ) {
-      connect( aWidget[i], SIGNAL ( variableChanged ( pqVariableType, const QString ) ), 
-              this, SLOT(onVariableChanged( pqVariableType, const QString) ), Qt::UniqueConnection );
-    }    
-  }
-}
-
-
 /*!
   \fn CAM_Module* createModule();
   \brief Export module instance (factory function).
@@ -1595,10 +1427,6 @@ extern "C" {
 
   bool flag = false;
   PVGUI_EXPORT CAM_Module* createModule() {
-//    if(!flag) {
-//        vtkEDFHelperInit();
-//        flag = true;
-//    }
     return new PVGUI_Module();
   }
   

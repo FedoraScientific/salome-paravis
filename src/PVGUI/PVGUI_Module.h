@@ -149,7 +149,7 @@ public:
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
 
-  pqTabbedMultiViewWidget*         getMultiViewManager() const;
+//  pqTabbedMultiViewWidget*         getMultiViewManager() const;
 
   virtual QString engineIOR() const;
 
@@ -244,11 +244,7 @@ private slots:
   //void showParaViewHelp();
   //void showHelp(const QString& url);
 
-  void onFinishedAddingServer(pqServer*);
-  void onDataRepresentationCreated(pqDataRepresentation*);
   void onDataRepresentationUpdated();
-  void onVariableChanged(pqVariableType, const QString);
-  void onRepresentationChanged(pqRepresentation*);
 
   void onStartProgress();
   void onEndProgress();

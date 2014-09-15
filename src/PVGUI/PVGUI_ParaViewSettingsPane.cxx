@@ -128,8 +128,8 @@ PVGUI_ParaViewSettingsPane::PVGUI_ParaViewSettingsPane(QWidget *widgetParent)
     widget->setApplyChangesImmediately(false);
     widget->setView(NULL);
 
-    widget->connect(this, SIGNAL(accepted()), SLOT(apply()));
-    widget->connect(this, SIGNAL(rejected()), SLOT(reset()));
+//    widget->connect(this, SIGNAL(accepted()), SLOT(apply()));
+//    widget->connect(this, SIGNAL(rejected()), SLOT(reset()));
     this->connect(widget, SIGNAL(restartRequired()), SLOT(showRestartRequiredMessage()));
     vbox->addWidget(widget);
 
@@ -156,8 +156,8 @@ PVGUI_ParaViewSettingsPane::PVGUI_ParaViewSettingsPane(QWidget *widgetParent)
 //  this->connect(ui.buttonBox->button(QDialogButtonBox::RestoreDefaults), SIGNAL(clicked()),
 //                SLOT(onRestoreDefaults()));
 //  this->connect(ui.buttonBox, SIGNAL(clicked(QAbstractButton*)), SLOT(clicked(QAbstractButton*)));
-  this->connect(this, SIGNAL(accepted()), SLOT(onAccepted()));
-  this->connect(this, SIGNAL(rejected()), SLOT(onRejected()));
+//  this->connect(this, SIGNAL(accepted()), SLOT(onAccepted()));
+//  this->connect(this, SIGNAL(rejected()), SLOT(onRejected()));
   this->connect(ui.tabBar, SIGNAL(currentChanged(int)), this, SLOT(onTabIndexChanged(int)));
 
   this->connect(ui.SearchBox, SIGNAL(advancedSearchActivated(bool)), SLOT(filterPanelWidgets()));
