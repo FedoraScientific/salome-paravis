@@ -20,22 +20,37 @@
 #define _PVGUI_VIEWMODEL_H
 
 #include <SUIT_ViewModel.h>
+#include CORBA_SERVER_HEADER(PARAVIS_Gen)
 
 class SUIT_ViewWindow;
 class SUIT_Desktop;
+class pqPVApplicationCore;
 
 class PVGUI_Viewer: public SUIT_ViewModel
 {
   Q_OBJECT
 
 public:
-  static QString Type() { return "ParaView"; }
-
   PVGUI_Viewer();
-  ~PVGUI_Viewer();
+  virtual ~PVGUI_Viewer() {}
 
   virtual SUIT_ViewWindow* createView(SUIT_Desktop* theDesktop);
   virtual QString getType() const { return Type(); }
+  static QString Type() { return "ParaView"; }
+
+  pqPVApplicationCore * getPVApplication();
+  static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();
+
+  //! Initialize ParaView if not yet done (once per session)
+  static bool            pvInit();
+
+  //! Connect to the external PVServer, using the PARAVIS engine to launch it if it is not
+  //! already up.
+  bool connectToExternalPVServer();
+
+private:
+  static pqPVApplicationCore* MyCoreApp;
+  static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
 
 };
 

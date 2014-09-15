@@ -45,7 +45,6 @@ class QToolBar;
 class vtkPVMain;
 class pqOptions;
 class pqServer;
-class pqTabbedMultiViewWidget;
 class pqMainWindowCore;
 class vtkEventQtSlotConnect;
 class pqPythonScriptEditor;
@@ -144,12 +143,8 @@ public:
   PVGUI_Module();
   ~PVGUI_Module();
 
-  static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();
-
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
-
-//  pqTabbedMultiViewWidget*         getMultiViewManager() const;
 
   virtual QString engineIOR() const;
 
@@ -170,14 +165,13 @@ public:
 
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
+  inline static PARAVIS_ORB::PARAVIS_Gen_var GetEngine() { return PVGUI_ViewerModel::GetEngine(); }
+
 public slots:
   //void onImportFromVisu(QString theEntry);
 
 private:
   void deleteTemporaryFiles();
-
-  //! Initialize ParaView if not yet done (once per session)
-  static bool            pvInit();  
  
   //! Create actions for ParaView GUI operations
   void                   pvCreateActions();
@@ -226,10 +220,6 @@ private:
 
   //! restore visibility of the common dockable windows (OB, PyConsole, ... etc.)
   void restoreCommonWindowsState();
-
-  //! Connect to the external PVServer, using the PARAVIS engine to launch it if it is not
-  //! already up.
-  bool connectToExternalPVServer();
 
 private slots:
 
@@ -293,10 +283,6 @@ private:
   QtMsgHandler           myOldMsgHandler;
 
   vtkEventQtSlotConnect *VTKConnect;
-
-  static pqPVApplicationCore* MyCoreApp;
-  static PARAVIS_ORB::PARAVIS_Gen_var myEngine;
-
 
   pqPythonScriptEditor* myTraceWindow;
 
