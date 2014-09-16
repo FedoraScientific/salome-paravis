@@ -165,7 +165,8 @@ public:
 
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
-  inline static PARAVIS_ORB::PARAVIS_Gen_var GetEngine() { return PVGUI_ViewerModel::GetEngine(); }
+  inline static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();
+  inline static pqPVApplicationCore * GetPVApplication();
 
 public slots:
   //void onImportFromVisu(QString theEntry);

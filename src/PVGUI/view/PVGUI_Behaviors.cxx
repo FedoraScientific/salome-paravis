@@ -52,7 +52,7 @@
 
 bool PVGUI_Behaviors::hasMinimalInstanciated = false;
 
-PVGUI_Behaviors::PVGUI_Behaviors(SalomeApp_Module * parent)
+PVGUI_Behaviors::PVGUI_Behaviors(SUIT_Desktop * parent)
   : QObject(static_cast<QObject *>(parent))
 {
 }

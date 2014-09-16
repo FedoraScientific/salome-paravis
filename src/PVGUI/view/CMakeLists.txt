@@ -30,9 +30,14 @@ SET(_PARAVIEW_APP_COMPO_LIB
   pqApplicationComponents
   )
 
+ADD_DEFINITIONS(${KERNEL_DEFINITIONS})
+ADD_DEFINITIONS(${OMNIORB_DEFINITIONS})
+
 SET(_link_LIBRARIES 
-  ${KERNEL_LDFLAGS} ${KERNEL_SALOMELocalTrace}
-  ${GUI_LDFLAGS} ${GUI_LightApp} ${GUI_suit} ${GUI_Event} ${_PARAVIEW_APP_COMPO_LIB}
+  ${KERNEL_LDFLAGS} ${KERNEL_SALOMELocalTrace} ${KERNEL_SalomeLifeCycleCORBA}
+  ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_suit} ${GUI_Event} 
+  ${_PARAVIEW_APP_COMPO_LIB}
+  SalomeIDLPARAVIS
 )
 
 # --- headers ---
@@ -47,7 +52,7 @@ SET(_moc_HEADERS
 
 # header files / no moc processing
 SET(_other_HEADERS
-  PVGUI_OutputWindowAdapter.h
+  PVGUI_LogWindowAdapter.h
 )
 # header files / to install
 SET(PVViewer_HEADERS ${_moc_HEADERS} ${_other_HEADERS})
@@ -62,7 +67,7 @@ SET(_other_SOURCES
   PVGUI_ViewManager.cxx
   PVGUI_ViewModel.cxx
   PVGUI_ViewWindow.cxx
-  PVGUI_OutputWindowAdapter.cxx
+  PVGUI_LogWindowAdapter.cxx
   PVGUI_Behaviors.cxx
   )
   

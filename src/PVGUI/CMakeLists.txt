@@ -39,8 +39,8 @@ ADD_SUBDIRECTORY(view)
 
 # additional preprocessor / compiler flags
 ADD_DEFINITIONS(${CAS_DEFINITIONS})
-ADD_DEFINITIONS(${KERNEL_DEFINITIONS})
 ADD_DEFINITIONS(${OMNIORB_DEFINITIONS})
+ADD_DEFINITIONS(${KERNEL_DEFINITIONS})
 
 # libraries to link to
 SET(_PARAVIEW_APP_COMPO_LIB
@@ -50,15 +50,12 @@ SET(_PARAVIEW_APP_COMPO_LIB
 SET(_link_LIBRARIES 
   ${OMNIORB_LIBRARIES}
   ${QT_LIBRARIES}
-#  ${CAS_KERNEL}
   ${PYTHON_LIBS}
-  ${KERNEL_LDFLAGS} ${KERNEL_SalomeDS} ${KERNEL_SALOMELocalTrace} ${KERNEL_SalomeIDLKernel} 
-                    ${KERNEL_SalomeNS} ${KERNEL_SalomeLifeCycleCORBA} ${KERNEL_SalomeContainer} ${KERNEL_TOOLSDS}
-  ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_CAM} ${GUI_qtx} ${GUI_suit} ${GUI_Event} ${GUI_PyInterp} 
+  ${KERNEL_LDFLAGS} 
+  ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_CAM} ${GUI_qtx} ${GUI_suit} ${GUI_Event}  
                  ${GUI_SalomeObject} ${GUI_vtkTools}
   ${MED_SalomeIDLMED}
   ${_PARAVIEW_APP_COMPO_LIB}
-  SalomeIDLPARAVIS
   PVViewer
 )
 

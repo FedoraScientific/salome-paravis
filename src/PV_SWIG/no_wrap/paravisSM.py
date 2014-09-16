@@ -18,13 +18,13 @@
 #
 
 r""" This module is a direct forward to the initial 
-'servermanager' module of ParaView.
+'servermanager' module of ParaView. We keep it for backward compatibility only.
 """
 
-from paraview.servermanager import *
+from paraview import servermanager
 
-# for name in dir(servermanager):
-#   if name != "__file__":
-#     globals()[name] = getattr(servermanager, name)
-# del servermanager
-# 
+for name in dir(servermanager):
+  if not name.startswith("__"):
+    globals()[name] = getattr(servermanager, name)
+del servermanager
+ 

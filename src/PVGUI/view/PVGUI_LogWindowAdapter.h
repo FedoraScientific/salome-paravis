@@ -17,24 +17,24 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#ifndef _PVGUI_OutputWindowAdapter_h
-#define _PVGUI_OutputWindowAdapter_h
+#ifndef _PVGUI_LogWindowAdapter_h
+#define _PVGUI_LogWindowAdapter_h
 
 #include <vtkOutputWindow.h>
 
 /*!
 vtkOutputWindow implementation that puts VTK output messages to SALOME log window.
 
-To use, create an instance of PVGUI_OutputWindowAdapter and pass it to the
+To use, create an instance of PVGUI_LogWindowAdapter and pass it to the
 vtkOutputWindow::setInstance() static method.
 
 This class is based on pqOutputWindow ParaView class.
 */
-class PVGUI_OutputWindowAdapter : public vtkOutputWindow
+class PVGUI_LogWindowAdapter : public vtkOutputWindow
 {
 public:
-  static PVGUI_OutputWindowAdapter *New();
-  vtkTypeMacro(PVGUI_OutputWindowAdapter, vtkOutputWindow);
+  static PVGUI_LogWindowAdapter *New();
+  vtkTypeMacro(PVGUI_LogWindowAdapter, vtkOutputWindow);
 
   //! Returns the number of text messages received
   const unsigned int getTextCount();
@@ -46,10 +46,10 @@ public:
   const unsigned int getGenericWarningCount();
 
 private:
-  PVGUI_OutputWindowAdapter();
-  PVGUI_OutputWindowAdapter(const PVGUI_OutputWindowAdapter&);
-  PVGUI_OutputWindowAdapter& operator=(const PVGUI_OutputWindowAdapter&);
-  ~PVGUI_OutputWindowAdapter();
+  PVGUI_LogWindowAdapter();
+  PVGUI_LogWindowAdapter(const PVGUI_LogWindowAdapter&);
+  PVGUI_LogWindowAdapter& operator=(const PVGUI_LogWindowAdapter&);
+  ~PVGUI_LogWindowAdapter();
 
   unsigned int TextCount;
   unsigned int ErrorCount;
@@ -62,4 +62,4 @@ private:
   virtual void DisplayGenericWarningText(const char*);
 };
 
-#endif // !_PVGUI_OutputWindowAdapter_h
+#endif // !_PVGUI_LogWindowAdapter_h

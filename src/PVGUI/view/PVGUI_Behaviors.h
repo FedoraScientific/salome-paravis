@@ -37,7 +37,7 @@ class PVGUI_Behaviors: public QObject
   Q_OBJECT
 
 public:
-  PVGUI_Behaviors(SalomeApp_Module * parent);
+  PVGUI_Behaviors(SUIT_Desktop * parent);
 
   void instanciateMinimalBehaviors(SUIT_Desktop * desk);
 

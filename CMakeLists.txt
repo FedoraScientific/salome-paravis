@@ -141,7 +141,7 @@ INCLUDE_DIRECTORIES(${GUI_INCLUDE_DIRS})
 ##
 ## From GUI: part 2
 ##
-FIND_PACKAGE(SalomeCAS REQUIRED)
+FIND_PACKAGE(SalomeCAS REQUIRED)  # [ABN] I wish I could avoid that ...
 
 ##
 ## From MED

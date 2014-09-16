@@ -49,6 +49,7 @@ class PARAVIS_Impl:
         self.pvserverPort = -1
         self.pvserverPop = None  # Popen object from subprocess module
         self.lastTrace = ""
+        self.isGUIConnected = False  # whether there is an active connection from the GUI.
             
     """
     Private. Identify a free port to launch the PVServer. 
@@ -120,8 +121,14 @@ class PARAVIS_Impl:
     def PutPythonTraceStringToEngine( self, t ):
         self.lastTrace = t
         
-    def GetPythonTraceString (self):
+    def GetPythonTraceString(self):
         return self.lastTrace
+      
+    def SetGUIConnected( self, isConnected ):
+        self.isGUIConnected = isConnected
+        
+    def GetGUIConnected( self ):
+        return self.isGUIConnected
     
 class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
               SALOME_ComponentPy.SALOME_ComponentPy_i,
@@ -166,6 +173,7 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
     Create object.
     """
     def createObject( self, study, name ):
+        MESSAGE("createObject()")
         self._createdNew = True # used for getModifiedData method
         builder = study.NewBuilder()
         father  = findOrCreateComponent( study )
@@ -173,44 +181,27 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
         attr    = builder.FindOrCreateAttribute( object, "AttributeName" )
         attr.SetValue( name )
         attr    = builder.FindOrCreateAttribute( object, "AttributeLocalID" )
-        attr.SetValue( objectID() )
+        attr.SetValue( PARAVIS_utils.objectID() )
         pass
 
     """
     Dump module data to the Python script.
     """
-    def DumpPython( self, study, isPublished ):
-        print "@@@@ DumpPython"
-        abuffer = []
-        abuffer.append( "def RebuildData( theStudy ):" )
-        names = []
-        father = study.FindComponent( moduleName() )
-        if father:
-            iter = study.NewChildIterator( father )
-            while iter.More():
-                name = iter.Value().GetName()
-                if name: names.append( name )
-                iter.Next()
-                pass
-            pass
-        if names:
-            abuffer += [ "  from batchmode_salome import lcc" ]
-            abuffer += [ "  import PARAVIS_ORB" ]
-            abuffer += [ "  " ]
-            abuffer += [ "  pyhello = lcc.FindOrLoadComponent( 'FactoryServerPy', '%s' )" % moduleName() ]
-            abuffer += [ "  " ]
-            abuffer += [ "  pyhello.createObject( theStudy, '%s' )" % name for name in names ]
-            pass
-        abuffer += [ "  " ]
-        abuffer.append( "  pass" )
-        abuffer.append( "\0" )
+    def DumpPython( self, study, isPublished, isMultiFile ):
+        MESSAGE("dumpPython()") 
+        abuffer = self.GetPythonTraceString().split("\n")
+        if isMultiFile:
+            abuffer       = [ "  " + s for s in abuffer ]
+            abuffer[0:0]  = [ "def RebuildData( theStudy ):" ]
+            abuffer      += [ "  pass" ]
+        abuffer += [ "\0" ]
         return ("\n".join( abuffer ), 1)
   
     """
     Import file to restore module data
     """
     def importData(self, studyId, dataContainer, options):
-      print "@@@@ ImportData"
+      MESSAGE("importData()")
       # get study by Id
       obj = self._naming_service.Resolve("myStudyManager")
       myStudyManager = obj._narrow(SALOMEDS.StudyManager)
@@ -224,7 +215,7 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
       return ["objects"] # identifier what is in this file
  
     def getModifiedData(self, studyId):
-      print "@@@@ GetModifiedData"
+      MESSAGE("getModifiedData()")
       if self._createdNew:
         # get study by Id
         obj = self._naming_service.Resolve("myStudyManager")

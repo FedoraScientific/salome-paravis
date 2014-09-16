@@ -20,10 +20,13 @@
 #define PVGUI_VIEWMANAGER_H
 
 #include <SUIT_ViewManager.h>
+#include <SALOMEconfig.h>
+#include CORBA_SERVER_HEADER(PARAVIS_Gen)
 
 class SUIT_Desktop;
 class SUIT_Study;
 class pqTabbedMultiViewWidget;
+class pqPVApplicationCore;
 
 class PVGUI_ViewManager : public SUIT_ViewManager
 {
@@ -33,7 +36,23 @@ public:
   PVGUI_ViewManager( SUIT_Study*, SUIT_Desktop* );
   ~PVGUI_ViewManager() {}
 
-  pqTabbedMultiViewWidget*     getMultiViewManager();
+  static pqPVApplicationCore * GetPVApplication();
+  static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();
+
+  //! Initialize ParaView if not yet done (once per session)
+  static bool   ParaviewInitApp(SUIT_Desktop* aDesktop);
+  static void   ParaviewInitBehaviors(bool fullSetup=false, SUIT_Desktop* aDesktop=0);
+
+  static void   ParaviewCleanup();
+
+  //! Connect to the external PVServer, using the PARAVIS engine to launch it if it is not
+  //! already up.
+  static bool   ConnectToExternalPVServer(SUIT_Desktop* aDesktop);
+
+private:
+  static pqPVApplicationCore* MyCoreApp;
+  static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
+
 };
 
 #endif

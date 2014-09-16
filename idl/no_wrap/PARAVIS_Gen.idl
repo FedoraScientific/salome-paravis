@@ -66,6 +66,12 @@ module PARAVIS_ORB {
      */
     void PutPythonTraceStringToEngine(in string trace);
     
+    /*! Indicates if the GUI process is already connected to the pvserver. 
+     * This avoids multiple attempts to connect from a single thread (makes ParaView crash). */ 
+    void SetGUIConnected(in boolean isConnected);
+    
+    boolean GetGUIConnected();
+    
   };
 
 };

@@ -23,30 +23,42 @@ On top of that it also establishes a connection to a valid PVServer whose addres
 is provided by the PARAVIS engine.
 """
 
-from paraview.simple import *
-import paraview.servermanager  # local import - see test on 'fromGUI' below
-import paravis        ## Triggers the "FindOrLoadCompo(PARAVIS)"
+import paraview
+import paravis
+
+# Forward namespace of simple into current pvsimple:
+from paraview import simple
+for name in dir(simple):
+  if not name.startswith("__"):
+    globals()[name] = getattr(simple, name)
+del simple
 
 def __my_log(msg):
     print "[PARAVIS] %s" % msg
 
 def SalomeConnectToPVServer():
+    """
+    Automatically connect to the right PVServer when not ("inside SALOME GUI" and "already connected").
+    """
     __my_log("Connecting to PVServer ...")
     server_url = ""
     try:
+        isGUIConnected = paravis.myParavisEngine.GetGUIConnected()
+        if isGUIConnected and paraview.fromGUI:
+            __my_log("Importing pvsimple from GUI and already connected. Won't reconnect.")
+            return
         server_url = paravis.myParavisEngine.FindOrStartPVServer(0)
         # Extract host and port from URL:
         a = server_url.split(':')
         b = a[1].split('//')
         host, port = b[-1], int(a[-1])
         Connect(host, port)
+        __my_log("Connected to %s!" % server_url)
     except Exception as e:
         __my_log("*******************************************")
         __my_log("** Could not connect to a running PVServer!")
         __my_log("*******************************************")
         raise e
-    __my_log("Connected to %s!" % server_url)
+    pass
 
-# Automatically connect to the right PVServer when not inside SALOME GUI:
-if not paraview.fromGUI: 
-  SalomeConnectToPVServer()
+SalomeConnectToPVServer()

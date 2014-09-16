@@ -34,13 +34,11 @@
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 #include CORBA_SERVER_HEADER(SALOMEDS)
 
-#include "PVGUI_ViewModel.h"
 #include "PVGUI_ViewManager.h"
 #include "PVGUI_ViewWindow.h"
+#include "PVGUI_ViewModel.h"
 #include "PVGUI_Tools.h"
 #include "PVGUI_ParaViewSettingsPane.h"
-#include "PVGUI_OutputWindowAdapter.h"
-#include "PVGUI_Behaviors.h"
 
 // SALOME Includes
 #include <SUIT_DataBrowser.h>
@@ -106,7 +104,7 @@
 #include <vtkSMParaViewPipelineController.h>
 
 #include <pqApplicationCore.h>
-//#include <pqPVApplicationCore.h>
+#include <pqPVApplicationCore.h>
 #include <pqActiveView.h>
 #include <pqObjectBuilder.h>
 #include <pqOptions.h>
@@ -127,7 +125,6 @@
 #include <pqScalarBarVisibilityReaction.h>
 #include <pqServerResource.h>
 #include <pqServerConnectReaction.h>
-#include <pqServerDisconnectReaction.h>
 
 //----------------------------------------------------------------------------
 PVGUI_Module* ParavisModule = 0;
@@ -199,6 +196,46 @@ PVGUI_Module* ParavisModule = 0;
          SALOME module wrapping ParaView GUI.
 */
 
+_PTR(SComponent)
+ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
+{
+  _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
+  if (!aSComponent) {
+    _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
+    aStudyBuilder->NewCommand();
+    int aLocked = theStudyDocument->GetProperties()->IsLocked();
+    if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
+    aSComponent = aStudyBuilder->NewComponent("PARAVIS");
+    _PTR(GenericAttribute) anAttr =
+      aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
+    _PTR(AttributeName) aName (anAttr);
+
+    ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
+    CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
+
+    SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
+    CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
+    SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
+      SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
+    SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
+    if (!Comp->_is_nil()) {
+      aName->SetValue(Comp->componentusername());
+    }
+
+    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
+    _PTR(AttributePixMap) aPixmap (anAttr);
+    aPixmap->SetPixMap( "pqAppIcon16.png" );
+
+    // Create Attribute parameters for future using
+    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
+
+    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetEngine()->GetIOR());
+    if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
+    aStudyBuilder->CommitCommand();
+  }
+  return aSComponent;
+}
+
 /*!
   Clean up function; used to stop ParaView progress events when
   exception is caught by global exception handler.
@@ -257,18 +294,16 @@ PVGUI_Module::~PVGUI_Module()
     delete myPushTraceTimer;
   if (myInitTimer)
     delete myInitTimer;
-  // Disconnect from server
-  pqServer* server = pqActiveObjects::instance().activeServer();
-  if (server && server->isRemote())
-    {
-      MESSAGE("~PVGUI_Module(): Disconnecting from remote server ...");
-      pqServerDisconnectReaction::disconnectFromServer();
-    }
 }
 
 PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetEngine()
 {
-  return PVGUI_ViewerModel::GetEngine();
+  return PVGUI_ViewManager::GetEngine();
+}
+
+pqPVApplicationCore * PVGUI_Module::GetPVApplication()
+{
+  return PVGUI_ViewManager::GetPVApplication();
 }
 
 /*!
@@ -292,18 +327,22 @@ void PVGUI_Module::initialize( CAM_Application* app )
     aa = aa;
   }
   */
-  
-  // Initialize ParaView client
-  pvInit();
 
-  // Create GUI elements (menus, toolbars, dock widgets)
   SalomeApp_Application* anApp = getApp();
   SUIT_Desktop* aDesktop = anApp->desktop();
+
+  // Initialize ParaView client and associated behaviors
+  // and connect to externally launched pvserver
+  PVGUI_ViewManager::ParaviewInitApp(aDesktop);
 
   // Remember current state of desktop toolbars
   QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
 
   setupDockWidgets();
+
+  // Behaviors and connection must be instanciated *after* widgets are in place:
+  PVGUI_ViewManager::ParaviewInitBehaviors(true, aDesktop);
+  PVGUI_ViewManager::ConnectToExternalPVServer(aDesktop);
 
   pvCreateActions();
   pvCreateToolBars();
@@ -311,9 +350,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
   QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();
-
-  PVGUI_Behaviors * behav = new PVGUI_Behaviors(this);
-  behav->instanciateAllBehaviors(aDesktop);
 
   // Setup quick-launch shortcuts.
   QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);
@@ -345,14 +381,13 @@ void PVGUI_Module::initialize( CAM_Application* app )
   SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
   QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
   if (!aPath.isNull()) {
-    MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewFilters.xml");
-    MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewReaders.xml");
-    MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewSources.xml");
-    MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewWriters.xml");
+      pqPVApplicationCore * pvApp = GetPVApplication();
+      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewFilters.xml");
+      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewReaders.xml");
+      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewSources.xml");
+      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewWriters.xml");
   }
 
-  // Force creation of the PARAVIS engine
-  GetEngine();
   updateObjBrowser();
 
   // Find created toolbars
@@ -430,7 +465,7 @@ void PVGUI_Module::onDataRepresentationUpdated() {
 void PVGUI_Module::onInitTimer()
 {
 #ifndef PARAVIS_WITH_FULL_CORBA
-  connectToExternalPVServer();
+//  connectToExternalPVServer();
 #endif
   startTrace();
 }
@@ -486,7 +521,6 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 */
 void PVGUI_Module::showView( bool toShow )
 {
-  PVGUI_ViewManager
   SalomeApp_Application* anApp = getApp();
   PVGUI_ViewManager* viewMgr =
     dynamic_cast<PVGUI_ViewManager*>( anApp->getViewManager( PVGUI_Viewer::Type(), false ) );
@@ -606,7 +640,7 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   if ( myRecentMenuId != -1 ) menuMgr()->show(myRecentMenuId);
 
-//  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
+  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
 
   return isDone;
 }
@@ -681,11 +715,11 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 */
 void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
 {
-  pqApplicationCore::instance()->settings()->sync();
+  PVGUI_ViewManager::ParaviewCleanup();
+
   int aAppsNb = SUIT_Session::session()->applications().size();
   if (aAppsNb == 1) {
     deleteTemporaryFiles();
-    MyCoreApp->deleteLater();
   }
   CAM_Module::onApplicationClosed(theApp);
 }
