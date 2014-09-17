@@ -21,6 +21,7 @@
 //
 
 #include "PVViewer_ViewWindow.h"
+#include "PVViewer_ViewManager.h"
 
 #include <SUIT_ViewManager.h>
 #include <SUIT_ResourceMgr.h>
@@ -38,7 +39,7 @@
 /*!
   \brief Constructor.
   \param theDesktop parent desktop window
-  \param theModel plt2d view model
+  \param theModel view model
 */
 PVViewer_ViewWindow::PVViewer_ViewWindow( SUIT_Desktop* theDesktop, PVViewer_Viewer* theModel )
   : SUIT_ViewWindow( theDesktop ), myPVMgr( 0 )
@@ -50,6 +51,12 @@ PVViewer_ViewWindow::PVViewer_ViewWindow( SUIT_Desktop* theDesktop, PVViewer_Vie
     // This is mandatory, see setParent() method in Qt 4 documentation
     myPVMgr->show();
     setCentralWidget( myPVMgr );
+
+    // Finish ParaView set up: behaviors, connection and configurations.
+    // None of this is invoked in PARAVIS module case as it done earlier than View creation:
+    PVViewer_ViewManager::ParaviewInitBehaviors(true, theDesktop);
+    PVViewer_ViewManager::ConnectToExternalPVServer(theDesktop);
+    PVViewer_ViewManager::ParaviewLoadConfigurations();
   } else
     qDebug("No multiViewManager defined");
 }
@@ -95,4 +102,9 @@ void PVViewer_ViewWindow::setVisualParameters( const QString& parameters )
 pqTabbedMultiViewWidget* PVViewer_ViewWindow::getMultiViewManager() const
 {
   return myPVMgr;
+}
+
+void PVViewer_ViewWindow::onEmulateApply()
+{
+  emit this->applyRequest();
 }

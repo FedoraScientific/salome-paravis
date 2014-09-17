@@ -43,6 +43,12 @@ public:
   
   pqTabbedMultiViewWidget*    getMultiViewManager() const;
 
+signals:
+  void applyRequest();
+
+public slots:
+  void onEmulateApply();
+
 private:
   PVViewer_Viewer*     myModel;
   pqTabbedMultiViewWidget*    myPVMgr;

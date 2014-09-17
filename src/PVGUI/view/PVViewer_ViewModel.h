@@ -36,7 +36,6 @@ public:
   virtual SUIT_ViewWindow* createView(SUIT_Desktop* theDesktop);
   virtual QString getType() const { return Type(); }
   static QString Type() { return "ParaView"; }
-
 };
 
 #endif // !defined(_PVViewer_VIEWMODEL_H)

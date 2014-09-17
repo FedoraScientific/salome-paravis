@@ -340,7 +340,8 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   setupDockWidgets();
 
-  // Behaviors and connection must be instanciated *after* widgets are in place:
+  // Behaviors and connection must be instanciated *after* widgets are in place
+  // In PARAVIS module we do not wait for PVViewer_ViewWindow to be instanciated to have this:
   PVViewer_ViewManager::ParaviewInitBehaviors(true, aDesktop);
   PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
 
@@ -378,16 +379,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
 //      }
 //    }
 
-  SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
-  QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
-  if (!aPath.isNull()) {
-      pqPVApplicationCore * pvApp = GetPVApplication();
-      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewFilters.xml");
-      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewReaders.xml");
-      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewSources.xml");
-      pvApp->loadConfiguration(aPath + QDir::separator() + "ParaViewWriters.xml");
-  }
-
+  PVViewer_ViewManager::ParaviewLoadConfigurations();
   updateObjBrowser();
 
   // Find created toolbars
@@ -534,6 +526,7 @@ void PVGUI_Module::showView( bool toShow )
   PVViewer_ViewWindow* pvWnd = dynamic_cast<PVViewer_ViewWindow*>( viewMgr->getActiveView() );
   if ( !pvWnd ) {
     pvWnd = dynamic_cast<PVViewer_ViewWindow*>( viewMgr->createViewWindow() );
+    // this also connects to the pvserver and instantiates relevant PV behaviors
   }
 
   pvWnd->setShown( toShow );
@@ -611,7 +604,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   bool isDone = SalomeApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
-  showView( true );
+  showView( true );  // this will also trigger the connection to the server
+                     // and the instanciation of the relevant PV behaviors
   if ( mySourcesMenuId != -1 ) menuMgr()->show(mySourcesMenuId);
   if ( myFiltersMenuId != -1 ) menuMgr()->show(myFiltersMenuId);
   if ( myFiltersMenuId != -1 ) menuMgr()->show(myMacrosMenuId);

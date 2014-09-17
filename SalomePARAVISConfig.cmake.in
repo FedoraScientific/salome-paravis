@@ -30,7 +30,7 @@
 # Load the dependencies for the libraries of @PROJECT_NAME@ 
 # (contains definitions for IMPORTED targets). This is only 
 # imported if we are not built as a subproject (in this case targets are already there)
-IF(NOT TARGET Event AND NOT @PROJECT_NAME@_BINARY_DIR)
+IF(NOT TARGET PARAVIS AND NOT @PROJECT_NAME@_BINARY_DIR)
   INCLUDE("@PACKAGE_SALOME_INSTALL_CMAKE_LOCAL@/@PROJECT_NAME@Targets.cmake")
 ENDIF()   
 
@@ -132,3 +132,5 @@ ENDIF()
 SET(PARAVIS_SalomeIDLPARAVIS SalomeIDLPARAVIS)
 SET(PARAVIS_PARAVIS PARAVIS)
 SET(PARAVIS_PARAVISEngine PARAVISEngine)
+SET(PARAVIS_PVViewer PVViewer)
+

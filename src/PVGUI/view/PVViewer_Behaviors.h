@@ -26,6 +26,7 @@
 
 class SalomeApp_Module;
 class SUIT_Desktop;
+class pqPropertiesPanel;
 
 /**!
  * PARAVIS behaviors - mimic what is done in
@@ -45,8 +46,13 @@ public:
 
   virtual ~PVViewer_Behaviors() {}
 
+public slots:
+  void onEmulateApply();
+
 private:
-  static bool hasMinimalInstanciated;
+  static int BehaviorLoadingLevel;
+
+  pqPropertiesPanel * hiddenProp;
 };
 
 #endif /* PVGUIBEHAVIORS_H_ */

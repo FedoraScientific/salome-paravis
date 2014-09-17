@@ -25,8 +25,11 @@
 
 class SUIT_Desktop;
 class SUIT_Study;
+class SUIT_ViewWindow;
 class pqTabbedMultiViewWidget;
 class pqPVApplicationCore;
+class PVViewer_Behaviors;
+class pqPropertiesPanel;
 
 class PVViewer_ViewManager : public SUIT_ViewManager
 {
@@ -42,17 +45,21 @@ public:
   //! Initialize ParaView if not yet done (once per session)
   static bool   ParaviewInitApp(SUIT_Desktop* aDesktop);
   static void   ParaviewInitBehaviors(bool fullSetup=false, SUIT_Desktop* aDesktop=0);
-
+  static void   ParaviewLoadConfigurations();
   static void   ParaviewCleanup();
 
   //! Connect to the external PVServer, using the PARAVIS engine to launch it if it is not
   //! already up.
   static bool   ConnectToExternalPVServer(SUIT_Desktop* aDesktop);
 
+public slots:
+  void onPVViewCreated(SUIT_ViewWindow*);
+
 private:
   static pqPVApplicationCore* MyCoreApp;
   static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
-
+  static bool ConfigLoaded;
+  static PVViewer_Behaviors * ParaviewBehaviors;
 };
 
 #endif

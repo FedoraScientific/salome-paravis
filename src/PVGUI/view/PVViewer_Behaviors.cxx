@@ -50,7 +50,9 @@
 #include <pqFixPathsInStateFilesBehavior.h>
 #include <pqApplyBehavior.h>
 
-bool PVViewer_Behaviors::hasMinimalInstanciated = false;
+#include <pqPropertiesPanel.h>
+
+int PVViewer_Behaviors::BehaviorLoadingLevel = 0;
 
 PVViewer_Behaviors::PVViewer_Behaviors(SUIT_Desktop * parent)
   : QObject(static_cast<QObject *>(parent))
@@ -63,27 +65,33 @@ PVViewer_Behaviors::PVViewer_Behaviors(SUIT_Desktop * parent)
  */
 void PVViewer_Behaviors::instanciateMinimalBehaviors(SUIT_Desktop * desk)
 {
-  hasMinimalInstanciated = true;
+  if (BehaviorLoadingLevel < 1)
+    {
+      // Register ParaView interfaces.
+      pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
 
-  // Register ParaView interfaces.
-  pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
+      // Register standard types of property widgets.
+      pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
+      // Register standard types of view-frame actions.
+      pgm->addInterface(new pqStandardViewFrameActionsImplementation(pgm));
 
-  // Register standard types of property widgets.
-  pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
-  // Register standard types of view-frame actions.
-  pgm->addInterface(new pqStandardViewFrameActionsImplementation(pgm));
+      // Load plugins distributed with application.
+      pqApplicationCore::instance()->loadDistributedPlugins();
 
-  // Load plugins distributed with application.
-  pqApplicationCore::instance()->loadDistributedPlugins();
+      new pqDefaultViewBehavior(this);  // shows a 3D view as soon as a server connection is made
+      new pqAlwaysConnectedBehavior(this);  // client always connected to a server
+      new pqAutoLoadPluginXMLBehavior(this);  // auto load plugins
+      new pqVerifyRequiredPluginBehavior(this);
+      new pqPluginSettingsBehavior(this);
+      new pqFixPathsInStateFilesBehavior(this);
+      new pqCrashRecoveryBehavior(this);
+      new pqCommandLineOptionsBehavior(this);
 
-  new pqDefaultViewBehavior(this);  // shows a 3D view as soon as a server connection is made
-  new pqAlwaysConnectedBehavior(this);  // client always connected to a server
-  new pqAutoLoadPluginXMLBehavior(this);  // auto load plugins
-  new pqVerifyRequiredPluginBehavior(this);
-  new pqPluginSettingsBehavior(this);
-  new pqFixPathsInStateFilesBehavior(this);
-  new pqCrashRecoveryBehavior(this);
-  new pqCommandLineOptionsBehavior(this);
+      // Create a hidden pqPropertiesPanel()
+      hiddenProp = new pqPropertiesPanel(desk);
+
+      BehaviorLoadingLevel = 1;
+    }
 }
 
 /**! Instanciate usual ParaView behaviors.
@@ -97,24 +105,34 @@ void PVViewer_Behaviors::instanciateAllBehaviors(SUIT_Desktop * desk)
   // exclude using of pqQtMessageHandlerBehaviour
 
   // Define application behaviors.
-  if (!hasMinimalInstanciated)
+  if (BehaviorLoadingLevel < 1)
     instanciateMinimalBehaviors(desk);
-  //new pqQtMessageHandlerBehavior(this);   // THIS ONE TO EXCLUDE !! see comment above
-  new pqDataTimeStepBehavior(this);
-  new pqSpreadSheetVisibilityBehavior(this);
-  new pqPipelineContextMenuBehavior(this);
-  new pqUndoRedoBehavior(this);
-  new pqPluginDockWidgetsBehavior(desk);
-  new pqPluginActionGroupBehavior(desk);
-  new pqPersistentMainWindowStateBehavior(desk);
-  new pqObjectPickingBehavior(desk);
-  new pqCollaborationBehavior(this);
-  new pqViewStreamingBehavior(this);
 
-  pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
-  foreach (pqPropertiesPanel* ppanel, desk->findChildren<pqPropertiesPanel*>())
+  if (BehaviorLoadingLevel < 2)
     {
-    applyBehavior->registerPanel(ppanel);
-    }
+      //new pqQtMessageHandlerBehavior(this);   // THIS ONE TO EXCLUDE !! see comment above
+      new pqDataTimeStepBehavior(this);
+      new pqSpreadSheetVisibilityBehavior(this);
+      new pqPipelineContextMenuBehavior(this);
+      new pqUndoRedoBehavior(this);
+      new pqPluginDockWidgetsBehavior(desk);
+      new pqPluginActionGroupBehavior(desk);
+      new pqPersistentMainWindowStateBehavior(desk);
+      new pqObjectPickingBehavior(desk);
+      new pqCollaborationBehavior(this);
+      new pqViewStreamingBehavior(this);
 
+      pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
+      foreach (pqPropertiesPanel* ppanel, desk->findChildren<pqPropertiesPanel*>())
+      {
+        applyBehavior->registerPanel(ppanel);
+      }
+      BehaviorLoadingLevel = 2;
+    }
+}
+
+void PVViewer_Behaviors::onEmulateApply()
+{
+  if (hiddenProp)
+    hiddenProp->apply();
 }

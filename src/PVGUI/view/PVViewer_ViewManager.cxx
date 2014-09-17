@@ -28,12 +28,14 @@
 #include <SUIT_MessageBox.h>
 #include <SUIT_Desktop.h>
 #include <SUIT_Session.h>
+#include <SUIT_ResourceMgr.h>
 #include <PyInterp_Interp.h>
 #include <PyConsole_Interp.h>
 #include <PyConsole_Console.h>
 
 #include <QApplication>
 #include <QStringList>
+#include <QDir>
 #include <string>
 
 #include <pqOptions.h>
@@ -48,7 +50,8 @@
 //---------- Static init -----------------
 pqPVApplicationCore* PVViewer_ViewManager::MyCoreApp = 0;
 PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::MyEngine;
-
+bool PVViewer_ViewManager::ConfigLoaded = false;
+PVViewer_Behaviors * PVViewer_ViewManager::ParaviewBehaviors = NULL;
 
 /*!
   Constructor
@@ -58,6 +61,10 @@ PVViewer_ViewManager::PVViewer_ViewManager( SUIT_Study* study, SUIT_Desktop* des
 {
   MESSAGE("PARAVIS - view manager created ...")
   setTitle( tr( "PARAVIEW_VIEW_TITLE" ) );
+  // Initialize minimal paraview stuff (if not already done)
+  ParaviewInitApp(desk);
+
+  connect(this, SIGNAL(viewCreated(SUIT_ViewWindow*)), this, SLOT(onPVViewCreated(SUIT_ViewWindow*)));
 }
 
 pqPVApplicationCore * PVViewer_ViewManager::GetPVApplication()
@@ -124,11 +131,29 @@ bool PVViewer_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
 
 void PVViewer_ViewManager::ParaviewInitBehaviors(bool fullSetup, SUIT_Desktop* aDesktop)
 {
-  PVViewer_Behaviors * behav = new PVViewer_Behaviors(aDesktop);
+  if (!ParaviewBehaviors)
+      ParaviewBehaviors = new PVViewer_Behaviors(aDesktop);
+
   if(fullSetup)
-    behav->instanciateAllBehaviors(aDesktop);
+    ParaviewBehaviors->instanciateAllBehaviors(aDesktop);
   else
-    behav->instanciateMinimalBehaviors(aDesktop);
+    ParaviewBehaviors->instanciateMinimalBehaviors(aDesktop);
+}
+
+void PVViewer_ViewManager::ParaviewLoadConfigurations()
+{
+  if (!ConfigLoaded)
+    {
+      SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
+      QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
+      if (!aPath.isNull()) {
+          MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewFilters.xml");
+          MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewReaders.xml");
+          MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewSources.xml");
+          MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewWriters.xml");
+      }
+      ConfigLoaded = true;
+    }
 }
 
 void PVViewer_ViewManager::ParaviewCleanup()
@@ -144,9 +169,11 @@ void PVViewer_ViewManager::ParaviewCleanup()
   pqApplicationCore::instance()->settings()->sync();
 
   pqPVApplicationCore * app = GetPVApplication();
+  // [ABN] : TODO review this, this triggers an ugly crash (Python thread state mix-up)
+  // at SALOME's exit.
   // Schedule destruction of PVApplication singleton:
-  if (app)
-    app->deleteLater();
+//  if (app)
+//    app->deleteLater();
 }
 
 PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::GetEngine()
@@ -215,4 +242,11 @@ bool PVViewer_ViewManager::ConnectToExternalPVServer(SUIT_Desktop* aDesktop)
       GetEngine()->SetGUIConnected(true);
     }
   return true;
+}
+
+void PVViewer_ViewManager::onPVViewCreated(SUIT_ViewWindow* w)
+{
+  PVViewer_ViewWindow * w2 = dynamic_cast<PVViewer_ViewWindow *>(w);
+  Q_ASSERT(w2 != NULL);
+  connect(w2, SIGNAL(applyRequest()), ParaviewBehaviors, SLOT(onEmulateApply()));
 }
