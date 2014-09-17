@@ -16,36 +16,28 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// File   : Plot2d_ViewWindow.h
-// Author : Vadim SANDLER, Open CASCADE S.A.S. (vadim.sandler@opencascade.com)
-//
+#if !defined(_PVViewer_VIEWMODEL_H)
+#define _PVViewer_VIEWMODEL_H
 
-#ifndef PVGUI_VIEWWINDOW_H
-#define PVGUI_VIEWWINDOW_H
+#include <SUIT_ViewModel.h>
 
-#include <SUIT_ViewWindow.h>
-#include <QMap>
-
+class SUIT_ViewWindow;
 class SUIT_Desktop;
-class PVGUI_Viewer;
-class pqTabbedMultiViewWidget;
+class SUIT_Desktop;
 
-class PVGUI_ViewWindow : public SUIT_ViewWindow  
+class PVViewer_Viewer: public SUIT_ViewModel
 {
   Q_OBJECT
 
 public:
-  PVGUI_ViewWindow( SUIT_Desktop*, PVGUI_Viewer* );
-  virtual ~PVGUI_ViewWindow();
+  PVViewer_Viewer();
+  virtual ~PVViewer_Viewer() {}
 
-  virtual QString   getVisualParameters();
-  virtual void      setVisualParameters( const QString& );
-  
-  pqTabbedMultiViewWidget*    getMultiViewManager() const;
+  virtual SUIT_ViewWindow* createView(SUIT_Desktop* theDesktop);
+  virtual QString getType() const { return Type(); }
+  static QString Type() { return "ParaView"; }
 
-private:
-  PVGUI_Viewer*     myModel;
-  pqTabbedMultiViewWidget*    myPVMgr;
 };
 
-#endif // PLOT2D_VIEWWINDOW_H
+#endif // !defined(_PVViewer_VIEWMODEL_H)
+

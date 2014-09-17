@@ -44,15 +44,15 @@ SET(_link_LIBRARIES
 
 # header files / to be processed by moc
 SET(_moc_HEADERS
-  PVGUI_ViewManager.h
-  PVGUI_ViewModel.h
-  PVGUI_ViewWindow.h
-  PVGUI_Behaviors.h
+  PVViewer_ViewManager.h
+  PVViewer_ViewModel.h
+  PVViewer_ViewWindow.h
+  PVViewer_Behaviors.h
 )
 
 # header files / no moc processing
 SET(_other_HEADERS
-  PVGUI_LogWindowAdapter.h
+  PVViewer_LogWindowAdapter.h
 )
 # header files / to install
 SET(PVViewer_HEADERS ${_moc_HEADERS} ${_other_HEADERS})
@@ -64,11 +64,11 @@ QT4_WRAP_CPP(_moc_SOURCES ${_moc_HEADERS})
 
 # sources / static
 SET(_other_SOURCES
-  PVGUI_ViewManager.cxx
-  PVGUI_ViewModel.cxx
-  PVGUI_ViewWindow.cxx
-  PVGUI_LogWindowAdapter.cxx
-  PVGUI_Behaviors.cxx
+  PVViewer_ViewManager.cxx
+  PVViewer_ViewModel.cxx
+  PVViewer_ViewWindow.cxx
+  PVViewer_LogWindowAdapter.cxx
+  PVViewer_Behaviors.cxx
   )
   
 # sources / to compile

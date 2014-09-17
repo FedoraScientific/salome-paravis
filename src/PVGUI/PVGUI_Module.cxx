@@ -34,9 +34,9 @@
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 #include CORBA_SERVER_HEADER(SALOMEDS)
 
-#include "PVGUI_ViewManager.h"
-#include "PVGUI_ViewWindow.h"
-#include "PVGUI_ViewModel.h"
+#include "PVViewer_ViewManager.h"
+#include "PVViewer_ViewWindow.h"
+#include "PVViewer_ViewModel.h"
 #include "PVGUI_Tools.h"
 #include "PVGUI_ParaViewSettingsPane.h"
 
@@ -298,12 +298,12 @@ PVGUI_Module::~PVGUI_Module()
 
 PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetEngine()
 {
-  return PVGUI_ViewManager::GetEngine();
+  return PVViewer_ViewManager::GetEngine();
 }
 
 pqPVApplicationCore * PVGUI_Module::GetPVApplication()
 {
-  return PVGUI_ViewManager::GetPVApplication();
+  return PVViewer_ViewManager::GetPVApplication();
 }
 
 /*!
@@ -333,7 +333,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   // Initialize ParaView client and associated behaviors
   // and connect to externally launched pvserver
-  PVGUI_ViewManager::ParaviewInitApp(aDesktop);
+  PVViewer_ViewManager::ParaviewInitApp(aDesktop);
 
   // Remember current state of desktop toolbars
   QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
@@ -341,8 +341,8 @@ void PVGUI_Module::initialize( CAM_Application* app )
   setupDockWidgets();
 
   // Behaviors and connection must be instanciated *after* widgets are in place:
-  PVGUI_ViewManager::ParaviewInitBehaviors(true, aDesktop);
-  PVGUI_ViewManager::ConnectToExternalPVServer(aDesktop);
+  PVViewer_ViewManager::ParaviewInitBehaviors(true, aDesktop);
+  PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
 
   pvCreateActions();
   pvCreateToolBars();
@@ -522,18 +522,18 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 void PVGUI_Module::showView( bool toShow )
 {
   SalomeApp_Application* anApp = getApp();
-  PVGUI_ViewManager* viewMgr =
-    dynamic_cast<PVGUI_ViewManager*>( anApp->getViewManager( PVGUI_Viewer::Type(), false ) );
+  PVViewer_ViewManager* viewMgr =
+    dynamic_cast<PVViewer_ViewManager*>( anApp->getViewManager( PVViewer_Viewer::Type(), false ) );
   if ( !viewMgr ) {
-    viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
+    viewMgr = new PVViewer_ViewManager( anApp->activeStudy(), anApp->desktop() );
     anApp->addViewManager( viewMgr );
     connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
              anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
   }
 
-  PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( viewMgr->getActiveView() );
+  PVViewer_ViewWindow* pvWnd = dynamic_cast<PVViewer_ViewWindow*>( viewMgr->getActiveView() );
   if ( !pvWnd ) {
-    pvWnd = dynamic_cast<PVGUI_ViewWindow*>( viewMgr->createViewWindow() );
+    pvWnd = dynamic_cast<PVViewer_ViewWindow*>( viewMgr->createViewWindow() );
   }
 
   pvWnd->setShown( toShow );
@@ -715,7 +715,7 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 */
 void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
 {
-  PVGUI_ViewManager::ParaviewCleanup();
+  PVViewer_ViewManager::ParaviewCleanup();
 
   int aAppsNb = SUIT_Session::session()->applications().size();
   if (aAppsNb == 1) {

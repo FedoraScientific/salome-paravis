@@ -17,7 +17,7 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include "PVGUI_LogWindowAdapter.h"
+#include "PVViewer_LogWindowAdapter.h"
 
 #include <vtkObjectFactory.h>
 
@@ -26,7 +26,7 @@
 #include <SUIT_Session.h>
 #include <SALOME_Event.h>
 
-vtkStandardNewMacro(PVGUI_LogWindowAdapter);
+vtkStandardNewMacro(PVViewer_LogWindowAdapter);
 
 
 
@@ -53,7 +53,7 @@ class TEvent: public SALOME_Event {
 };
 
 
-PVGUI_LogWindowAdapter::PVGUI_LogWindowAdapter() :
+PVViewer_LogWindowAdapter::PVViewer_LogWindowAdapter() :
   TextCount(0),
   ErrorCount(0),
   WarningCount(0),
@@ -61,26 +61,26 @@ PVGUI_LogWindowAdapter::PVGUI_LogWindowAdapter() :
 {
 }
 
-PVGUI_LogWindowAdapter::~PVGUI_LogWindowAdapter()
+PVViewer_LogWindowAdapter::~PVViewer_LogWindowAdapter()
 {
 }
 
-const unsigned int PVGUI_LogWindowAdapter::getTextCount()
+const unsigned int PVViewer_LogWindowAdapter::getTextCount()
 {
   return this->TextCount;
 }
 
-const unsigned int PVGUI_LogWindowAdapter::getErrorCount()
+const unsigned int PVViewer_LogWindowAdapter::getErrorCount()
 {
   return this->ErrorCount;
 }
 
-const unsigned int PVGUI_LogWindowAdapter::getWarningCount()
+const unsigned int PVViewer_LogWindowAdapter::getWarningCount()
 {
   return this->WarningCount;
 }
 
-const unsigned int PVGUI_LogWindowAdapter::getGenericWarningCount()
+const unsigned int PVViewer_LogWindowAdapter::getGenericWarningCount()
 {
   return this->GenericWarningCount;
 }
@@ -94,25 +94,25 @@ static LogWindow* getLogWindow()
   return wnd;
 }
 
-void PVGUI_LogWindowAdapter::DisplayText(const char* text)
+void PVViewer_LogWindowAdapter::DisplayText(const char* text)
 {
   ++this->TextCount;
   ProcessVoidEvent( new TEvent( getLogWindow(), text, Qt::darkGreen, LogWindow::DisplayNormal ));
 }
 
-void PVGUI_LogWindowAdapter::DisplayErrorText(const char* text)
+void PVViewer_LogWindowAdapter::DisplayErrorText(const char* text)
 {
   ++this->ErrorCount;
   ProcessVoidEvent( new TEvent( getLogWindow(), text, Qt::darkRed, LogWindow::DisplayNormal ));
 }
 
-void PVGUI_LogWindowAdapter::DisplayWarningText(const char* text)
+void PVViewer_LogWindowAdapter::DisplayWarningText(const char* text)
 {
   ++this->WarningCount;
   ProcessVoidEvent( new TEvent( getLogWindow(), text, Qt::black, LogWindow::DisplayNormal ));
 }
 
-void PVGUI_LogWindowAdapter::DisplayGenericWarningText(const char* text)
+void PVViewer_LogWindowAdapter::DisplayGenericWarningText(const char* text)
 {
   ++this->GenericWarningCount;
   ProcessVoidEvent( new TEvent( getLogWindow() , text, Qt::black, LogWindow::DisplayNormal ));

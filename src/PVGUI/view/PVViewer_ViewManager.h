@@ -16,8 +16,8 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#ifndef PVGUI_VIEWMANAGER_H
-#define PVGUI_VIEWMANAGER_H
+#ifndef PVViewer_VIEWMANAGER_H
+#define PVViewer_VIEWMANAGER_H
 
 #include <SUIT_ViewManager.h>
 #include <SALOMEconfig.h>
@@ -28,13 +28,13 @@ class SUIT_Study;
 class pqTabbedMultiViewWidget;
 class pqPVApplicationCore;
 
-class PVGUI_ViewManager : public SUIT_ViewManager
+class PVViewer_ViewManager : public SUIT_ViewManager
 {
   Q_OBJECT
 
 public:
-  PVGUI_ViewManager( SUIT_Study*, SUIT_Desktop* );
-  ~PVGUI_ViewManager() {}
+  PVViewer_ViewManager( SUIT_Study*, SUIT_Desktop* );
+  ~PVViewer_ViewManager() {}
 
   static pqPVApplicationCore * GetPVApplication();
   static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();

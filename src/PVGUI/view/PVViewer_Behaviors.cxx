@@ -18,7 +18,7 @@
 //
 // Author: Adrien Bruneton (CEA)
 
-#include "PVGUI_Behaviors.h"
+#include "PVViewer_Behaviors.h"
 
 #include <SUIT_Desktop.h>
 #include <SalomeApp_Module.h>
@@ -50,9 +50,9 @@
 #include <pqFixPathsInStateFilesBehavior.h>
 #include <pqApplyBehavior.h>
 
-bool PVGUI_Behaviors::hasMinimalInstanciated = false;
+bool PVViewer_Behaviors::hasMinimalInstanciated = false;
 
-PVGUI_Behaviors::PVGUI_Behaviors(SUIT_Desktop * parent)
+PVViewer_Behaviors::PVViewer_Behaviors(SUIT_Desktop * parent)
   : QObject(static_cast<QObject *>(parent))
 {
 }
@@ -61,7 +61,7 @@ PVGUI_Behaviors::PVGUI_Behaviors(SUIT_Desktop * parent)
  * This method should be updated at each new version of ParaView with what is found in
  *    Qt/ApplicationComponents/pqParaViewBehaviors.cxx
  */
-void PVGUI_Behaviors::instanciateMinimalBehaviors(SUIT_Desktop * desk)
+void PVViewer_Behaviors::instanciateMinimalBehaviors(SUIT_Desktop * desk)
 {
   hasMinimalInstanciated = true;
 
@@ -90,7 +90,7 @@ void PVGUI_Behaviors::instanciateMinimalBehaviors(SUIT_Desktop * desk)
  * This method should be updated at each new version of ParaView with what is found in
  *    Qt/ApplicationComponents/pqParaViewBehaviors.cxx
  */
-void PVGUI_Behaviors::instanciateAllBehaviors(SUIT_Desktop * desk)
+void PVViewer_Behaviors::instanciateAllBehaviors(SUIT_Desktop * desk)
 {
   //    "new pqParaViewBehaviors(anApp->desktop(), this);"
   // -> (which loads all standard ParaView behaviors at once) has to be replaced in order to

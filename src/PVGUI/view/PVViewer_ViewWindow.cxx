@@ -16,11 +16,11 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// File   : PVGUI_ViewWindow.cxx
+// File   : PVViewer_ViewWindow.cxx
 // Author : Vadim SANDLER, Open CASCADE S.A.S. (vadim.sandler@opencascade.com)
 //
 
-#include "PVGUI_ViewWindow.h"
+#include "PVViewer_ViewWindow.h"
 
 #include <SUIT_ViewManager.h>
 #include <SUIT_ResourceMgr.h>
@@ -31,7 +31,7 @@
 #include <pqApplicationCore.h>
 
 /*!
-  \class PVGUI_ViewWindow
+  \class PVViewer_ViewWindow
   \brief PVGUI view window.
 */
 
@@ -40,7 +40,7 @@
   \param theDesktop parent desktop window
   \param theModel plt2d view model
 */
-PVGUI_ViewWindow::PVGUI_ViewWindow( SUIT_Desktop* theDesktop, PVGUI_Viewer* theModel )
+PVViewer_ViewWindow::PVViewer_ViewWindow( SUIT_Desktop* theDesktop, PVViewer_Viewer* theModel )
   : SUIT_ViewWindow( theDesktop ), myPVMgr( 0 )
 {
   myModel = theModel;
@@ -57,10 +57,10 @@ PVGUI_ViewWindow::PVGUI_ViewWindow( SUIT_Desktop* theDesktop, PVGUI_Viewer* theM
 /*!
   \brief Destructor.
   As pqViewManager persists through the whole session,
-  the destructor first removes it from the children of this PVGUI_ViewWindow
+  the destructor first removes it from the children of this PVViewer_ViewWindow
   to prevent its unexpected deletion.
 */
-PVGUI_ViewWindow::~PVGUI_ViewWindow()
+PVViewer_ViewWindow::~PVViewer_ViewWindow()
 {
   if ( myPVMgr ) {
     myPVMgr->setParent( 0 );
@@ -74,7 +74,7 @@ PVGUI_ViewWindow::~PVGUI_ViewWindow()
   \brief Get the visual parameters of the view window.
   \return visual parameters of this view window formatted to the string
 */
-QString PVGUI_ViewWindow::getVisualParameters()
+QString PVViewer_ViewWindow::getVisualParameters()
 {
   return SUIT_ViewWindow::getVisualParameters();
 }
@@ -83,7 +83,7 @@ QString PVGUI_ViewWindow::getVisualParameters()
   \brief Restore visual parameters of the view window from the formated string
   \param parameters view window visual parameters
 */
-void PVGUI_ViewWindow::setVisualParameters( const QString& parameters )
+void PVViewer_ViewWindow::setVisualParameters( const QString& parameters )
 {
   SUIT_ViewWindow::setVisualParameters( parameters );
 }
@@ -92,7 +92,7 @@ void PVGUI_ViewWindow::setVisualParameters( const QString& parameters )
 /*!
   \brief Returns the ParaView multi-view manager previously set with setMultiViewManager()
 */
-pqTabbedMultiViewWidget* PVGUI_ViewWindow::getMultiViewManager() const
+pqTabbedMultiViewWidget* PVViewer_ViewWindow::getMultiViewManager() const
 {
   return myPVMgr;
 }

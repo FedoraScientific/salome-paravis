@@ -32,18 +32,18 @@ class SUIT_Desktop;
  *    Qt/ApplicationComponents/pqParaViewBehaviors.cxx
  * Except a few ones, behaviors are destroyed when the module is destroyed.
  */
-class PVGUI_Behaviors: public QObject
+class PVViewer_Behaviors: public QObject
 {
   Q_OBJECT
 
 public:
-  PVGUI_Behaviors(SUIT_Desktop * parent);
+  PVViewer_Behaviors(SUIT_Desktop * parent);
 
   void instanciateMinimalBehaviors(SUIT_Desktop * desk);
 
   void instanciateAllBehaviors(SUIT_Desktop * desk);
 
-  virtual ~PVGUI_Behaviors() {}
+  virtual ~PVViewer_Behaviors() {}
 
 private:
   static bool hasMinimalInstanciated;

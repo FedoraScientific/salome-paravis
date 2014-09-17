@@ -16,11 +16,11 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include <PVGUI_ViewManager.h>
-#include <PVGUI_ViewModel.h>
-#include <PVGUI_ViewWindow.h>
-#include <PVGUI_Behaviors.h>
-#include <PVGUI_LogWindowAdapter.h>
+#include <PVViewer_ViewManager.h>
+#include <PVViewer_ViewModel.h>
+#include <PVViewer_ViewWindow.h>
+#include <PVViewer_Behaviors.h>
+#include <PVViewer_LogWindowAdapter.h>
 #include <utilities.h>
 #include <SalomeApp_Application.h>
 #include <SALOMEconfig.h>
@@ -46,21 +46,21 @@
 #include <pqServerConnectReaction.h>
 
 //---------- Static init -----------------
-pqPVApplicationCore* PVGUI_ViewManager::MyCoreApp = 0;
-PARAVIS_ORB::PARAVIS_Gen_var PVGUI_ViewManager::MyEngine;
+pqPVApplicationCore* PVViewer_ViewManager::MyCoreApp = 0;
+PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::MyEngine;
 
 
 /*!
   Constructor
 */
-PVGUI_ViewManager::PVGUI_ViewManager( SUIT_Study* study, SUIT_Desktop* desk ) 
-: SUIT_ViewManager( study, desk, new PVGUI_Viewer() )
+PVViewer_ViewManager::PVViewer_ViewManager( SUIT_Study* study, SUIT_Desktop* desk )
+: SUIT_ViewManager( study, desk, new PVViewer_Viewer() )
 {
   MESSAGE("PARAVIS - view manager created ...")
   setTitle( tr( "PARAVIEW_VIEW_TITLE" ) );
 }
 
-pqPVApplicationCore * PVGUI_ViewManager::GetPVApplication()
+pqPVApplicationCore * PVViewer_ViewManager::GetPVApplication()
 {
   return MyCoreApp;
 }
@@ -70,7 +70,7 @@ pqPVApplicationCore * PVGUI_ViewManager::GetPVApplication()
   \param fullSetup whether to instanciate all behaviors or just the minimal ones.
   \return \c true if ParaView has been initialized successfully, otherwise false
 */
-bool PVGUI_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
+bool PVViewer_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
 {
   if ( ! MyCoreApp) {
       // Obtain command-line arguments
@@ -96,7 +96,7 @@ bool PVGUI_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
       }
 
       // Direct VTK log messages to our SALOME window - TODO: review this
-      vtkOutputWindow::SetInstance(PVGUI_LogWindowAdapter::New());
+      vtkOutputWindow::SetInstance(PVViewer_LogWindowAdapter::New());
 
       new pqTabbedMultiViewWidget(); // registers a "MULTIVIEW_WIDGET" on creation
 
@@ -122,22 +122,22 @@ bool PVGUI_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
   return true;
 }
 
-void PVGUI_ViewManager::ParaviewInitBehaviors(bool fullSetup, SUIT_Desktop* aDesktop)
+void PVViewer_ViewManager::ParaviewInitBehaviors(bool fullSetup, SUIT_Desktop* aDesktop)
 {
-  PVGUI_Behaviors * behav = new PVGUI_Behaviors(aDesktop);
+  PVViewer_Behaviors * behav = new PVViewer_Behaviors(aDesktop);
   if(fullSetup)
     behav->instanciateAllBehaviors(aDesktop);
   else
     behav->instanciateMinimalBehaviors(aDesktop);
 }
 
-void PVGUI_ViewManager::ParaviewCleanup()
+void PVViewer_ViewManager::ParaviewCleanup()
 {
   // Disconnect from server
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (server && server->isRemote())
     {
-      MESSAGE("~PVGUI_Module(): Disconnecting from remote server ...");
+      MESSAGE("~PVViewer_Module(): Disconnecting from remote server ...");
       pqServerDisconnectReaction::disconnectFromServer();
     }
 
@@ -149,7 +149,7 @@ void PVGUI_ViewManager::ParaviewCleanup()
     app->deleteLater();
 }
 
-PARAVIS_ORB::PARAVIS_Gen_var PVGUI_ViewManager::GetEngine()
+PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::GetEngine()
 {
   // initialize PARAVIS module engine (load, if necessary)
   if ( CORBA::is_nil( MyEngine ) ) {
@@ -160,7 +160,7 @@ PARAVIS_ORB::PARAVIS_Gen_var PVGUI_ViewManager::GetEngine()
   return MyEngine;
 }
 
-bool PVGUI_ViewManager::ConnectToExternalPVServer(SUIT_Desktop* aDesktop)
+bool PVViewer_ViewManager::ConnectToExternalPVServer(SUIT_Desktop* aDesktop)
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (server && server->isRemote())

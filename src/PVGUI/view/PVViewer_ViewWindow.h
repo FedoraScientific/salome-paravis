@@ -16,30 +16,36 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+// File   : Plot2d_ViewWindow.h
+// Author : Vadim SANDLER, Open CASCADE S.A.S. (vadim.sandler@opencascade.com)
+//
 
-#include "PVGUI_ViewModel.h"
-#include "PVGUI_ViewWindow.h"
+#ifndef PVViewer_VIEWWINDOW_H
+#define PVViewer_VIEWWINDOW_H
 
-#include <utilities.h>
-#include <SUIT_Desktop.h>
+#include <SUIT_ViewWindow.h>
+#include <QMap>
 
-#include <SalomeApp_Application.h>
+class SUIT_Desktop;
+class PVViewer_Viewer;
+class pqTabbedMultiViewWidget;
 
-//----------------------------------------
-PVGUI_Viewer::PVGUI_Viewer()
-:SUIT_ViewModel() 
+class PVViewer_ViewWindow : public SUIT_ViewWindow
 {
-  MESSAGE("PVGUI_Viewer: creating view model ...");
-}
+  Q_OBJECT
 
+public:
+  PVViewer_ViewWindow( SUIT_Desktop*, PVViewer_Viewer* );
+  virtual ~PVViewer_ViewWindow();
 
-/*!
-  Create new instance of view window on desktop \a theDesktop.
-  \retval SUIT_ViewWindow* - created view window pointer.
-*/
-SUIT_ViewWindow* PVGUI_Viewer::createView(SUIT_Desktop* theDesktop)
-{
-  PVGUI_ViewWindow* aPVView = new PVGUI_ViewWindow(theDesktop, this);
-  return aPVView;
-}
+  virtual QString   getVisualParameters();
+  virtual void      setVisualParameters( const QString& );
+  
+  pqTabbedMultiViewWidget*    getMultiViewManager() const;
 
+private:
+  PVViewer_Viewer*     myModel;
+  pqTabbedMultiViewWidget*    myPVMgr;
+};
+
+#endif // PLOT2D_VIEWWINDOW_H

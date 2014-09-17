@@ -16,28 +16,30 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#if !defined(_PVGUI_VIEWMODEL_H)
-#define _PVGUI_VIEWMODEL_H
 
-#include <SUIT_ViewModel.h>
+#include "PVViewer_ViewModel.h"
+#include "PVViewer_ViewWindow.h"
 
-class SUIT_ViewWindow;
-class SUIT_Desktop;
-class SUIT_Desktop;
+#include <utilities.h>
+#include <SUIT_Desktop.h>
 
-class PVGUI_Viewer: public SUIT_ViewModel
+#include <SalomeApp_Application.h>
+
+//----------------------------------------
+PVViewer_Viewer::PVViewer_Viewer()
+:SUIT_ViewModel() 
 {
-  Q_OBJECT
+  MESSAGE("PVViewer_Viewer: creating view model ...");
+}
 
-public:
-  PVGUI_Viewer();
-  virtual ~PVGUI_Viewer() {}
 
-  virtual SUIT_ViewWindow* createView(SUIT_Desktop* theDesktop);
-  virtual QString getType() const { return Type(); }
-  static QString Type() { return "ParaView"; }
-
-};
-
-#endif // !defined(_PVGUI_VIEWMODEL_H)
+/*!
+  Create new instance of view window on desktop \a theDesktop.
+  \retval SUIT_ViewWindow* - created view window pointer.
+*/
+SUIT_ViewWindow* PVViewer_Viewer::createView(SUIT_Desktop* theDesktop)
+{
+  PVViewer_ViewWindow* aPVView = new PVViewer_ViewWindow(theDesktop, this);
+  return aPVView;
+}
 
