@@ -117,7 +117,7 @@ bool PVViewer_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
       PyConsole_Interp* pyInterp = app->pythonConsole()->getInterp();
       {
         PyLockWrapper aGil;
-        std::string cmd = "import paraview; paraview.fromGUI = True;";
+        std::string cmd = "import paraview;paraview.fromGUI = True";
         pyInterp->run(cmd.c_str());
       }
 
@@ -169,11 +169,9 @@ void PVViewer_ViewManager::ParaviewCleanup()
   pqApplicationCore::instance()->settings()->sync();
 
   pqPVApplicationCore * app = GetPVApplication();
-  // [ABN] : TODO review this, this triggers an ugly crash (Python thread state mix-up)
-  // at SALOME's exit.
   // Schedule destruction of PVApplication singleton:
-//  if (app)
-//    app->deleteLater();
+  if (app)
+    app->deleteLater();
 }
 
 PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::GetEngine()
@@ -189,6 +187,11 @@ PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::GetEngine()
 
 bool PVViewer_ViewManager::ConnectToExternalPVServer(SUIT_Desktop* aDesktop)
 {
+  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
+  bool noConnect = aResourceMgr->booleanValue( "PARAVIS", "no_ext_pv_server", false );
+  if (noConnect)
+    return true;
+
   pqServer* server = pqActiveObjects::instance().activeServer();
   if (server && server->isRemote())
     {

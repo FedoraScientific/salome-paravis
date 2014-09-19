@@ -126,6 +126,10 @@
 #include <pqServerResource.h>
 #include <pqServerConnectReaction.h>
 
+// TO REMOVE:
+#include <PyInterp_Interp.h>
+
+
 //----------------------------------------------------------------------------
 PVGUI_Module* ParavisModule = 0;
 
@@ -402,7 +406,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
   if(!isStop)
     {
       // Start a timer to schedule asap:
-      //  - the connection to the server
       //  - the trace start
       myInitTimer = new QTimer(aDesktop);
       QObject::connect(myInitTimer, SIGNAL(timeout()), this, SLOT(onInitTimer()) );
@@ -451,14 +454,10 @@ void PVGUI_Module::onDataRepresentationUpdated() {
 }
 
 /*!
-  \brief Initialisation timer event - fired only once, after the GUI loop is ready.
-  See creation in initialize().
+  \brief Initialisation timer event - trace start up
 */
 void PVGUI_Module::onInitTimer()
 {
-#ifndef PARAVIS_WITH_FULL_CORBA
-//  connectToExternalPVServer();
-#endif
   startTrace();
 }
   
@@ -958,6 +957,8 @@ void PVGUI_Module::createPreferences()
   // Paravis settings tab
   int aParaVisSettingsTab = addPreference( tr( "TIT_PVISSETTINGS" ) );
   addPreference( tr( "PREF_STOP_TRACE" ), aParaVisSettingsTab, LightApp_Preferences::Bool, "PARAVIS", "stop_trace");
+
+  addPreference( tr( "PREF_NO_EXT_PVSERVER" ), aParaVisSettingsTab, LightApp_Preferences::Bool, "PARAVIS", "no_ext_pv_server");
 
   int aSaveType = addPreference(tr( "PREF_SAVE_TYPE_LBL" ), aParaVisSettingsTab,
                                 LightApp_Preferences::Selector,
