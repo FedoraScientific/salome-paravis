@@ -22,6 +22,7 @@
 #include "vtkDoubleArray.h"
 #include "vtkInformation.h"
 #include "vtkQuadratureSchemeDefinition.h"
+#include "vtkInformationQuadratureSchemeDefinitionVectorKey.h"
 #include "MEDUtilities.hxx"
 #include "vtkFieldData.h"
 
@@ -123,6 +124,15 @@ void vtkGenerateVectors::UpdateInformationOfArray(vtkDoubleArray *oldArr, vtkDou
     }
   if(oldArr->GetInformation()->Get(MEDUtilities::ELGA()))
     arr->GetInformation()->Set(MEDUtilities::ELGA(),1);
+  vtkInformationQuadratureSchemeDefinitionVectorKey *key(vtkQuadratureSchemeDefinition::DICTIONARY());
+  if(key->Has(oldArr->GetInformation()))
+    {
+      int dictSize(key->Size(oldArr->GetInformation()));
+      vtkQuadratureSchemeDefinition **dict(new vtkQuadratureSchemeDefinition *[dictSize]);
+      key->GetRange(oldArr->GetInformation(),dict,0,0,dictSize);
+      key->SetRange(arr->GetInformation(),dict,0,0,dictSize);
+      delete [] dict;
+    }
   if(oldArr->GetInformation()->Get(MEDUtilities::ELNO()))
     arr->GetInformation()->Set(MEDUtilities::ELNO(),1);
 }
