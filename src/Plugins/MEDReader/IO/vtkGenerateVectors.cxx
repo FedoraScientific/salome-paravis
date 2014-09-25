@@ -128,7 +128,7 @@ void vtkGenerateVectors::UpdateInformationOfArray(vtkDoubleArray *oldArr, vtkDou
   if(key->Has(oldArr->GetInformation()))
     {
       int dictSize(key->Size(oldArr->GetInformation()));
-      vtkQuadratureSchemeDefinition **dict(new vtkQuadratureSchemeDefinition *[dictSize]);
+      vtkQuadratureSchemeDefinition **dict = new vtkQuadratureSchemeDefinition *[dictSize];
       key->GetRange(oldArr->GetInformation(),dict,0,0,dictSize);
       key->SetRange(arr->GetInformation(),dict,0,0,dictSize);
       delete [] dict;
