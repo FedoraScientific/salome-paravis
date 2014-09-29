@@ -51,6 +51,7 @@ class pqPythonScriptEditor;
 class pqPVApplicationCore;
 class pqDataRepresentation;
 class pqRepresentation;
+class PVViewer_GUIElements;
 
 class PVGUI_Module : public SalomeApp_Module
 {
@@ -294,6 +295,8 @@ private:
 
   //! Timer used to regularly push the Python trace to the engine.
   QTimer             * myPushTraceTimer;
+
+  PVViewer_GUIElements * myGuiElements;
 };
 
 #endif // PVGUI_Module_H

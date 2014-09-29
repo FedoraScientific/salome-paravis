@@ -39,6 +39,7 @@
 #include "PVViewer_ViewModel.h"
 #include "PVGUI_Tools.h"
 #include "PVGUI_ParaViewSettingsPane.h"
+#include "PVViewer_GUIElements.h"
 
 // SALOME Includes
 #include <SUIT_DataBrowser.h>
@@ -267,7 +268,8 @@ PVGUI_Module::PVGUI_Module()
     myTraceWindow(0),
     myStateCounter(0),
     myInitTimer(0),
-    myPushTraceTimer(0)
+    myPushTraceTimer(0),
+    myGuiElements(0)
 {
 #ifdef HAS_PV_DOC
   Q_INIT_RESOURCE( PVGUI );
@@ -338,6 +340,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
   // Initialize ParaView client and associated behaviors
   // and connect to externally launched pvserver
   PVViewer_ViewManager::ParaviewInitApp(aDesktop);
+  myGuiElements = PVViewer_GUIElements::GetInstance(aDesktop);
 
   // Remember current state of desktop toolbars
   QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
@@ -603,12 +606,20 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   bool isDone = SalomeApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
-  showView( true );  // this will also trigger the connection to the server
-                     // and the instanciation of the relevant PV behaviors
+  showView( true );
   if ( mySourcesMenuId != -1 ) menuMgr()->show(mySourcesMenuId);
   if ( myFiltersMenuId != -1 ) menuMgr()->show(myFiltersMenuId);
-  if ( myFiltersMenuId != -1 ) menuMgr()->show(myMacrosMenuId);
-  if ( myFiltersMenuId != -1 ) menuMgr()->show(myToolbarsMenuId);
+  if ( myMacrosMenuId != -1 ) menuMgr()->show(myMacrosMenuId);
+  if ( myToolbarsMenuId != -1 ) menuMgr()->show(myToolbarsMenuId);
+
+  // Update the various menus with the content pre-loaded in myGuiElements
+  QMenu* srcMenu = menuMgr()->findMenu( mySourcesMenuId );
+  myGuiElements->updateSourcesMenu(srcMenu);
+  QMenu* filtMenu = menuMgr()->findMenu( myFiltersMenuId );
+  myGuiElements->updateFiltersMenu(filtMenu);
+  QMenu* macMenu = menuMgr()->findMenu( myMacrosMenuId );
+  myGuiElements->updateMacrosMenu(macMenu);
+
   setMenuShown( true );
   setToolShown( true );
 
@@ -865,7 +876,6 @@ void PVGUI_Module::executeScript(const char *script)
   \brief Returns trace string
 */
 static const QString MYReplaceStr("paraview.simple");
-static const QString MYReplaceImportStr("except: from pvsimple import *");
 QString PVGUI_Module::getTraceString()
 {
   vtkSMTrace *tracer = vtkSMTrace::GetActiveTracer();
@@ -873,6 +883,8 @@ QString PVGUI_Module::getTraceString()
     return QString("");
 
   QString traceString(tracer->GetCurrentTrace());
+  std::stringstream nl; nl << std::endl; // surely there is some Qt trick to do that in a portable way??
+  traceString = "import pvsimple" + QString(nl.str().c_str()) + traceString;
 
   // Replace import "paraview.simple" by "pvsimple"
   if ((!traceString.isNull()) && traceString.length() != 0) {
@@ -881,11 +893,6 @@ QString PVGUI_Module::getTraceString()
       traceString = traceString.replace(aPos, MYReplaceStr.length(), "pvsimple");
       aPos = traceString.indexOf(MYReplaceStr, aPos);
     }
-    int aImportPos = traceString.indexOf(MYReplaceImportStr);
-    if(aImportPos != -1)
-      {
-      traceString = traceString.replace(aImportPos, MYReplaceImportStr.length(), "except:\n  import pvsimple\n  from pvsimple import *");
-      }
   }
 
   return traceString;

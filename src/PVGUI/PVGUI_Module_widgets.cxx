@@ -23,6 +23,8 @@
 //
 
 #include "PVGUI_Module.h"
+#include "PVViewer_ViewManager.h"
+#include "PVViewer_GUIElements.h"
 
 #include <QtxActionToolMgr.h>
 #include <LightApp_Application.h>
@@ -99,6 +101,7 @@
 void PVGUI_Module::setupDockWidgets()
 {
   SUIT_Desktop* desk = application()->desktop();
+  PVViewer_GUIElements * guiElements = PVViewer_GUIElements::GetInstance(desk);
  
   desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
@@ -108,8 +111,7 @@ void PVGUI_Module::setupDockWidgets()
   pipelineBrowserDock->setObjectName("pipelineBrowserDock");
   pipelineBrowserDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, pipelineBrowserDock );
-  pqPipelineBrowserWidget* browser = new pqPipelineBrowserWidget(pipelineBrowserDock);
-  pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(*browser);
+  pqPipelineBrowserWidget* browser = guiElements->getPipelineBrowserWidget();
   pipelineBrowserDock->setWidget(browser);
   myDockWidgets[pipelineBrowserDock] = true;
 
@@ -119,7 +121,7 @@ void PVGUI_Module::setupDockWidgets()
   propertiesDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, propertiesDock );
 
-  pqPropertiesPanel* propertiesPanel = new pqPropertiesPanel(propertiesDock);
+  pqPropertiesPanel* propertiesPanel = guiElements->getPropertiesPanel();
   propertiesDock->setObjectName("propertiesPanel");
   propertiesDock->setWidget(propertiesPanel);
   connect( propertiesPanel, SIGNAL( helpRequested(const QString&, const QString&) ),  this, SLOT( showHelpForProxy(const QString&, const QString&) ) );

@@ -30,6 +30,7 @@ class pqTabbedMultiViewWidget;
 class pqPVApplicationCore;
 class PVViewer_Behaviors;
 class pqPropertiesPanel;
+class pqPipelineBrowserWidget;
 
 class PVViewer_ViewManager : public SUIT_ViewManager
 {
@@ -53,13 +54,16 @@ public:
   static bool   ConnectToExternalPVServer(SUIT_Desktop* aDesktop);
 
 public slots:
-  void onPVViewCreated(SUIT_ViewWindow*);
+//  void onPVViewCreated(SUIT_ViewWindow*);
+  void onEmulateApply();
 
 private:
   static pqPVApplicationCore* MyCoreApp;
   static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
   static bool ConfigLoaded;
   static PVViewer_Behaviors * ParaviewBehaviors;
+
+  SUIT_Desktop * desktop;
 };
 
 #endif

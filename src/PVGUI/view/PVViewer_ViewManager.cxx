@@ -16,11 +16,13 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include <PVViewer_ViewManager.h>
-#include <PVViewer_ViewModel.h>
-#include <PVViewer_ViewWindow.h>
-#include <PVViewer_Behaviors.h>
-#include <PVViewer_LogWindowAdapter.h>
+#include "PVViewer_ViewManager.h"
+#include "PVViewer_ViewModel.h"
+#include "PVViewer_ViewWindow.h"
+#include "PVViewer_LogWindowAdapter.h"
+#include "PVViewer_GUIElements.h"
+#include "PVViewer_Behaviors.h"
+
 #include <utilities.h>
 #include <SalomeApp_Application.h>
 #include <SALOMEconfig.h>
@@ -36,6 +38,7 @@
 #include <QApplication>
 #include <QStringList>
 #include <QDir>
+
 #include <string>
 
 #include <pqOptions.h>
@@ -47,6 +50,9 @@
 #include <pqActiveObjects.h>
 #include <pqServerConnectReaction.h>
 
+#include <pqParaViewMenuBuilders.h>
+#include <pqPipelineBrowserWidget.h>
+
 //---------- Static init -----------------
 pqPVApplicationCore* PVViewer_ViewManager::MyCoreApp = 0;
 PARAVIS_ORB::PARAVIS_Gen_var PVViewer_ViewManager::MyEngine;
@@ -57,14 +63,15 @@ PVViewer_Behaviors * PVViewer_ViewManager::ParaviewBehaviors = NULL;
   Constructor
 */
 PVViewer_ViewManager::PVViewer_ViewManager( SUIT_Study* study, SUIT_Desktop* desk )
-: SUIT_ViewManager( study, desk, new PVViewer_Viewer() )
+: SUIT_ViewManager( study, desk, new PVViewer_Viewer() ),
+  desktop(desk)
 {
   MESSAGE("PARAVIS - view manager created ...")
   setTitle( tr( "PARAVIEW_VIEW_TITLE" ) );
   // Initialize minimal paraview stuff (if not already done)
   ParaviewInitApp(desk);
 
-  connect(this, SIGNAL(viewCreated(SUIT_ViewWindow*)), this, SLOT(onPVViewCreated(SUIT_ViewWindow*)));
+//  connect(this, SIGNAL(viewCreated(SUIT_ViewWindow*)), this, SLOT(onPVViewCreated(SUIT_ViewWindow*)));
 }
 
 pqPVApplicationCore * PVViewer_ViewManager::GetPVApplication()
@@ -125,7 +132,8 @@ bool PVViewer_ViewManager::ParaviewInitApp(SUIT_Desktop * aDesktop)
         free(argv[i]);
       delete[] argv;
   }
-
+  // Initialize GUI elements if needed:
+  PVViewer_GUIElements::GetInstance(aDesktop);
   return true;
 }
 
@@ -146,6 +154,7 @@ void PVViewer_ViewManager::ParaviewLoadConfigurations()
     {
       SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
       QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
+      std::cout << "loading conf from: " << aPath.toStdString() << std::endl;
       if (!aPath.isNull()) {
           MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewFilters.xml");
           MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewReaders.xml");
@@ -247,9 +256,15 @@ bool PVViewer_ViewManager::ConnectToExternalPVServer(SUIT_Desktop* aDesktop)
   return true;
 }
 
-void PVViewer_ViewManager::onPVViewCreated(SUIT_ViewWindow* w)
+//void PVViewer_ViewManager::onPVViewCreated(SUIT_ViewWindow* w)
+//{
+//  PVViewer_ViewWindow * w2 = dynamic_cast<PVViewer_ViewWindow *>(w);
+//  Q_ASSERT(w2 != NULL);
+//  connect(w2, SIGNAL(applyRequest()), ParaviewBehaviors, SLOT(onEmulateApply()));
+//}
+
+void PVViewer_ViewManager::onEmulateApply()
 {
-  PVViewer_ViewWindow * w2 = dynamic_cast<PVViewer_ViewWindow *>(w);
-  Q_ASSERT(w2 != NULL);
-  connect(w2, SIGNAL(applyRequest()), ParaviewBehaviors, SLOT(onEmulateApply()));
+  PVViewer_GUIElements * guiElements = PVViewer_GUIElements::GetInstance(desktop);
+  guiElements->onEmulateApply();
 }

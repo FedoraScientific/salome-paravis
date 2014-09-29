@@ -87,9 +87,6 @@ void PVViewer_Behaviors::instanciateMinimalBehaviors(SUIT_Desktop * desk)
       new pqCrashRecoveryBehavior(this);
       new pqCommandLineOptionsBehavior(this);
 
-      // Create a hidden pqPropertiesPanel()
-      hiddenProp = new pqPropertiesPanel(desk);
-
       BehaviorLoadingLevel = 1;
     }
 }
@@ -129,10 +126,4 @@ void PVViewer_Behaviors::instanciateAllBehaviors(SUIT_Desktop * desk)
       }
       BehaviorLoadingLevel = 2;
     }
-}
-
-void PVViewer_Behaviors::onEmulateApply()
-{
-  if (hiddenProp)
-    hiddenProp->apply();
 }

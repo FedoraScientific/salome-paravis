@@ -41,18 +41,15 @@ public:
   PVViewer_Behaviors(SUIT_Desktop * parent);
 
   void instanciateMinimalBehaviors(SUIT_Desktop * desk);
-
   void instanciateAllBehaviors(SUIT_Desktop * desk);
 
   virtual ~PVViewer_Behaviors() {}
 
-public slots:
-  void onEmulateApply();
+//public slots:
+//  void onEmulateApply();
 
 private:
   static int BehaviorLoadingLevel;
-
-  pqPropertiesPanel * hiddenProp;
 };
 
 #endif /* PVGUIBEHAVIORS_H_ */

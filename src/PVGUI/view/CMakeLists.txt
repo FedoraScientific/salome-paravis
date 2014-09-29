@@ -48,6 +48,7 @@ SET(_moc_HEADERS
   PVViewer_ViewModel.h
   PVViewer_ViewWindow.h
   PVViewer_Behaviors.h
+  PVViewer_GUIElements.h
 )
 
 # header files / no moc processing
@@ -69,6 +70,7 @@ SET(_other_SOURCES
   PVViewer_ViewWindow.cxx
   PVViewer_LogWindowAdapter.cxx
   PVViewer_Behaviors.cxx
+  PVViewer_GUIElements.cxx
   )
   
 # sources / to compile

@@ -22,6 +22,7 @@
 
 #include "PVViewer_ViewWindow.h"
 #include "PVViewer_ViewManager.h"
+#include "PVViewer_GUIElements.h"
 
 #include <SUIT_ViewManager.h>
 #include <SUIT_ResourceMgr.h>
@@ -53,7 +54,6 @@ PVViewer_ViewWindow::PVViewer_ViewWindow( SUIT_Desktop* theDesktop, PVViewer_Vie
     setCentralWidget( myPVMgr );
 
     // Finish ParaView set up: behaviors, connection and configurations.
-    // None of this is invoked in PARAVIS module case as it done earlier than View creation:
     PVViewer_ViewManager::ParaviewInitBehaviors(true, theDesktop);
     PVViewer_ViewManager::ConnectToExternalPVServer(theDesktop);
     PVViewer_ViewManager::ParaviewLoadConfigurations();
