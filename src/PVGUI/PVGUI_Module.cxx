@@ -40,6 +40,7 @@
 #include "PVGUI_Tools.h"
 #include "PVGUI_ParaViewSettingsPane.h"
 #include "PVViewer_GUIElements.h"
+#include "PVViewer_EngineWrapper.h"
 
 // SALOME Includes
 #include <SUIT_DataBrowser.h>
@@ -133,6 +134,7 @@
 
 //----------------------------------------------------------------------------
 PVGUI_Module* ParavisModule = 0;
+PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::MyEngine;
 
 /*!
   \mainpage
@@ -234,7 +236,7 @@ ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
     // Create Attribute parameters for future using
     anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
 
-    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetEngine()->GetIOR());
+    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetCPPEngine()->GetIOR());
     if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
     aStudyBuilder->CommitCommand();
   }
@@ -302,10 +304,17 @@ PVGUI_Module::~PVGUI_Module()
     delete myInitTimer;
 }
 
-PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetEngine()
+PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetCPPEngine()
 {
-  return PVViewer_ViewManager::GetEngine();
+  // initialize PARAVIS module engine (load, if necessary)
+  if ( CORBA::is_nil( MyEngine ) ) {
+      Engines::EngineComponent_var comp =
+          SalomeApp_Application::lcc()->FindOrLoad_Component( "FactoryServer", "PARAVIS" );
+      MyEngine = PARAVIS_ORB::PARAVIS_Gen::_narrow( comp );
+  }
+  return MyEngine;
 }
+
 
 pqPVApplicationCore * PVGUI_Module::GetPVApplication()
 {
@@ -767,7 +776,7 @@ void PVGUI_Module::onModelOpened()
   }
   
   _PTR(SComponent) paravisComp = 
-    studyDS->FindComponent(GetEngine()->ComponentDataType());
+    studyDS->FindComponent(GetCPPEngine()->ComponentDataType());
   if(!paravisComp) {
     return;
   }
@@ -791,7 +800,7 @@ void PVGUI_Module::onModelOpened()
 */
 QString PVGUI_Module::engineIOR() const
 {
-  CORBA::String_var anIOR = GetEngine()->GetIOR();
+  CORBA::String_var anIOR = GetCPPEngine()->GetIOR();
   return QString(anIOR.in());
 }
 
@@ -1014,7 +1023,7 @@ void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QS
       return;
     }
 
-    QString paravisDataType(GetEngine()->ComponentDataType());
+    QString paravisDataType(GetCPPEngine()->ComponentDataType());
     if(activeStudy && activeStudy->isComponent(entry) && 
        activeStudy->componentDataType(entry) == paravisDataType) {
       // ParaViS module object
@@ -1096,7 +1105,7 @@ void PVGUI_Module::onSaveMultiState()
   }
   
   _PTR(SComponent) paravisComp = 
-    studyDS->FindComponent(GetEngine()->ComponentDataType());
+    studyDS->FindComponent(GetCPPEngine()->ComponentDataType());
   if(!paravisComp) {
     return;
   }
@@ -1263,7 +1272,7 @@ void PVGUI_Module::onDelete()
 void PVGUI_Module::onPushTraceTimer()
 {
 //  MESSAGE("onPushTraceTimer(): Pushing trace to engine...");
-  GetEngine()->PutPythonTraceStringToEngine(getTraceString().toStdString().c_str());
+  GetCPPEngine()->PutPythonTraceStringToEngine(getTraceString().toStdString().c_str());
 }
 
 /*!

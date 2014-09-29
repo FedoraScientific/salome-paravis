@@ -23,6 +23,38 @@ On top of that it also establishes a connection to a valid PVServer whose addres
 is provided by the PARAVIS engine.
 """
 
+def __my_log(msg):
+    print "[PARAVIS] %s" % msg
+
+def __getFromGUI():
+    """ Identify if we are running inside SALOME's embedded console.
+    """
+    fromGUI = False
+    try:
+      import salome
+      fromGUI = salome.fromEmbeddedConsole
+    except AttributeError:
+      pass
+    return fromGUI
+
+def InitParaViewForGUI():
+    """
+    If the import is made from SALOME embedded console, the ParaView application needs to 
+    be instanciated to avoid a future crash. 
+    """
+    if __getFromGUI():
+      __my_log("Initializing ParaView main elements, please be patient ...")
+      import SalomePyQt
+      sgPyQt = SalomePyQt.SalomePyQt()
+      sgPyQt.createView("ParaView")
+      # Now let the GUI main loop process the initialization event posted above
+      sgPyQt.processEvents()  
+      __my_log("ParaView initialized.")
+
+## The below has to called BEFORE importing paraview!!! This is crazy, but it has to be.
+InitParaViewForGUI()  
+del InitParaViewForGUI
+
 import paraview
 import paravis
 
@@ -33,9 +65,6 @@ for name in dir(simple):
     globals()[name] = getattr(simple, name)
 del simple
 
-def __my_log(msg):
-    print "[PARAVIS] %s" % msg
-
 def SalomeConnectToPVServer():
     """
     Automatically connect to the right PVServer when not ("inside SALOME GUI" and "already connected").
@@ -44,7 +73,7 @@ def SalomeConnectToPVServer():
     server_url = ""
     try:
         isGUIConnected = paravis.myParavisEngine.GetGUIConnected()
-        if isGUIConnected and paraview.fromGUI:
+        if isGUIConnected and __getFromGUI():
             __my_log("Importing pvsimple from GUI and already connected. Won't reconnect.")
             return
         server_url = paravis.myParavisEngine.FindOrStartPVServer(0)
@@ -54,11 +83,13 @@ def SalomeConnectToPVServer():
         host, port = b[-1], int(a[-1])
         Connect(host, port)
         __my_log("Connected to %s!" % server_url)
+        if __getFromGUI():
+            paravis.myParavisEngine.SetGUIConnected(True)
     except Exception as e:
         __my_log("*******************************************")
         __my_log("** Could not connect to a running PVServer!")
         __my_log("*******************************************")
         raise e
     pass
-
+    
 SalomeConnectToPVServer()

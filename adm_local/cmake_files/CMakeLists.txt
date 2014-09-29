@@ -18,7 +18,6 @@
 #
 
 SET(_adm_data
-  FindSalomeParaView.cmake
   FindSalomePARAVIS.cmake
   )
 

@@ -35,7 +35,7 @@ INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR}
     )
 
 # Process viewer:
-ADD_SUBDIRECTORY(view)
+#ADD_SUBDIRECTORY(view)
 
 # additional preprocessor / compiler flags
 ADD_DEFINITIONS(${CAS_DEFINITIONS})
@@ -56,7 +56,8 @@ SET(_link_LIBRARIES
                  ${GUI_SalomeObject} ${GUI_vtkTools}
   ${MED_SalomeIDLMED}
   ${_PARAVIEW_APP_COMPO_LIB}
-  PVViewer
+  ${GUI_PVViewer}
+  SalomeIDLPARAVIS
 )
 
 # --- headers ---

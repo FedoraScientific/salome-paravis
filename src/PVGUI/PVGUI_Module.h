@@ -29,9 +29,7 @@
 #include <SalomeApp_Module.h>
 #include "SALOMEconfig.h"
 #include CORBA_SERVER_HEADER(SALOMEDS)
-#ifndef PARAVIS_WITH_FULL_CORBA
-#    include CORBA_SERVER_HEADER(PARAVIS_Gen)
-#endif
+#include CORBA_SERVER_HEADER(PARAVIS_Gen)
 
 #include <ostream>
 #include <vtkType.h>
@@ -166,7 +164,8 @@ public:
 
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
-  inline static PARAVIS_ORB::PARAVIS_Gen_var GetEngine();
+  // Get the unwrapped version of the engine - compare with PVViewer_EngineWrapper.
+  inline static PARAVIS_ORB::PARAVIS_Gen_var GetCPPEngine();
   inline static pqPVApplicationCore * GetPVApplication();
 
 public slots:
@@ -297,6 +296,8 @@ private:
   QTimer             * myPushTraceTimer;
 
   PVViewer_GUIElements * myGuiElements;
+
+  static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
 };
 
 #endif // PVGUI_Module_H
