@@ -20,35 +20,7 @@
 #  Module : PARAVIS
 #
 
-import os, new
+import PARAVIS_utils
 
-import PARAVIS
-import SALOME
-import SALOME_Session_idl
-import SALOMEDS
-import SALOME_ModuleCatalog
-from omniORB import CORBA
-from time import sleep
-import salome
-
-## Initialization of paravis server
-def Initialize(theDelay) :
-    mySession = None
-    while mySession == None:
-        mySession = salome.naming_service.Resolve("/Kernel/Session")
-    mySession = mySession._narrow(SALOME.Session)
-    mySession.GetInterface()
-    sleep(theDelay)
-    myLocalParavis = salome.lcc.FindOrLoadComponent("FactoryServer", "PARAVIS")
-#     myLocalStudy = salome.myStudy
-#     myLocalParavis.SetCurrentStudy(myLocalStudy)
-#     myLocalParavis.ActivateModule()  ## CAN NOT WORK ANYMORE, now the engine and the GUI are properly decoupled
-    return myLocalParavis
-
-# def ImportFile(theFileName):
-#     "Import a file of any format supported by ParaView"
-#     myParavis.ImportFile(theFileName)
-
-## Initialize PARAVIS interface  
-myParavisEngine = Initialize(2)
-
+## Initialize PARAVIS interface
+myParavisEngine = PARAVIS_utils.getEngine()
