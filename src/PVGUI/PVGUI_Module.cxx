@@ -893,7 +893,11 @@ QString PVGUI_Module::getTraceString()
 
   QString traceString(tracer->GetCurrentTrace());
   std::stringstream nl; nl << std::endl; // surely there is some Qt trick to do that in a portable way??
-  traceString = "import pvsimple" + QString(nl.str().c_str()) + traceString;
+  QString end_line(nl.str().c_str());
+  // 'import pvsimple' is necessary to fix the first call to DisableFirstRenderCamera in the paraview trace
+  // 'ShowParaviewView()' ensure there is an opened viewing window (otherwise SEGFAULT!)
+  traceString = "import pvsimple" + end_line +
+                "pvsimple.ShowParaviewView()" + end_line + traceString;
 
   // Replace import "paraview.simple" by "pvsimple"
   if ((!traceString.isNull()) && traceString.length() != 0) {
