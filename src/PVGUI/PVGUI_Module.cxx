@@ -1084,14 +1084,6 @@ void PVGUI_Module::onRestartTrace()
 }
 
 /*!
-  \brief Show ParaView view.
-*/
-void PVGUI_Module::onNewParaViewWindow()
-{
-  showView(true);
-}
-
-/*!
   \brief Save state under the module root object.
 */
 void PVGUI_Module::onSaveMultiState()

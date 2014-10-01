@@ -118,11 +118,10 @@ void PVGUI_Module::setupDockWidgets()
   // Properties dock (previously called OBJECT_INSPECTOR)
   QDockWidget* propertiesDock = new QDockWidget( tr( "TTL_OBJECT_INSPECTOR" ), desk );
   propertiesDock->setObjectName("propertiesDock");
-  propertiesDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
+  propertiesDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, propertiesDock );
 
   pqPropertiesPanel* propertiesPanel = guiElements->getPropertiesPanel();
-  propertiesDock->setObjectName("propertiesPanel");
   propertiesDock->setWidget(propertiesPanel);
   connect( propertiesPanel, SIGNAL( helpRequested(const QString&, const QString&) ),  this, SLOT( showHelpForProxy(const QString&, const QString&) ) );
   //            hook delete to pqDeleteReaction.
@@ -159,7 +158,8 @@ void PVGUI_Module::setupDockWidgets()
 
   desk->setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
   desk->tabifyDockWidget(informationDock, propertiesDock);
-  propertiesDock->raise();
+  desk->tabifyDockWidget(propertiesDock, pipelineBrowserDock);
+  //propertiesDock->raise();
 
   // Statistic View
   QDockWidget* statisticsViewDock  = new QDockWidget( tr( "TTL_STATISTICS_VIEW" ), desk );

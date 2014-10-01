@@ -623,11 +623,11 @@ void PVGUI_Module::createActions()
 {
   QAction* anAction;
 
-  // New ParaView window
-  anAction = new QtxAction(tr("MEN_NEW_PV_VIEW"), tr("MEN_NEW_PV_VIEW"), 0, 
-			   this, false, "ParaViS:Create new ParaView view");
-  connect(anAction, SIGNAL(triggered()), this, SLOT(onNewParaViewWindow()));
-  registerAction(ParaViewNewWindowId, anAction);
+//  // New ParaView window
+//  anAction = new QtxAction(tr("MEN_NEW_PV_VIEW"), tr("MEN_NEW_PV_VIEW"), 0,
+//        this, false, "ParaViS:Create new ParaView view");
+//  connect(anAction, SIGNAL(triggered()), this, SLOT(onNewParaViewWindow()));
+//  registerAction(ParaViewNewWindowId, anAction);
 
   // Save state under the module root object
   anAction = new QAction(tr("MEN_SAVE_MULTI_STATE"), this);

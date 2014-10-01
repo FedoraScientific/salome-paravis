@@ -23,21 +23,19 @@ On top of that it also establishes a connection to a valid PVServer whose addres
 is provided by the PARAVIS engine.
 """
 
+__DEBUG = 1
+
 def __my_log(msg):
-    print "[PARAVIS] %s" % msg
+    if __DEBUG:
+      print "[PARAVIS] %s" % msg
 
 def __getFromGUI():
-    """ Identify if we are running inside SALOME's embedded console.
+    """ Identify if we are running inside SALOME's embedded interpreter.
     """
-    fromGUI = False
-    try:
-      import salome
-      fromGUI = salome.fromEmbeddedConsole
-    except AttributeError:
-      pass
-    return fromGUI
+    import salome_iapp
+    return salome_iapp.IN_SALOME_GUI
 
-def InitParaViewForGUI():
+def ShowParaviewView():
     """
     If the import is made from SALOME embedded console, the ParaView application needs to 
     be instanciated to avoid a future crash. 
@@ -46,24 +44,22 @@ def InitParaViewForGUI():
       __my_log("Initializing ParaView main elements, please be patient ...")
       import SalomePyQt
       sgPyQt = SalomePyQt.SalomePyQt()
-      sgPyQt.createView("ParaView")
+      viewIds = sgPyQt.findViews("ParaView")
+      if len(viewIds):
+        sgPyQt.setViewVisible(viewIds[0], True)
+        sgPyQt.activateView(viewIds[0])
+      else:  
+        sgPyQt.createView("ParaView")
       # Now let the GUI main loop process the initialization event posted above
       sgPyQt.processEvents()  
       __my_log("ParaView initialized.")
 
 ## The below has to called BEFORE importing paraview!!! This is crazy, but it has to be.
-InitParaViewForGUI()  
-del InitParaViewForGUI
+ShowParaviewView()  
 
 import paraview
 import paravis
-
-# Forward namespace of simple into current pvsimple:
 from paraview import simple
-for name in dir(simple):
-  if not name.startswith("__"):
-    globals()[name] = getattr(simple, name)
-del simple
 
 def SalomeConnectToPVServer():
     """
@@ -81,7 +77,7 @@ def SalomeConnectToPVServer():
         a = server_url.split(':')
         b = a[1].split('//')
         host, port = b[-1], int(a[-1])
-        Connect(host, port)
+        simple.Connect(host, port)
         __my_log("Connected to %s!" % server_url)
         if __getFromGUI():
             paravis.myParavisEngine.SetGUIConnected(True)
@@ -93,3 +89,11 @@ def SalomeConnectToPVServer():
     pass
     
 SalomeConnectToPVServer()
+del SalomeConnectToPVServer
+
+# Forward namespace of simple into current pvsimple:
+for name in dir(simple):
+  if not name.startswith("__"):
+    globals()[name] = getattr(simple, name)
+del simple
+   
