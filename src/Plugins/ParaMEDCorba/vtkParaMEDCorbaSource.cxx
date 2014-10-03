@@ -178,7 +178,7 @@ int vtkParaMEDCorbaSource::RequestInformation(vtkInformation* request, vtkInform
       delete iorTab;
       CORBA::release(objPara);
     }
-    myInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
+    myInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
   }
   return 1;
 }
@@ -188,10 +188,11 @@ int vtkParaMEDCorbaSource::RequestData(vtkInformation* request, vtkInformationVe
   vtkInformation *outInfo=outputVector->GetInformationObject(0);
   //
   this->UpdatePiece = vtkStreamingDemandDrivenPipeline::GetUpdatePiece(outInfo);
-  this->NumberOfPieces = vtkStreamingDemandDrivenPipeline::GetUpdateNumberOfPieces(outInfo);
+  this->NumberOfPieces = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES());
   this->GhostLevel = vtkStreamingDemandDrivenPipeline::GetUpdateGhostLevel(outInfo);
   this->StartPiece=((this->UpdatePiece*this->TotalNumberOfPieces)/this->NumberOfPieces);
   this->EndPiece=(((this->UpdatePiece+1)*this->TotalNumberOfPieces)/this->NumberOfPieces);
+  std::cerr << " ### " << this->UpdatePiece << " 22-" << this->NumberOfPieces << " 33-" << this->StartPiece << "44-" << this->EndPiece << std::endl;
   vtkMultiBlockDataSet *ret0=vtkMultiBlockDataSet::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
   double reqTS = 0;
   if(outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()))
