@@ -125,6 +125,8 @@ pqExtractGroupPanel::pqExtractGroupPanel(pqProxy* object_proxy, QWidget* p):Supe
   //vtkMutableDirectedGraph *g2(vtkMutableDirectedGraph::SafeDownCast(g));// agy: this line does not work in client/server mode ! but it works in standard mode ! Don't know why. ParaView bug ?
   vtkMutableDirectedGraph *g2(static_cast<vtkMutableDirectedGraph *>(g));
   int idNames(0);
+  if(!g2)
+    return ;
   vtkAbstractArray *verticesNames(g2->GetVertexData()->GetAbstractArray("Names",idNames));
   vtkStringArray *verticesNames2(vtkStringArray::SafeDownCast(verticesNames));
   vtkIdType id0;
@@ -259,9 +261,13 @@ void pqExtractGroupPanel::updateSIL()
     this->UI->SILUpdateStamp = stamp;
     vtkPVSILInformation* info = vtkPVSILInformation::New();
     reader->GatherInformation(info);
-    this->UI->SILModel.update(info->GetSIL());
-    this->UI->Fields->expandAll();
-    info->Delete();
+    vtkGraph *sil(info->GetSIL());
+    if(sil)
+      {
+        this->UI->SILModel.update(sil);
+        this->UI->Fields->expandAll();
+        info->Delete();
+      }
     }
 }
 
