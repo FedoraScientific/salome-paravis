@@ -108,7 +108,7 @@ int vtkELNOMeshFilter::RequestData(vtkInformation *request,
   for(int index = 0; index < fielddata->GetNumberOfArrays(); index++)
     {
       vtkDataArray *data(fielddata->GetArray(index));
-      vtkQuadratureSchemeDefinition **dict(0);
+      vtkQuadratureSchemeDefinition **dict = 0;
       vtkInformationQuadratureSchemeDefinitionVectorKey *key(vtkQuadratureSchemeDefinition::DICTIONARY());
       if(key->Has(data->GetInformation()))
         {
