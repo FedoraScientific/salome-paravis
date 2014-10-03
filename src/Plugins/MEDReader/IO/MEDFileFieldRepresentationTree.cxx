@@ -28,6 +28,10 @@
 #include "MEDFileData.hxx"
 #include "SauvReader.hxx"
 
+#ifdef MEDREADER_USE_MPI
+  #include "ParaMEDFileMesh.hxx"
+#endif
+
 #include "vtkXMLUnstructuredGridWriter.h"//
 
 #include "vtkUnstructuredGrid.h"
@@ -1087,12 +1091,17 @@ int MEDFileFieldRepresentationTree::getMaxNumberOfTimeSteps() const
 /*!
  * 
  */
-void MEDFileFieldRepresentationTree::loadMainStructureOfFile(const char *fileName, bool isMEDOrSauv)
+void MEDFileFieldRepresentationTree::loadMainStructureOfFile(const char *fileName, bool isMEDOrSauv, int iPart, int nbOfParts)
 {
   if(isMEDOrSauv)
     {
+#ifdef MEDREADER_USE_MPI
+      _ms=ParaMEDFileMeshes::New(iPart,nbOfParts,fileName);
+      _fields=MEDFileFields::LoadPartOf(fileName,false,_ms);//false is important to not read the values
+#else
       _ms=MEDFileMeshes::New(fileName);
       _fields=MEDFileFields::New(fileName,false);//false is important to not read the values
+#endif
     }
   else
     {

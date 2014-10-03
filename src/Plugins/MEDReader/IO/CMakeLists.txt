@@ -23,6 +23,10 @@ INCLUDE_DIRECTORIES(
   ${MED_ROOT_DIR}/include/salome
   )
 
+IF(PARAVIEW_USE_MPI)
+  ADD_DEFINITIONS("-DMEDREADER_USE_MPI")
+ENDIF(PARAVIEW_USE_MPI)
+
 SET(MEDReader_CLASSES vtkMEDReader vtkExtractGroup vtkELNOMeshFilter vtkELNOSurfaceFilter vtkELNOFilter vtkExtractCellType)
 
 SET(MEDReader_SRCS)

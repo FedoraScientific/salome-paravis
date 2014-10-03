@@ -149,7 +149,7 @@ public:
   vtkDataSet *buildVTKInstance(bool isStdOrMode, double timeReq, std::string& meshName, const TimeKeeper& tk) const;
   void printMySelf(std::ostream& os) const;
   //non const methods
-  void loadMainStructureOfFile(const char *fileName, bool isMEDOrSauv);
+  void loadMainStructureOfFile(const char *fileName, bool isMEDOrSauv, int iPart, int nbOfParts);
   void removeEmptyLeaves();
   // static methods
   static bool IsFieldMeshRegardingInfo(const std::vector<std::string>& compInfos);

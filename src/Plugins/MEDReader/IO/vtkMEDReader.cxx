@@ -257,7 +257,12 @@ void vtkMEDReader::SetFileName(const char *fname)
         }
       if(this->Internal->Tree.getNumberOfLeavesArrays()==0)
         {
-          this->Internal->Tree.loadMainStructureOfFile(this->Internal->FileName.c_str(),this->Internal->IsMEDOrSauv);
+          int iPart(-1),nbOfParts(-1);
+#ifdef MEDREADER_USE_MPI
+          MPI_Comm_rank(MPI_COMM_WORLD,&iPart);
+          MPI_Comm_size(MPI_COMM_WORLD,&nbOfParts);
+#endif
+          this->Internal->Tree.loadMainStructureOfFile(this->Internal->FileName.c_str(),this->Internal->IsMEDOrSauv,iPart,nbOfParts);
           if(!this->Internal->PK.arePropertiesOnTreeToSetAfter())
             this->Internal->Tree.activateTheFirst();//This line manually initialize the status of server (this) with the remote client.
           this->Internal->TK.setMaxNumberOfTimeSteps(this->Internal->Tree.getMaxNumberOfTimeSteps());
