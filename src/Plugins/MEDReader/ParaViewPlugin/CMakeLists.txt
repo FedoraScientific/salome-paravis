@@ -17,9 +17,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-INCLUDE_DIRECTORIES(
-  ${PROJECT_SOURCE_DIR}/IO
-  ${PROJECT_SOURCE_DIR}/IO )
+INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/IO )
 
 IF(PARAVIEW_BUILD_QT_GUI)
 

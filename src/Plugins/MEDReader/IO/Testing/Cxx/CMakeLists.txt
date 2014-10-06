@@ -48,12 +48,12 @@ TARGET_LINK_LIBRARIES(TestReading0 MEDLoaderForPV vtkCommonDataModel)
 #ADD_EXECUTABLE(TestMedReadDescendingPolyhedron ${TestMedReadDescendingPolyhedron_SRCS})
 #ADD_EXECUTABLE(TestMedWriteOcta12 ${TestMedWriteOcta12_SRCS})
 
-IF(${HDF5_IS_PARALLEL})
-  ADD_EXECUTABLE(TestMedParallelRead ${TestMedParallelRead_SRCS})
-  ADD_EXECUTABLE(TestMedParallelWrite ${TestMedParallelWrite_SRCS})
-  TARGET_LINK_LIBRARIES(TestMedParallelRead vtkParallelCore ${MED_LIBRARIES})
-  TARGET_LINK_LIBRARIES(TestMedParallelWrite vtkParallelCore ${MED_LIBRARIES})
-ENDIF(${HDF5_IS_PARALLEL})
+#IF(${HDF5_IS_PARALLEL})
+#  ADD_EXECUTABLE(TestMedParallelRead ${TestMedParallelRead_SRCS})
+#  ADD_EXECUTABLE(TestMedParallelWrite ${TestMedParallelWrite_SRCS})
+#  TARGET_LINK_LIBRARIES(TestMedParallelRead vtkParallelCore ${MED_LIBRARIES})
+#  TARGET_LINK_LIBRARIES(TestMedParallelWrite vtkParallelCore ${MED_LIBRARIES})
+#ENDIF(${HDF5_IS_PARALLEL})
 
 INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../module.cmake)
 
