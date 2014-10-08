@@ -106,9 +106,8 @@ DataRepresentation2.EdgeColor = [0.0, 0.0, 0.5000076295109483]
 DataRepresentation2.ScalarOpacityUnitDistance = 1.5768745057161244
 DataRepresentation2.ExtractedBlockIndex = 1
 DataRepresentation2.ScaleFactor = 0.4
-DataRepresentation2.ColorArrayName='fNode'
+DataRepresentation2.ColorArrayName=('POINTS','fNode')
 DataRepresentation2.LookupTable=LookupTable
-DataRepresentation2.ColorAttributeType='POINT_DATA'
 
 
 RenderView1.ViewSize=[300,300]

@@ -86,9 +86,8 @@ a1_POROSITE_PVLookupTable = GetLookupTableForArray( "POROSITE", 1, RGBPoints=[0.
 a1_POROSITE_PiecewiseFunction = CreatePiecewiseFunction( Points=[0.4734426322438599, 0.0, 0.5, 0.0, 0.5814307903048255, 1.0, 0.5, 0.0] )
 
 DataRepresentation2.ScalarOpacityFunction = a1_POROSITE_PiecewiseFunction
-DataRepresentation2.ColorArrayName = ('CELL_DATA', 'POROSITE')
+DataRepresentation2.ColorArrayName = ('CELLS', 'POROSITE')
 DataRepresentation2.LookupTable = a1_POROSITE_PVLookupTable
-DataRepresentation2.ColorAttributeType = 'CELL_DATA'
 
 Render()
 RenderView1.ViewSize =[300,300]

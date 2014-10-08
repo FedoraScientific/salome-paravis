@@ -155,9 +155,8 @@ a1_ENTHALPIE_PiecewiseFunction = CreatePiecewiseFunction( Points=[1278022.919558
 
 DataRepresentation1.Representation = 'Wireframe'
 DataRepresentation1.ScalarOpacityFunction = a1_ENTHALPIE_PiecewiseFunction
-DataRepresentation1.ColorArrayName = ('CELL_DATA', 'ENTHALPIE')
+DataRepresentation1.ColorArrayName = ('CELLS', 'ENTHALPIE')
 DataRepresentation1.LookupTable = a1_ENTHALPIE_PVLookupTable
-DataRepresentation1.ColorAttributeType = 'CELL_DATA'
 
 testMEDReader11_med = MEDReader( FileName=fname )
 
@@ -178,9 +177,8 @@ a1_VITESSEX_PVLookupTable = GetLookupTableForArray( "VITESSE X", 1, RGBPoints=[0
 a1_VITESSEX_PiecewiseFunction = CreatePiecewiseFunction( Points=[0.0, 0.0, 0.5, 0.0, 1e-16, 1.0, 0.5, 0.0] )
 
 DataRepresentation2.ScalarOpacityFunction = a1_VITESSEX_PiecewiseFunction
-DataRepresentation2.ColorArrayName = ('CELL_DATA', 'VITESSE X')
+DataRepresentation2.ColorArrayName = ('CELLS', 'VITESSE X')
 DataRepresentation2.LookupTable = a1_VITESSEX_PVLookupTable
-DataRepresentation2.ColorAttributeType = 'CELL_DATA'
 
 a1_VITESSEX_PVLookupTable.RGBPoints = [-0.04176214531137861, 0.23, 0.299, 0.754, 0.35689831830849095, 0.865, 0.865, 0.865, 0.7555587819283606, 0.706, 0.016, 0.15]
 a1_VITESSEX_PVLookupTable.ScalarOpacityFunction = a1_VITESSEX_PiecewiseFunction
