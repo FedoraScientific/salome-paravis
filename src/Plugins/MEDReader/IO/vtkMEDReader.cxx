@@ -297,7 +297,6 @@ int vtkMEDReader::RequestInformation(vtkInformation *request, vtkInformationVect
   try
     {
       vtkInformation *outInfo(outputVector->GetInformationObject(0));
-      outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),-1);
       outInfo->Set(vtkDataObject::DATA_TYPE_NAME(),"vtkMultiBlockDataSet");
       this->UpdateSIL(outInfo);
       //

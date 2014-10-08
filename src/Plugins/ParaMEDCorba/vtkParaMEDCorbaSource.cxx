@@ -178,8 +178,7 @@ int vtkParaMEDCorbaSource::RequestInformation(vtkInformation* request, vtkInform
       delete iorTab;
       CORBA::release(objPara);
     }
-    //myInfo->Set(CAN_HANDLE_PIECE_REQUEST(), 1);
-    myInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),this->TotalNumberOfPieces);
+    myInfo->Set(CAN_HANDLE_PIECE_REQUEST(), 1);
   }
   return 1;
 }
