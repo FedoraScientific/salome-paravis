@@ -89,6 +89,8 @@ pqExtractCellTypePanel::pqExtractCellTypePanel(pqProxy* object_proxy, QWidget* p
   vtkGraph *g(info->GetSIL());
   //vtkMutableDirectedGraph *g2(vtkMutableDirectedGraph::SafeDownCast(g));// agy: this line does not work in client/server mode ! but it works in standard mode ! Don't know why. ParaView bug ?
   vtkMutableDirectedGraph *g2(static_cast<vtkMutableDirectedGraph *>(g));
+  if(!g2)
+    return ;
   int idNames(0);
   vtkAbstractArray *verticesNames(g2->GetVertexData()->GetAbstractArray("Names",idNames));
   vtkStringArray *verticesNames2(vtkStringArray::SafeDownCast(verticesNames));
@@ -156,8 +158,12 @@ void pqExtractCellTypePanel::updateSIL()
       this->UI->SILUpdateStamp = stamp;
       vtkPVSILInformation* info = vtkPVSILInformation::New();
       reader->GatherInformation(info);
-      this->UI->SILModel.update(info->GetSIL());
-      this->UI->Fields->expandAll();
+      vtkGraph *sil(info->GetSIL());
+      if(sil)
+        {
+          this->UI->SILModel.update(sil);
+          this->UI->Fields->expandAll();
+        }
       info->Delete();
     }
 }
