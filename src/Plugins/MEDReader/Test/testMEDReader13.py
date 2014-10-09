@@ -63,7 +63,6 @@ DataRepresentation2.SelectionCellFieldDataArrayName = 'FamilyIdCell'
 DataRepresentation2.SelectInputVectors = ['POINTS', 'fieldELNO_Vector']
 DataRepresentation2.ScalarOpacityUnitDistance = 1.7746382108908556
 DataRepresentation2.Texture = []
-DataRepresentation2.SelectUncertaintyArray = ['POINTS', 'fieldELNO']
 DataRepresentation2.ExtractedBlockIndex = 1
 DataRepresentation2.RadiusRange = [6.666666740784422e-05, 1.9999333620071411]
 DataRepresentation2.ScaleFactor = 0.19998666953397334
