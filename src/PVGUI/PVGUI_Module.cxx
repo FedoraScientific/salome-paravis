@@ -122,11 +122,12 @@
 #include <pqCollaborationBehavior.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
-#include <pqLookupTableManager.h>
+//#include <pqLookupTableManager.h>
 #include <pqDisplayColorWidget.h>
 #include <pqColorToolbar.h>
 #include <pqScalarBarVisibilityReaction.h>
 #include <pqStandardPropertyWidgetInterface.h>
+#include <pqStandardViewFrameActionsImplementation.h>
 #include <pqViewStreamingBehavior.h>
 
 #include <PARAVIS_version.h>
@@ -143,22 +144,29 @@
 #include <pqCrashRecoveryBehavior.h>
 #include <pqDataTimeStepBehavior.h>
 #include <pqDefaultViewBehavior.h>
-#include <pqDeleteBehavior.h>
 #include <pqObjectPickingBehavior.h>
 #include <pqPersistentMainWindowStateBehavior.h>
 #include <pqPipelineContextMenuBehavior.h>
 #include <pqPluginActionGroupBehavior.h>
 #include <pqPluginDockWidgetsBehavior.h>
 #include <pqPluginManager.h>
-#include <pqPVNewSourceBehavior.h>
 #include <pqSpreadSheetVisibilityBehavior.h>
-#include <pqStandardViewModules.h>
 #include <pqUndoRedoBehavior.h>
-#include <pqViewFrameActionsBehavior.h>
 #include <pqServerManagerObserver.h>
+#include <pqVerifyRequiredPluginBehavior.h>
+#include <pqFixPathsInStateFilesBehavior.h>
+#include <pqPluginSettingsBehavior.h>
+#include <pqPropertiesPanel.h>
+
+#include <pqApplyBehavior.h>
 
 #include <vtkClientServerInterpreterInitializer.h>
 
+// Trace related
+#include <vtkNew.h>
+#include <vtkSMTrace.h>
+#include <vtkSMSessionProxyManager.h>
+#include <vtkSMParaViewPipelineController.h>
 
 //----------------------------------------------------------------------------
 pqPVApplicationCore* PVGUI_Module::MyCoreApp = 0;
@@ -233,25 +241,6 @@ PVGUI_Module* ParavisModule = 0;
   \brief Implementation 
          SALOME module wrapping ParaView GUI.
 */
-
-
-/*
-  Fix for the issue 21730: [CEA 596] Slice of polyhedron in PARAVIS returns no cell.
-  Wrap vtkEDFCutter filter.
-*/
-
-extern "C" void vtkEDFCutterCS_Initialize(vtkClientServerInterpreter*);
-static void vtkEDFHelperInit();
-
-void vtkEDFHelperInit(vtkClientServerInterpreter* interp){
-    vtkEDFCutterCS_Initialize(interp);
-}
-
-void vtkEDFHelperInit() {
-    vtkClientServerInterpreterInitializer::GetInitializer()->
-        RegisterCallback(&vtkEDFHelperInit);
-}
-
 
   _PTR(SComponent)
   ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
@@ -406,10 +395,10 @@ void PVGUI_Module::initialize( CAM_Application* app )
     //pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
     pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
 
-    // * adds support for standard paraview views.
-    pgm->addInterface(new pqStandardViewModules(pgm));
-    //pgm->addInterface(new pqStandardSummaryPanelImplementation(pgm));
+    // Register standard types of property widgets.
     pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
+    // Register standard types of view-frame actions.
+    pgm->addInterface(new pqStandardViewFrameActionsImplementation(pgm));
 
     // Load plugins distributed with application.
     pqApplicationCore::instance()->loadDistributedPlugins();
@@ -417,27 +406,30 @@ void PVGUI_Module::initialize( CAM_Application* app )
     // Define application behaviors.
     //new pqQtMessageHandlerBehavior(this);
     new pqDataTimeStepBehavior(this);
-    new pqViewFrameActionsBehavior(this);
     new pqSpreadSheetVisibilityBehavior(this);
     new pqPipelineContextMenuBehavior(this);
-    new pqObjectPickingBehavior(this); // NEW in 4.1
+    new pqObjectPickingBehavior(this);
     new pqDefaultViewBehavior(this);
-    new pqAlwaysConnectedBehavior(this);
-    new pqPVNewSourceBehavior(this);
-    new pqDeleteBehavior(this);
     new pqUndoRedoBehavior(this);
+    new pqAlwaysConnectedBehavior(this);
     new pqCrashRecoveryBehavior(this);
     new pqAutoLoadPluginXMLBehavior(this);
     new pqPluginDockWidgetsBehavior(aDesktop);
-    //new pqVerifyRequiredPluginBehavior(this);
+    new pqVerifyRequiredPluginBehavior(this);
     new pqPluginActionGroupBehavior(aDesktop);
-    //new pqFixPathsInStateFilesBehavior(this);
+    new pqFixPathsInStateFilesBehavior(this);
     new pqCommandLineOptionsBehavior(this);
     new pqPersistentMainWindowStateBehavior(aDesktop);
-    new pqObjectPickingBehavior(aDesktop);
     new pqCollaborationBehavior(this);
-    //new pqMultiServerBehavior(this);
     new pqViewStreamingBehavior(this);
+    new pqPluginSettingsBehavior(this);
+
+    pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
+    foreach (pqPropertiesPanel* ppanel, aDesktop->findChildren<pqPropertiesPanel*>())
+      {
+      applyBehavior->registerPanel(ppanel);
+      }
+
 
     // Setup quick-launch shortcuts.
     QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);
@@ -455,13 +447,16 @@ void PVGUI_Module::initialize( CAM_Application* app )
     }
 
     // Find Plugin Menus
-    QList<QMenu*> currentMenus = aDesktop->findChildren<QMenu*>();
-    QList<QMenu*>::iterator im;
-    for (im = currentMenus.begin(); im != currentMenus.end(); ++im) {
-      if(!activeMenus.contains(*im)) {
-          myMenus.append(*im);
-      }
-    }
+    // [ABN] TODO: fix this - triggers a SEGFAULT at deactivation() time.
+//    QList<QMenu*> currentMenus = aDesktop->findChildren<QMenu*>();
+//    QList<QMenu*>::iterator im;
+//    for (im = currentMenus.begin(); im != currentMenus.end(); ++im) {
+//      if(!activeMenus.contains(*im)) {
+//          QString s = (*im)->title();
+//          std::cout << " MENU "<<  s.toStdString() << std::endl;
+//          myMenus.append(*im);
+//      }
+//    }
 
     SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
     QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
@@ -546,24 +541,24 @@ void PVGUI_Module::onFinishedAddingServer(pqServer* /*server*/)
 }
 
 void PVGUI_Module::onDataRepresentationCreated(pqDataRepresentation* data) {
-  if(!data)
-    return;
-  
-  if(!data->getLookupTable())
-    return;
-  
-  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-  if(!aResourceMgr)
-    return;
-
-  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
-  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
-  
-  if(lut_mgr) {
-    lut_mgr->setScalarBarVisibility(data,visible);
-  }
-
-  connect(data, SIGNAL(dataUpdated()), this, SLOT(onDataRepresentationUpdated()));
+//  if(!data)
+//    return;
+//
+//  if(!data->getLookupTable())
+//    return;
+//
+//  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
+//  if(!aResourceMgr)
+//    return;
+//
+//  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
+//  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
+//
+//  if(lut_mgr) {
+//    lut_mgr->setScalarBarVisibility(data,visible);
+//  }
+//
+//  connect(data, SIGNAL(dataUpdated()), this, SLOT(onDataRepresentationUpdated()));
 }
 
 void PVGUI_Module::onDataRepresentationUpdated() {
@@ -614,54 +609,26 @@ void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
   }
 }
 
-void PVGUI_Module::execPythonCommand(const QString& cmd, bool inSalomeConsole)
-{
-  if ( inSalomeConsole ) {
-    if ( PyInterp_Dispatcher::Get()->IsBusy() ) return;
-    SalomeApp_Application* app =
-      dynamic_cast< SalomeApp_Application* >(SUIT_Session::session()->activeApplication());
-    PyConsole_Console* pyConsole = app->pythonConsole();
-    if (pyConsole)
-      pyConsole->exec(cmd);
-  }
-  else
-    {
-      pqPythonManager* manager = qobject_cast<pqPythonManager*>
-      ( pqApplicationCore::instance()->manager( "PYTHON_MANAGER" ) );
-      if ( manager )
-        {
-          pqPythonDialog* pyDiag = manager->pythonShellDialog();
-          if ( pyDiag )
-            {
-              pqPythonShell* shell = pyDiag->shell();
-              if ( shell ) {
-                  shell->executeScript(cmd);
-              }
-            }
-        }
-    }
-}
-
 /*!
   \brief Launches a tracing of current server
 */
 void PVGUI_Module::timerEvent(QTimerEvent* te )
 {
-#ifndef WNT
-  if ( PyInterp_Dispatcher::Get()->IsBusy() )
-    {
-      // Reschedule for later
-      MESSAGE("interpreter busy -> rescheduling trace start.");
-      startTimer(500);
-    }
-  else
-    {
+//#ifndef WNT
+//  if ( PyInterp_Dispatcher::Get()->IsBusy() )
+//    {
+//      // Reschedule for later
+//      MESSAGE("interpreter busy -> rescheduling trace start.");
+//      startTimer(500);
+//    }
+//  else
+//    {
       MESSAGE("about to start trace....");
-      execPythonCommand("from paraview import smtrace;smtrace.start_trace()", false);
+      startTrace();
       MESSAGE("trace STARTED....");
-    }
+//     }
   killTimer( te->timerId() );
-#endif
+//#endif
 }
   
 /*!
@@ -762,6 +729,8 @@ bool PVGUI_Module::pvInit()
     loader.loadPlugins(plugin_list, true); //quietly skip not-found plugins.
     */
     // End of Initializer code
+
+    MyCoreApp->settings();
 
     vtkOutputWindow::SetInstance(PVGUI_OutputWindowAdapter::New());
     
@@ -1058,6 +1027,36 @@ void PVGUI_Module::openFile(const char* theName)
   pqLoadDataReaction::loadData(aFiles);
 }
 
+/**!
+ * Start trace invoking the newly introduced C++ API (PV 4.2)
+ * (inspired from pqTraceReaction::start())
+ */
+void PVGUI_Module::startTrace()
+{
+  vtkSMSessionProxyManager* pxm = pqActiveObjects::instance().activeServer()->proxyManager();
+
+  vtkSmartPointer<vtkSMProxy> proxy;
+  proxy.TakeReference(pxm->NewProxy("pythontracing", "PythonTraceOptions"));
+  if (proxy)
+    {
+      vtkNew<vtkSMParaViewPipelineController> controller;
+      controller->InitializeProxy(proxy);
+    }
+  vtkSMTrace* trace = vtkSMTrace::StartTrace();
+  if (proxy)
+    {
+      // Set manually the properties entered via the dialog box poping-up when requiring
+      // a trace start in PV4.2 (trace options)
+      trace->SetPropertiesToTraceOnCreate(vtkSMTrace::RECORD_USER_MODIFIED_PROPERTIES);
+      trace->SetFullyTraceSupplementalProxies(false);
+    }
+}
+
+void PVGUI_Module::stopTrace()
+{
+  vtkSMTrace::StopTrace();
+}
+
 void PVGUI_Module::executeScript(const char *script)
 {
 #ifndef WNT
@@ -1102,24 +1101,13 @@ static const QString MYReplaceStr("paraview.simple");
 static const QString MYReplaceImportStr("except: from pvsimple import *");
 QString PVGUI_Module::getTraceString()
 {
-  QString traceString;
-#ifndef WNT
-  {
-    PyLockWrapper lck; // Acquire GIL
+  vtkSMTrace *tracer = vtkSMTrace::GetActiveTracer();
+  if (!tracer) // trace is not started
+    return QString("");
 
-    const char * code = "from paraview import smtrace;"
-                        "__smtraceString = smtrace.get_trace_string()";
-    PyRun_SimpleString(code);
-    // Now get the value of __smtraceString
-    PyObject* main_module = PyImport_AddModule((char*)"__main__");
-    PyObject* global_dict = PyModule_GetDict(main_module);
-    PyObject* string_object = PyDict_GetItemString(global_dict, "__smtraceString");
-    char* string_ptr = string_object ? PyString_AsString(string_object) : 0;
-    if (string_ptr)  {
-        traceString = string_ptr;
-    }
-  } // release GIL
+  QString traceString(tracer->GetCurrentTrace());
 
+  // Replace import "paraview.simple" by "pvsimple"
   if ((!traceString.isNull()) && traceString.length() != 0) {
     int aPos = traceString.indexOf(MYReplaceStr);
     while (aPos != -1) {
@@ -1132,7 +1120,7 @@ QString PVGUI_Module::getTraceString()
       traceString = traceString.replace(aImportPos, MYReplaceImportStr.length(), "except:\n  import pvsimple\n  from pvsimple import *");
       }
   }
-#endif
+
   return traceString;
 }
 
@@ -1192,7 +1180,7 @@ void PVGUI_Module::onImportFromVisu(QString theEntry)
   SalomeApp_Study* activeStudy = dynamic_cast<SalomeApp_Study*>(application()->activeStudy());
   if(!activeStudy) return;
 
-  // get SALOMEDS client study 
+  // get SALOMEDS client study
   _PTR(Study) aStudy = activeStudy->studyDS();
   if(!aStudy) return;
 
@@ -1288,8 +1276,9 @@ void PVGUI_Module::createPreferences()
   setPreferenceProperty(aSaveType, "indexes", aIndices);
 
   //rnv: imp 21712: [CEA 581] Preference to display legend by default 
-  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
-                                        LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
+  // [ABN]: now fixed in ParaView.
+//  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
+//                                        LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
 }
 
 /*!
@@ -1382,10 +1371,8 @@ void PVGUI_Module::onShowTrace()
 */
 void PVGUI_Module::onRestartTrace()
 {
-  QString script = "from paraview import smtrace\n";
-  script += "smtrace.stop_trace()\n";
-  script += "smtrace.start_trace()\n";
-  execPythonCommand(script, false);
+  stopTrace();
+  startTrace();
 }
 
 /*!
@@ -1684,10 +1671,10 @@ extern "C" {
 
   bool flag = false;
   PVGUI_EXPORT CAM_Module* createModule() {
-    if(!flag) {
-        vtkEDFHelperInit();
-        flag = true;
-    }      
+//    if(!flag) {
+//        vtkEDFHelperInit();
+//        flag = true;
+//    }
     return new PVGUI_Module();
   }
   

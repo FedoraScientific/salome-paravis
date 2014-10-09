@@ -30,6 +30,7 @@ INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${QT_INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 # additional preprocessor / compiler flags
@@ -58,6 +59,12 @@ SET(_link_LIBRARIES
 
 # --- headers ---
 
+SET(_ui_files
+    resources/pqCustomSettingsWidget.ui
+    )
+
+QT4_WRAP_UI(_ui_FORMS_HEADERS ${_ui_files})
+
 # header files / to be processed by moc
 SET(_moc_HEADERS
   PVGUI_Module.h
@@ -79,7 +86,7 @@ SET(_other_HEADERS
 )
 
 # header files / to install
-SET(PVGUI_HEADERS ${_moc_HEADERS} ${_other_HEADERS})
+SET(PVGUI_HEADERS ${_moc_HEADERS} ${_other_HEADERS} ${_ui_FORMS_HEADERS})
 
 # --- resources ---
 
@@ -123,8 +130,8 @@ QT4_ADD_RESOURCES(_rcc_SOURCES ${_rcc_RESOURCES})
 QT4_WRAP_CPP(_moc_SOURCES ${_moc_HEADERS})
 
 # sources / EDF specific stuff
-INCLUDE(vtkWrapClientServer)
-VTK_WRAP_ClientServer(vtkEDFCutterCS vtkEDFCutter_SRCS ${GUI_ROOT_DIR}/include/salome/vtkEDFCutter.h)
+#INCLUDE(vtkWrapClientServer)
+#VTK_WRAP_ClientServer(vtkEDFCutterCS vtkEDFCutter_SRCS ${GUI_ROOT_DIR}/include/salome/vtkEDFCutter.h)
 
 # sources / static
 SET(_other_SOURCES
@@ -165,8 +172,9 @@ SET(PVGUI_SOURCES
   ${_other_SOURCES} 
   ${_moc_SOURCES} 
   ${_rcc_SOURCES} 
-  ${vtkEDFCutter_SRCS} 
+#  ${vtkEDFCutter_SRCS} 
   ${_VTK_wrap_SOURCES}
+  ${_ui_FORMS_HEADERS}
   )
 
 # --- rules ---

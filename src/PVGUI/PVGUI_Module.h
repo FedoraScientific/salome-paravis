@@ -154,6 +154,8 @@ public:
   void clearParaviewState();
 
   QString getTraceString();
+  void startTrace();
+  void stopTrace();
   void saveTrace(const char* theName);
 
   pqServer* getActiveServer();
@@ -220,9 +222,6 @@ private:
 
   //! restore visibility of the common dockable windows (OB, PyConsole, ... etc.)
   void restoreCommonWindowsState();
-
-  //! run Python command (either in SALOME's Python interpreter, or in ParaView's Python's interpreter)
-  void execPythonCommand(const QString& cmd, bool inSalomeConsole=false);
 
 private slots:
 

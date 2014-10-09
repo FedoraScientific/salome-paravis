@@ -27,11 +27,8 @@ IF(WIN32)
 ENDIF() 
 
 SET(_subdirs
-  #Filter 
-  #ToolBar 
   MEDReader 
-  TableReader 
-  NavigationMode 
+#  TableReader  
   ElevationSurface
   ScaleVector
   EllipseBuilder
