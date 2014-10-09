@@ -38,7 +38,6 @@ public:
   pqExtractGroupPanel(pqProxy* proxy, QWidget* p = NULL);
   ~pqExtractGroupPanel();
 protected slots:
-  void aLev4HasBeenFired();
   void updateSIL();
 private:
   static std::map<std::string,int> DeduceMapOfFamilyFromSIL(vtkMutableDirectedGraph *graph);
@@ -47,7 +46,6 @@ protected:
   virtual void linkServerManagerProperties();
   class pqUI;
   pqUI* UI;
-  std::vector<pqTreeWidgetItemObject *> _all_lev4;
 };
 
 #endif

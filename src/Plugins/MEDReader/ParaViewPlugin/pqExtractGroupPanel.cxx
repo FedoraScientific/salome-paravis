@@ -271,61 +271,6 @@ void pqExtractGroupPanel::updateSIL()
     }
 }
 
-void pqExtractGroupPanel::aLev4HasBeenFired()
-{
-  pqTreeWidgetItemObject *zeItem(qobject_cast<pqTreeWidgetItemObject *>(sender()));
-  if(!zeItem)
-    return;
-  pqTreeWidgetItemObject *father(dynamic_cast<pqTreeWidgetItemObject *>(zeItem->QTreeWidgetItem::parent()));
-  if(!father)
-    return ;
-  if(zeItem->isChecked())
-    {
-      // This part garantees that all leaves having not the same father than zeItem are desactivated
-      foreach(pqTreeWidgetItemObject* elt,this->_all_lev4)
-        {
-          QTreeWidgetItem *testFath(elt->QTreeWidgetItem::parent());
-          if(testFath!=father)
-            if(elt->isChecked())
-              elt->setChecked(false);
-        }
-      //If all leaves are checked the father is check too
-      bool allItemsAreChked(true);
-      for(int i=0;i<father->childCount() && allItemsAreChked;i++)
-        {
-          pqTreeWidgetItemObject *elt(dynamic_cast<pqTreeWidgetItemObject *>(father->child(i)));
-          if(elt && !elt->isChecked())
-            allItemsAreChked=false;
-        }
-      if(allItemsAreChked && !father->isChecked())
-        father->setChecked(true);
-    }
-  else
-    {
-      // if all are unchecked - check it again
-      bool allItemsAreUnChked(true);
-      foreach(pqTreeWidgetItemObject* elt,this->_all_lev4)
-        {
-          if(elt && elt->isChecked())
-            allItemsAreUnChked=false;
-        }
-      if(allItemsAreUnChked)
-        zeItem->setChecked(true);// OK zeItem was required to be unchecked but as it is the last one. Recheck it !
-      else
-        {// if all items are uncheked inside a same parent - uncheck the parent
-          allItemsAreUnChked=true;
-          for(int i=0;i<father->childCount() && allItemsAreUnChked;i++)
-            {
-              pqTreeWidgetItemObject *elt(dynamic_cast<pqTreeWidgetItemObject *>(father->child(i)));
-              if(elt && elt->isChecked())
-            allItemsAreUnChked=false;
-            }
-          if(allItemsAreUnChked && father->isChecked())
-            father->setChecked(false);
-        } 
-    }
-}
-
 std::map<std::string,int> pqExtractGroupPanel::DeduceMapOfFamilyFromSIL(vtkMutableDirectedGraph *graph)
 {
   std::map<std::string,int> ret;

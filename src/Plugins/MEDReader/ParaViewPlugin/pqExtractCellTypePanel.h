@@ -44,7 +44,6 @@ protected:
   virtual void linkServerManagerProperties();
   class pqUI;
   pqUI* UI;
-  std::vector<pqTreeWidgetItemObject *> _all_lev4;
 };
 
 #endif
