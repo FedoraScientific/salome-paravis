@@ -55,19 +55,19 @@ RenderView1.CameraClippingRange = [4.276554101433921, 4.384547891874171]
 ELNOMesh3 = ELNOMesh(Input=testMEDReader13_med)
 
 DataRepresentation2 = Show()
-DataRepresentation2.ConstantRadius = 1.9999333620071411
+#DataRepresentation2.ConstantRadius = 1.9999333620071411
 DataRepresentation2.EdgeColor = [0.0, 0.0, 0.5000076295109483]
-DataRepresentation2.PointSpriteDefaultsInitialized = 1
+#DataRepresentation2.PointSpriteDefaultsInitialized = 1
 DataRepresentation2.SelectionPointFieldDataArrayName = 'fieldELNO'
 DataRepresentation2.SelectionCellFieldDataArrayName = 'FamilyIdCell'
-DataRepresentation2.SelectInputVectors = ['POINTS', 'fieldELNO_Vector']
+#DataRepresentation2.SelectInputVectors = ['POINTS', 'fieldELNO_Vector']
 DataRepresentation2.ScalarOpacityUnitDistance = 1.7746382108908556
 DataRepresentation2.Texture = []
 DataRepresentation2.ExtractedBlockIndex = 1
-DataRepresentation2.RadiusRange = [6.666666740784422e-05, 1.9999333620071411]
+#DataRepresentation2.RadiusRange = [6.666666740784422e-05, 1.9999333620071411]
 DataRepresentation2.ScaleFactor = 0.19998666953397334
 
-DataRepresentation2.RadiusRange = [6.66667e-05, 1.99993]
+#DataRepresentation2.RadiusRange = [6.66667e-05, 1.99993]
 DataRepresentation2.ColorArrayName = ('POINT_DATA', 'fieldELNO_Vector')
 
 a3_fieldELNO_Vector_PVLookupTable = GetLookupTableForArray( "fieldELNO_Vector", 3, RGBPoints=[0.3464101615137755, 0.23, 0.299, 0.754, 1.1258330249197703, 0.865, 0.865, 0.865, 1.9052558883257653, 0.706, 0.016, 0.15], VectorMode='Magnitude', NanColor=[0.25, 0.0, 0.0], ColorSpace='Diverging', ScalarRangeInitialized=1.0 )

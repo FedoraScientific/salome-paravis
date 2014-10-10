@@ -1095,13 +1095,21 @@ void MEDFileFieldRepresentationTree::loadMainStructureOfFile(const char *fileNam
 {
   if(isMEDOrSauv)
     {
+      if((iPart==-1 && nbOfParts==-1) || (iPart==0 && nbOfParts==1))
+        {
+          _ms=MEDFileMeshes::New(fileName);
+          _fields=MEDFileFields::New(fileName,false);//false is important to not read the values
+        }
+      else
+        {
 #ifdef MEDREADER_USE_MPI
-      _ms=ParaMEDFileMeshes::New(iPart,nbOfParts,fileName);
-      _fields=MEDFileFields::LoadPartOf(fileName,false,_ms);//false is important to not read the values
+          _ms=ParaMEDFileMeshes::New(iPart,nbOfParts,fileName);
+          _fields=MEDFileFields::LoadPartOf(fileName,false,_ms);//false is important to not read the values
 #else
-      _ms=MEDFileMeshes::New(fileName);
-      _fields=MEDFileFields::New(fileName,false);//false is important to not read the values
+          std::ostringstream oss; oss << "MEDFileFieldRepresentationTree::loadMainStructureOfFile : request for iPart/nbOfParts=" << iPart << "/" << nbOfParts << " whereas Plugin not compiled with MPI !";
+          throw INTERP_KERNEL::Exception(oss.str().c_str());
 #endif
+        }
     }
   else
     {

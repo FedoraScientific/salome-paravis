@@ -44,6 +44,9 @@
 #include "vtkCellArray.h"
 #include "vtkDoubleArray.h"
 #include "vtkObjectFactory.h"
+#ifdef MEDREADER_USE_MPI
+#include "vtkMultiProcessController.h"
+#endif
 
 #include "MEDFileFieldRepresentationTree.hxx"
 
@@ -259,8 +262,12 @@ void vtkMEDReader::SetFileName(const char *fname)
         {
           int iPart(-1),nbOfParts(-1);
 #ifdef MEDREADER_USE_MPI
-          MPI_Comm_rank(MPI_COMM_WORLD,&iPart);
-          MPI_Comm_size(MPI_COMM_WORLD,&nbOfParts);
+          vtkMultiProcessController *vmpc(vtkMultiProcessController::GetGlobalController());
+          if(vmpc)
+            {
+              iPart=vmpc->GetLocalProcessId();
+              nbOfParts=vmpc->GetNumberOfProcesses();
+            }
 #endif
           this->Internal->Tree.loadMainStructureOfFile(this->Internal->FileName.c_str(),this->Internal->IsMEDOrSauv,iPart,nbOfParts);
           if(!this->Internal->PK.arePropertiesOnTreeToSetAfter())
@@ -305,7 +312,13 @@ int vtkMEDReader::RequestInformation(vtkInformation *request, vtkInformationVect
     }
   catch(INTERP_KERNEL::Exception& e)
     {
-      std::cerr << "Exception has been thrown in vtkMEDReader::RequestInformation : " << e.what() << std::endl;
+      std::ostringstream oss;
+      oss << "Exception has been thrown in vtkMEDReader::RequestInformation : " << e.what() << std::endl;
+      if(this->HasObserver("ErrorEvent") )
+        this->InvokeEvent("ErrorEvent",const_cast<char *>(oss.str().c_str()));
+      else
+        vtkOutputWindowDisplayErrorText(const_cast<char *>(oss.str().c_str()));
+      vtkObject::BreakOnError();
       return 0;
     }
   return 1;
