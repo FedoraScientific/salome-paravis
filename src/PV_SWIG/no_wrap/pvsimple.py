@@ -31,9 +31,19 @@ def __my_log(msg):
 
 def __getFromGUI():
     """ Identify if we are running inside SALOME's embedded interpreter.
+    @return a value strictly greater than 0 if we are in SALOME's embedded interpreter
+    @return 2 if we are in Salome embedded Python console.
     """
     import salome_iapp
-    return salome_iapp.IN_SALOME_GUI
+    ret = 0
+    if salome_iapp.IN_SALOME_GUI:
+      ret += 1
+    try:
+      if __IN_SALOME_GUI_CONSOLE:  # only defined if we are in SALOME's embedded console (not only GUI)
+        ret += 1
+    except NameError:
+      pass
+    return ret
 
 def ShowParaviewView():
     """
@@ -88,7 +98,9 @@ def SalomeConnectToPVServer():
         raise e
     pass
     
-SalomeConnectToPVServer()
+if __getFromGUI() < 1:
+    # Only if not in GUI (otherwise the createView will do the connection)
+    SalomeConnectToPVServer()
 del SalomeConnectToPVServer
 
 # Forward namespace of simple into current pvsimple:
