@@ -1166,6 +1166,10 @@
         <translation>Deactivate Trace (for next session only)</translation>
     </message>
     <message>
+        <source>PREF_NO_EXT_PVSERVER</source>
+        <translation>Do not use external PVServer (Warning: scripts running outside SALOME's GUI will be unusable!)</translation>
+    </message>
+    <message>
         <source>PREF_SHOW_COLOR_LEGEND</source>
         <translation>Show Color Legend</translation>
     </message>

@@ -67,12 +67,31 @@ def ImportFile(theFileName):
     "Import a file of any format supported by ParaView"
     myParavis.ImportFile(theFileName)
 
-## Initialize PARAVIS interface  
+
+def createFunction(theName):
+    "Create function - constructor of Paravis object"
+    def MyFunction():
+        return myParavis.CreateClass(theName)
+    return MyFunction
+
+
+def createConstructors():
+    "Create constructor functions according to list of extracted classes"
+    g = globals()
+    aClassNames = myParavis.GetClassesList();
+    for aName in aClassNames:
+        g[aName] = createFunction(aName)
+
+## Initialize of a PARAVIS interface  
 myParavis = Initialize(orb, naming_service,lcc,myStudyManager,myStudy, 2)
 
+## Initialize constructor functions
+createConstructors()
+
 ## Initialize Paravis static objects
-#vtkSMObject = vtkSMObject()
-#vtkProcessModule = vtkProcessModule()
-#vtkPVPythonModule = vtkPVPythonModule()
-#vtkSMProxyManager = vtkSMProxyManager()
+vtkSMObject = vtkSMObject()
+vtkProcessModule = vtkProcessModule()
+vtkPVPythonModule = vtkPVPythonModule()
+vtkSMProxyManager = vtkSMProxyManager()
+
 

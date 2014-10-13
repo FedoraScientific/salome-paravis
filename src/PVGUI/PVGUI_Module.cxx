@@ -19,7 +19,6 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 // File   : PVGUI_Module.cxx
-// Author : Julia DOROVSKIKH
 
 #include <Standard_math.hxx>  // E.A. must be included before Python.h to fix compilation on windows
 #ifdef HAVE_FINITE
@@ -28,24 +27,22 @@
 #include <vtkPython.h> // Python first
 #include "PVGUI_Module.h"
 
-#include "SALOMEconfig.h"
-#ifdef WITH_VISU
-#include CORBA_CLIENT_HEADER(VISU_Gen)
+#ifdef PARAVIS_WITH_FULL_CORBA
+# include "PARAVIS_Gen_i.hh"
 #endif
+
+#include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 #include CORBA_SERVER_HEADER(SALOMEDS)
 
-
-#include "PARAVIS_Gen_i.hh"
-
-#include "PV_Tools.h"
-
-#include "PVGUI_ViewModel.h"
-#include "PVGUI_ViewManager.h"
-#include "PVGUI_ViewWindow.h"
+#include "PVViewer_ViewManager.h"
+#include "PVViewer_ViewWindow.h"
+#include "PVViewer_ViewModel.h"
 #include "PVGUI_Tools.h"
 #include "PVGUI_ParaViewSettingsPane.h"
-#include "PVGUI_OutputWindowAdapter.h"
+#include "PVViewer_GUIElements.h"
+#include "PVViewer_EngineWrapper.h"
 
+// SALOME Includes
 #include <SUIT_DataBrowser.h>
 #include <SUIT_Desktop.h>
 #include <SUIT_MessageBox.h>
@@ -54,23 +51,25 @@
 #include <SUIT_OverrideCursor.h>
 #include <SUIT_ExceptionHandler.h>
 
-// SALOME Includes
-#include "SALOME_LifeCycleCORBA.hxx"
-#include "SALOMEDS_SObject.hxx"
+#include <SALOME_LifeCycleCORBA.hxx>
+#include <SALOMEDS_SObject.hxx>
 
-#include "LightApp_SelectionMgr.h"
-#include "LightApp_NameDlg.h"
-
+#include <LightApp_SelectionMgr.h>
+#include <LightApp_NameDlg.h>
 #include <SalomeApp_Application.h>
 #include <SalomeApp_Study.h>
 #include <SALOME_ListIO.hxx>
 #include <SALOMEDS_Tool.hxx>
-#include <PyInterp_Interp.h>
-#include <PyInterp_Dispatcher.h>
-#include <PyConsole_Console.h>
+#include <Utils_ORB_INIT.hxx>
+#include <Utils_SINGLETON.hxx>
 
 #include <QtxActionMenuMgr.h>
 #include <QtxActionToolMgr.h>
+
+#include <PARAVIS_version.h>
+
+// External includes
+#include <sstream>
 
 #include <QAction>
 #include <QApplication>
@@ -91,89 +90,51 @@
 #include <QDockWidget>
 #include <QHelpEngine>
 
+// Paraview includes
+#include <vtkPVConfig.h>  // for symbol PARAVIEW_VERSION
+#include <vtkProcessModule.h>
+#include <vtkPVSession.h>
+#include <vtkPVProgressHandler.h>
+#include <vtkOutputWindow.h>
+#include <vtkEventQtSlotConnect.h>
+#include <vtkNew.h>
+#include <vtkSMProxy.h>
+#include <vtkSmartPointer.h>
+#include <vtkSMSession.h>
+#include <vtkSMTrace.h>
+#include <vtkSMSessionProxyManager.h>
+#include <vtkSMParaViewPipelineController.h>
+
 #include <pqApplicationCore.h>
 #include <pqPVApplicationCore.h>
 #include <pqActiveView.h>
 #include <pqObjectBuilder.h>
 #include <pqOptions.h>
-#include <pqRenderView.h>
+#include <pqSettings.h>
 #include <pqServer.h>
 #include <pqUndoStack.h>
-#include <pqVCRController.h>
 #include <pqTabbedMultiViewWidget.h>
-#include <pqPipelineSource.h>
 #include <pqActiveObjects.h>
-#include <vtkProcessModule.h>
-#include <vtkSMSession.h>
-#include <vtkPVSession.h>
-#include <vtkPVProgressHandler.h>
-#include <pqParaViewBehaviors.h>
 #include <pqHelpReaction.h>
-#include <vtkOutputWindow.h>
 #include <pqPluginManager.h>
-#include "pqInterfaceTracker.h"
-#include <pqSettings.h>
 #include <pqPythonDialog.h>
 #include <pqPythonManager.h>
-#include <pqPythonShell.h>
 #include <pqLoadDataReaction.h>
-#include <vtkEventQtSlotConnect.h>
 #include <pqPythonScriptEditor.h>
-#include <pqCollaborationBehavior.h>
 #include <pqDataRepresentation.h>
-#include <pqPipelineRepresentation.h>
-//#include <pqLookupTableManager.h>
 #include <pqDisplayColorWidget.h>
 #include <pqColorToolbar.h>
 #include <pqScalarBarVisibilityReaction.h>
-#include <pqStandardPropertyWidgetInterface.h>
-#include <pqStandardViewFrameActionsImplementation.h>
-#include <pqViewStreamingBehavior.h>
+#include <pqServerResource.h>
+#include <pqServerConnectReaction.h>
 
-#include <PARAVIS_version.h>
+// TO REMOVE:
+#include <PyInterp_Interp.h>
 
-#include <vtkPVConfig.h>
-
-
-#include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
-
-#include <pqAlwaysConnectedBehavior.h>
-#include <pqApplicationCore.h>
-#include <pqAutoLoadPluginXMLBehavior.h>
-#include <pqCommandLineOptionsBehavior.h>
-#include <pqCrashRecoveryBehavior.h>
-#include <pqDataTimeStepBehavior.h>
-#include <pqDefaultViewBehavior.h>
-#include <pqObjectPickingBehavior.h>
-#include <pqPersistentMainWindowStateBehavior.h>
-#include <pqPipelineContextMenuBehavior.h>
-#include <pqPluginActionGroupBehavior.h>
-#include <pqPluginDockWidgetsBehavior.h>
-#include <pqPluginManager.h>
-#include <pqSpreadSheetVisibilityBehavior.h>
-#include <pqUndoRedoBehavior.h>
-#include <pqServerManagerObserver.h>
-#include <pqVerifyRequiredPluginBehavior.h>
-#include <pqFixPathsInStateFilesBehavior.h>
-#include <pqPluginSettingsBehavior.h>
-#include <pqPropertiesPanel.h>
-
-#include <pqApplyBehavior.h>
-
-#include <vtkClientServerInterpreterInitializer.h>
-
-// Trace related
-#include <vtkNew.h>
-#include <vtkSMTrace.h>
-#include <vtkSMSessionProxyManager.h>
-#include <vtkSMParaViewPipelineController.h>
 
 //----------------------------------------------------------------------------
-pqPVApplicationCore* PVGUI_Module::MyCoreApp = 0;
-//PVGUI_OutputWindowAdapter* PVGUI_Module::pqImplementation::OutputWindowAdapter = 0;
-//QPointer<pqHelpWindow> PVGUI_Module::pqImplementation::helpWindow = 0;
-
 PVGUI_Module* ParavisModule = 0;
+PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::MyEngine;
 
 /*!
   \mainpage
@@ -242,46 +203,45 @@ PVGUI_Module* ParavisModule = 0;
          SALOME module wrapping ParaView GUI.
 */
 
-  _PTR(SComponent)
-  ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
-  {
-    _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
-    if (!aSComponent) {
-      _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
-      aStudyBuilder->NewCommand();
-      int aLocked = theStudyDocument->GetProperties()->IsLocked();
-      if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
-      aSComponent = aStudyBuilder->NewComponent("PARAVIS");
-      _PTR(GenericAttribute) anAttr =
-        aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
-      _PTR(AttributeName) aName (anAttr);
+_PTR(SComponent)
+ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
+{
+  _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
+  if (!aSComponent) {
+    _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
+    aStudyBuilder->NewCommand();
+    int aLocked = theStudyDocument->GetProperties()->IsLocked();
+    if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
+    aSComponent = aStudyBuilder->NewComponent("PARAVIS");
+    _PTR(GenericAttribute) anAttr =
+      aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
+    _PTR(AttributeName) aName (anAttr);
 
-      CORBA::ORB_var anORB = PARAVIS::PARAVIS_Gen_i::GetORB();
-      SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
-      CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
-      SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
-        SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
-      SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
-      if (!Comp->_is_nil()) {
-        aName->SetValue(Comp->componentusername());
-      }
+    ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
+    CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
 
-      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
-      _PTR(AttributePixMap) aPixmap (anAttr);
-      aPixmap->SetPixMap( "pqAppIcon16.png" );
-
-      // Create Attribute parameters for future using
-      anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
-
-
-      PARAVIS::PARAVIS_Gen_var aPARAVIS = PARAVIS::PARAVIS_Gen_i::GetParavisGenImpl()->_this();
-
-      aStudyBuilder->DefineComponentInstance(aSComponent, aPARAVIS->GetIOR());
-      if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
-      aStudyBuilder->CommitCommand();
+    SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
+    CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
+    SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
+      SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
+    SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
+    if (!Comp->_is_nil()) {
+      aName->SetValue(Comp->componentusername());
     }
-    return aSComponent;
+
+    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
+    _PTR(AttributePixMap) aPixmap (anAttr);
+    aPixmap->SetPixMap( "pqAppIcon16.png" );
+
+    // Create Attribute parameters for future using
+    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
+
+    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetCPPEngine()->GetIOR());
+    if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
+    aStudyBuilder->CommitCommand();
   }
+  return aSComponent;
+}
 
 /*!
   Clean up function; used to stop ParaView progress events when
@@ -300,7 +260,6 @@ void paravisCleanUp()
 */
 PVGUI_Module::PVGUI_Module()
   : SalomeApp_Module( "PARAVIS" ),
-    //    Implementation( 0 ),
     mySelectionControlsTb( -1 ),
     mySourcesMenuId( -1 ),
     myFiltersMenuId( -1 ),
@@ -309,7 +268,10 @@ PVGUI_Module::PVGUI_Module()
     myRecentMenuId(-1),
     myOldMsgHandler(0),
     myTraceWindow(0),
-    myStateCounter(0)
+    myStateCounter(0),
+    myInitTimer(0),
+    myPushTraceTimer(0),
+    myGuiElements(0)
 {
 #ifdef HAS_PV_DOC
   Q_INIT_RESOURCE( PVGUI );
@@ -336,6 +298,27 @@ PVGUI_Module::PVGUI_Module()
 */
 PVGUI_Module::~PVGUI_Module()
 {
+  if (myPushTraceTimer)
+    delete myPushTraceTimer;
+  if (myInitTimer)
+    delete myInitTimer;
+}
+
+PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetCPPEngine()
+{
+  // initialize PARAVIS module engine (load, if necessary)
+  if ( CORBA::is_nil( MyEngine ) ) {
+      Engines::EngineComponent_var comp =
+          SalomeApp_Application::lcc()->FindOrLoad_Component( "FactoryServer", "PARAVIS" );
+      MyEngine = PARAVIS_ORB::PARAVIS_Gen::_narrow( comp );
+  }
+  return MyEngine;
+}
+
+
+pqPVApplicationCore * PVGUI_Module::GetPVApplication()
+{
+  return PVViewer_ViewManager::GetPVApplication();
 }
 
 /*!
@@ -344,9 +327,6 @@ PVGUI_Module::~PVGUI_Module()
 */
 void PVGUI_Module::initialize( CAM_Application* app )
 {
-  // [ABN]: patched in ParaView's sources.
-  // PVGUI_MatplotlibMathTextUtilities::Disable();
-
   SalomeApp_Module::initialize( app );
 
   // Create ParaViS actions
@@ -362,89 +342,46 @@ void PVGUI_Module::initialize( CAM_Application* app )
     aa = aa;
   }
   */
-  
-  // Initialize ParaView client
-  pvInit();
 
-  // Create GUI elements (menus, toolbars, dock widgets)
-  //if ( !Implementation ){
-    SalomeApp_Application* anApp = getApp();
-    SUIT_Desktop* aDesktop = anApp->desktop();
+  SalomeApp_Application* anApp = getApp();
+  SUIT_Desktop* aDesktop = anApp->desktop();
 
-    // connect(aDesktop, SIGNAL()
+  // Initialize ParaView client and associated behaviors
+  // and connect to externally launched pvserver
+  PVViewer_ViewManager::ParaviewInitApp(aDesktop);
+  myGuiElements = PVViewer_GUIElements::GetInstance(aDesktop);
 
-    // Remember current state of desktop toolbars
-    QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
+  // Remember current state of desktop toolbars
+  QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
 
-    // Simulate ParaView client main window
-    //Implementation = new pqImplementation( aDesktop );
+  setupDockWidgets();
 
-    setupDockWidgets();
-    
-    pvCreateActions();
-    pvCreateToolBars();
-    pvCreateMenus();
+  // Behaviors and connection must be instanciated *after* widgets are in place
+  // In PARAVIS module we do not wait for PVViewer_ViewWindow to be instanciated to have this:
+  PVViewer_ViewManager::ParaviewInitBehaviors(true, aDesktop);
+  PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
 
-    QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
-    QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();
+  pvCreateActions();
+  pvCreateToolBars();
+  pvCreateMenus();
 
-    // new pqParaViewBehaviors(anApp->desktop(), this);
-    // Has to be replaced in order to exclude using of pqQtMessageHandlerBehaviour
-    //  Start pqParaViewBehaviors
-    // Register ParaView interfaces.
-    //pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
-    pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
+  QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
+  QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();
 
-    // Register standard types of property widgets.
-    pgm->addInterface(new pqStandardPropertyWidgetInterface(pgm));
-    // Register standard types of view-frame actions.
-    pgm->addInterface(new pqStandardViewFrameActionsImplementation(pgm));
+  // Setup quick-launch shortcuts.
+  QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);
+  QObject::connect(ctrlSpace, SIGNAL(activated()),
+    pqApplicationCore::instance(), SLOT(quickLaunch()));
 
-    // Load plugins distributed with application.
-    pqApplicationCore::instance()->loadDistributedPlugins();
-
-    // Define application behaviors.
-    //new pqQtMessageHandlerBehavior(this);
-    new pqDataTimeStepBehavior(this);
-    new pqSpreadSheetVisibilityBehavior(this);
-    new pqPipelineContextMenuBehavior(this);
-    new pqObjectPickingBehavior(this);
-    new pqDefaultViewBehavior(this);
-    new pqUndoRedoBehavior(this);
-    new pqAlwaysConnectedBehavior(this);
-    new pqCrashRecoveryBehavior(this);
-    new pqAutoLoadPluginXMLBehavior(this);
-    new pqPluginDockWidgetsBehavior(aDesktop);
-    new pqVerifyRequiredPluginBehavior(this);
-    new pqPluginActionGroupBehavior(aDesktop);
-    new pqFixPathsInStateFilesBehavior(this);
-    new pqCommandLineOptionsBehavior(this);
-    new pqPersistentMainWindowStateBehavior(aDesktop);
-    new pqCollaborationBehavior(this);
-    new pqViewStreamingBehavior(this);
-    new pqPluginSettingsBehavior(this);
-
-    pqApplyBehavior* applyBehavior = new pqApplyBehavior(this);
-    foreach (pqPropertiesPanel* ppanel, aDesktop->findChildren<pqPropertiesPanel*>())
-      {
-      applyBehavior->registerPanel(ppanel);
-      }
-
-
-    // Setup quick-launch shortcuts.
-    QShortcut *ctrlSpace = new QShortcut(Qt::CTRL + Qt::Key_Space, aDesktop);
-    QObject::connect(ctrlSpace, SIGNAL(activated()),
-      pqApplicationCore::instance(), SLOT(quickLaunch()));
-
-    // Find Plugin Dock Widgets
-    QList<QDockWidget*> currentDocks = aDesktop->findChildren<QDockWidget*>();
-    QList<QDockWidget*>::iterator i;
-    for (i = currentDocks.begin(); i != currentDocks.end(); ++i) {
-      if(!activeDocks.contains(*i)) {
-        myDockWidgets[*i] = false; // hidden by default
-        (*i)->hide();
-      }
+  // Find Plugin Dock Widgets
+  QList<QDockWidget*> currentDocks = aDesktop->findChildren<QDockWidget*>();
+  QList<QDockWidget*>::iterator i;
+  for (i = currentDocks.begin(); i != currentDocks.end(); ++i) {
+    if(!activeDocks.contains(*i)) {
+      myDockWidgets[*i] = false; // hidden by default
+      (*i)->hide();
     }
+  }
 
     // Find Plugin Menus
     // [ABN] TODO: fix this - triggers a SEGFAULT at deactivation() time.
@@ -458,48 +395,41 @@ void PVGUI_Module::initialize( CAM_Application* app )
 //      }
 //    }
 
-    SUIT_ResourceMgr* resMgr = SUIT_Session::session()->resourceMgr();
-    QString aPath = resMgr->stringValue("resources", "PARAVIS", QString());
-    if (!aPath.isNull()) {
-      MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewFilters.xml");
-      MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewReaders.xml");
-      MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewSources.xml");
-      MyCoreApp->loadConfiguration(aPath + QDir::separator() + "ParaViewWriters.xml");
-    }
-     
-    // Force creation of engine
-    PARAVIS::GetParavisGen(this);
-    updateObjBrowser();
+  PVViewer_ViewManager::ParaviewLoadConfigurations();
+  updateObjBrowser();
 
-    // Find created toolbars
-    QCoreApplication::processEvents();
+  // Find created toolbars
+  QCoreApplication::processEvents();
 
-    QList<QToolBar*> allToolbars = aDesktop->findChildren<QToolBar*>();
-    foreach(QToolBar* aBar, allToolbars) {
-      if (!foreignToolbars.contains(aBar)) {
-        myToolbars[aBar] = true;
-        myToolbarBreaks[aBar] = false;
-        aBar->setVisible(false);
-        aBar->toggleViewAction()->setVisible(false);
-      }
+  QList<QToolBar*> allToolbars = aDesktop->findChildren<QToolBar*>();
+  foreach(QToolBar* aBar, allToolbars) {
+    if (!foreignToolbars.contains(aBar)) {
+      myToolbars[aBar] = true;
+      myToolbarBreaks[aBar] = false;
+      aBar->setVisible(false);
+      aBar->toggleViewAction()->setVisible(false);
     }
-    //}
+  }
 
   updateMacros();
  
-  // we need to start trace after connection is done
-  connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(finishedAddingServer(pqServer*)), 
-          this, SLOT(onFinishedAddingServer(pqServer*)));
-
-  connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(dataRepresentationCreated(pqDataRepresentation*)), 
-          this, SLOT(onDataRepresentationCreated(pqDataRepresentation*)));
-
-
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
   bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
-  // start a timer to schedule the trace start asap:
   if(!isStop)
-    startTimer( 0 );
+    {
+      // Start a timer to schedule asap:
+      //  - the trace start
+      myInitTimer = new QTimer(aDesktop);
+      QObject::connect(myInitTimer, SIGNAL(timeout()), this, SLOT(onInitTimer()) );
+      myInitTimer->setSingleShot(true);
+      myInitTimer->start(0);
+
+      // Another timer to regularly push the trace onto the engine:
+      myPushTraceTimer = new QTimer(aDesktop);
+      QObject::connect(myPushTraceTimer, SIGNAL(timeout()), this, SLOT(onPushTraceTimer()) );
+      myPushTraceTimer->setSingleShot(false);
+      myPushTraceTimer->start(500);
+    }
 
   this->VTKConnect = vtkEventQtSlotConnect::New();
   
@@ -516,10 +446,6 @@ void PVGUI_Module::initialize( CAM_Application* app )
       }
     }
   }
-  
-  connect(&pqActiveObjects::instance(),
-          SIGNAL(representationChanged(pqRepresentation*)),
-          this, SLOT(onRepresentationChanged(pqRepresentation*)));
 }
 
 void PVGUI_Module::onStartProgress()
@@ -532,35 +458,6 @@ void PVGUI_Module::onEndProgress()
   QApplication::restoreOverrideCursor();
 }
 
-void PVGUI_Module::onFinishedAddingServer(pqServer* /*server*/)
-{
-  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-  bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
-  if(!isStop) 
-    startTimer( 500 );
-}
-
-void PVGUI_Module::onDataRepresentationCreated(pqDataRepresentation* data) {
-//  if(!data)
-//    return;
-//
-//  if(!data->getLookupTable())
-//    return;
-//
-//  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-//  if(!aResourceMgr)
-//    return;
-//
-//  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
-//  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
-//
-//  if(lut_mgr) {
-//    lut_mgr->setScalarBarVisibility(data,visible);
-//  }
-//
-//  connect(data, SIGNAL(dataUpdated()), this, SLOT(onDataRepresentationUpdated()));
-}
-
 void PVGUI_Module::onDataRepresentationUpdated() {
   SalomeApp_Study* activeStudy = dynamic_cast<SalomeApp_Study*>(application()->activeStudy());
   if(!activeStudy) return;
@@ -568,67 +465,12 @@ void PVGUI_Module::onDataRepresentationUpdated() {
   activeStudy->Modified();
 }
 
-void PVGUI_Module::onVariableChanged(pqVariableType t, const QString) {
-  
-  pqDisplayColorWidget* colorWidget = qobject_cast<pqDisplayColorWidget*>(sender());
-  if( !colorWidget )
-    return;
-
-  if( t == VARIABLE_TYPE_NONE )
-    return;
-
-  SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-  
-  if(!aResourceMgr)
-    return;
-
-  bool visible = aResourceMgr->booleanValue( "PARAVIS", "show_color_legend", false );
-  
-  if(!visible)
-    return;
-  
-  /*//VTN: getRepresentation is protected
-  pqDataRepresentation* data  = colorWidget->getRepresentation();
-
-  if( !data->getLookupTable() )
-    return;
-
-  pqLookupTableManager* lut_mgr = pqApplicationCore::instance()->getLookupTableManager();
-
-  if(lut_mgr) {
-    lut_mgr->setScalarBarVisibility(data,visible);
-  }
-  */
-  pqColorToolbar* colorTooBar = qobject_cast<pqColorToolbar*>(colorWidget->parent());
-  if( !colorTooBar )
-    return;
-
-  pqScalarBarVisibilityReaction* scalarBarVisibility = colorTooBar->findChild<pqScalarBarVisibilityReaction *>();
-  if(scalarBarVisibility) {
-    scalarBarVisibility->setScalarBarVisibility(visible);
-  }
-}
-
 /*!
-  \brief Launches a tracing of current server
+  \brief Initialisation timer event - trace start up
 */
-void PVGUI_Module::timerEvent(QTimerEvent* te )
+void PVGUI_Module::onInitTimer()
 {
-//#ifndef WNT
-//  if ( PyInterp_Dispatcher::Get()->IsBusy() )
-//    {
-//      // Reschedule for later
-//      MESSAGE("interpreter busy -> rescheduling trace start.");
-//      startTimer(500);
-//    }
-//  else
-//    {
-      MESSAGE("about to start trace....");
-      startTrace();
-      MESSAGE("trace STARTED....");
-//     }
-  killTimer( te->timerId() );
-//#endif
+  startTrace();
 }
   
 /*!
@@ -678,90 +520,24 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 }
 
 /*!
-  \brief Static method, performs initialization of ParaView session.
-  \return \c true if ParaView has been initialized successfully, otherwise false
-*/
-bool PVGUI_Module::pvInit()
-{
-  //  if ( !pqImplementation::Core ){
-  if ( ! MyCoreApp) {
-    // Obtain command-line arguments
-    int argc = 0;
-    char** argv = 0;
-    QString aOptions = getenv("PARAVIS_OPTIONS");
-    QStringList aOptList = aOptions.split(":", QString::SkipEmptyParts);
-    argv = new char*[aOptList.size() + 1];
-    QStringList args = QApplication::arguments();
-    argv[0] = (args.size() > 0)? strdup(args[0].toLatin1().constData()) : strdup("paravis");
-    argc++;
-
-    foreach (QString aStr, aOptList) {
-      argv[argc] = strdup( aStr.toLatin1().constData() );
-      argc++;
-    }
-    MyCoreApp = new pqPVApplicationCore (argc, argv);
-    if (MyCoreApp->getOptions()->GetHelpSelected() ||
-        MyCoreApp->getOptions()->GetUnknownArgument() ||
-        MyCoreApp->getOptions()->GetErrorMessage() ||
-        MyCoreApp->getOptions()->GetTellVersion()) {
-      return false;
-      }
-
-    /* VTN: Looks like trash. For porting see branded_paraview_initializer.cxx.in
-    // Not sure why this is needed. Andy added this ages ago with comment saying
-    // needed for Mac apps. Need to check that it's indeed still required.
-    QDir dir(QApplication::applicationDirPath());
-    dir.cdUp();
-    dir.cd("Plugins");
-    QApplication::addLibraryPath(dir.absolutePath());
-    // Load required application plugins.
-    QString plugin_string = "";
-    QStringList plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
-    pqBrandPluginsLoader loader;
-    if (loader.loadPlugins(plugin_list) == false) {
-      printf("Failed to load required plugins for this application\n");
-      return false;
-    }
-
-    // Load optional plugins.
-    plugin_string = "";
-    plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
-    loader.loadPlugins(plugin_list, true); //quietly skip not-found plugins.
-    */
-    // End of Initializer code
-
-    MyCoreApp->settings();
-
-    vtkOutputWindow::SetInstance(PVGUI_OutputWindowAdapter::New());
-    
-    new pqTabbedMultiViewWidget(); // it registers as "MULTIVIEW_WIDGET on creation
-    
-    for (int i = 0; i < argc; i++)
-      free(argv[i]);
-    delete[] argv;
-  }
-  
-  return true;
-}
- 
-/*!
   \brief Shows (toShow = true) or hides ParaView view window
 */
 void PVGUI_Module::showView( bool toShow )
 {
   SalomeApp_Application* anApp = getApp();
-  PVGUI_ViewManager* viewMgr =
-    dynamic_cast<PVGUI_ViewManager*>( anApp->getViewManager( PVGUI_Viewer::Type(), false ) );
+  PVViewer_ViewManager* viewMgr =
+    dynamic_cast<PVViewer_ViewManager*>( anApp->getViewManager( PVViewer_Viewer::Type(), false ) );
   if ( !viewMgr ) {
-    viewMgr = new PVGUI_ViewManager( anApp->activeStudy(), anApp->desktop() );
+    viewMgr = new PVViewer_ViewManager( anApp->activeStudy(), anApp->desktop() );
     anApp->addViewManager( viewMgr );
     connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
              anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
   }
 
-  PVGUI_ViewWindow* pvWnd = dynamic_cast<PVGUI_ViewWindow*>( viewMgr->getActiveView() );
+  PVViewer_ViewWindow* pvWnd = dynamic_cast<PVViewer_ViewWindow*>( viewMgr->getActiveView() );
   if ( !pvWnd ) {
-    pvWnd = dynamic_cast<PVGUI_ViewWindow*>( viewMgr->createViewWindow() );
+    pvWnd = dynamic_cast<PVViewer_ViewWindow*>( viewMgr->createViewWindow() );
+    // this also connects to the pvserver and instantiates relevant PV behaviors
   }
 
   pvWnd->setShown( toShow );
@@ -803,15 +579,6 @@ void PVGUI_Module::endWaitCursor()
   QApplication::restoreOverrideCursor();
 }
 
-/*!
-  \brief Returns the ParaView multi-view manager.
-*/
-pqTabbedMultiViewWidget* PVGUI_Module::getMultiViewManager() const
-{
-  return qobject_cast<pqTabbedMultiViewWidget*>(pqApplicationCore::instance()->manager("MULTIVIEW_WIDGET"));
-}
-
-
 static void ParavisMessageOutput(QtMsgType type, const char *msg)
 {
   switch(type)
@@ -830,8 +597,6 @@ static void ParavisMessageOutput(QtMsgType type, const char *msg)
     break;
     }
 }
-
-
 
 /*!
   \brief Activate module.
@@ -853,8 +618,17 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   showView( true );
   if ( mySourcesMenuId != -1 ) menuMgr()->show(mySourcesMenuId);
   if ( myFiltersMenuId != -1 ) menuMgr()->show(myFiltersMenuId);
-  if ( myFiltersMenuId != -1 ) menuMgr()->show(myMacrosMenuId);
-  if ( myFiltersMenuId != -1 ) menuMgr()->show(myToolbarsMenuId);
+  if ( myMacrosMenuId != -1 ) menuMgr()->show(myMacrosMenuId);
+  if ( myToolbarsMenuId != -1 ) menuMgr()->show(myToolbarsMenuId);
+
+  // Update the various menus with the content pre-loaded in myGuiElements
+  QMenu* srcMenu = menuMgr()->findMenu( mySourcesMenuId );
+  myGuiElements->updateSourcesMenu(srcMenu);
+  QMenu* filtMenu = menuMgr()->findMenu( myFiltersMenuId );
+  myGuiElements->updateFiltersMenu(filtMenu);
+  QMenu* macMenu = menuMgr()->findMenu( myMacrosMenuId );
+  myGuiElements->updateMacrosMenu(macMenu);
+
   setMenuShown( true );
   setToolShown( true );
 
@@ -893,6 +667,8 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 */
 bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 {
+  MESSAGE("PARAVIS deactivation ...")
+
   QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
   if(aMenu) {
     QList<QAction*> anActns = aMenu->actions();
@@ -929,7 +705,6 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
   setMenuShown( false );
   setToolShown( false );
 
-
   saveDockWidgetsState();
 
   SUIT_ExceptionHandler::removeCleanUpRoutine( paravisCleanUp );
@@ -953,13 +728,26 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 */
 void PVGUI_Module::onApplicationClosed( SUIT_Application* theApp )
 {
-  pqApplicationCore::instance()->settings()->sync();
+  PVViewer_ViewManager::ParaviewCleanup();
+
   int aAppsNb = SUIT_Session::session()->applications().size();
   if (aAppsNb == 1) {
     deleteTemporaryFiles();
-    MyCoreApp->deleteLater();
   }
   CAM_Module::onApplicationClosed(theApp);
+}
+
+
+/*!
+  \brief Deletes temporary files created during import operation from VISU
+*/
+void PVGUI_Module::deleteTemporaryFiles()
+{
+  foreach(QString aFile, myTemporaryFiles) {
+    if (QFile::exists(aFile)) {
+      QFile::remove(aFile);
+    }
+  }
 }
 
 
@@ -988,7 +776,7 @@ void PVGUI_Module::onModelOpened()
   }
   
   _PTR(SComponent) paravisComp = 
-    studyDS->FindComponent(PARAVIS::GetParavisGen(this)->ComponentDataType());
+    studyDS->FindComponent(GetCPPEngine()->ComponentDataType());
   if(!paravisComp) {
     return;
   }
@@ -1012,10 +800,9 @@ void PVGUI_Module::onModelOpened()
 */
 QString PVGUI_Module::engineIOR() const
 {
-  CORBA::String_var anIOR = PARAVIS::GetParavisGen(this)->GetIOR();
+  CORBA::String_var anIOR = GetCPPEngine()->GetIOR();
   return QString(anIOR.in());
 }
-
 
 /*!
   \brief Open file of format supported by ParaView
@@ -1098,7 +885,6 @@ void PVGUI_Module::executeScript(const char *script)
   \brief Returns trace string
 */
 static const QString MYReplaceStr("paraview.simple");
-static const QString MYReplaceImportStr("except: from pvsimple import *");
 QString PVGUI_Module::getTraceString()
 {
   vtkSMTrace *tracer = vtkSMTrace::GetActiveTracer();
@@ -1106,6 +892,12 @@ QString PVGUI_Module::getTraceString()
     return QString("");
 
   QString traceString(tracer->GetCurrentTrace());
+  std::stringstream nl; nl << std::endl; // surely there is some Qt trick to do that in a portable way??
+  QString end_line(nl.str().c_str());
+  // 'import pvsimple' is necessary to fix the first call to DisableFirstRenderCamera in the paraview trace
+  // 'ShowParaviewView()' ensure there is an opened viewing window (otherwise SEGFAULT!)
+  traceString = "import pvsimple" + end_line +
+                "pvsimple.ShowParaviewView()" + end_line + traceString;
 
   // Replace import "paraview.simple" by "pvsimple"
   if ((!traceString.isNull()) && traceString.length() != 0) {
@@ -1114,11 +906,6 @@ QString PVGUI_Module::getTraceString()
       traceString = traceString.replace(aPos, MYReplaceStr.length(), "pvsimple");
       aPos = traceString.indexOf(MYReplaceStr, aPos);
     }
-    int aImportPos = traceString.indexOf(MYReplaceImportStr);
-    if(aImportPos != -1)
-      {
-      traceString = traceString.replace(aImportPos, MYReplaceImportStr.length(), "except:\n  import pvsimple\n  from pvsimple import *");
-      }
   }
 
   return traceString;
@@ -1169,78 +956,6 @@ void PVGUI_Module::loadParaviewState(const char* theFileName)
 }
 
 /*!
-  \brief Imports MED data from VISU module by data entry
-*/
-void PVGUI_Module::onImportFromVisu(QString theEntry)
-{
-#ifdef WITH_VISU
-  SUIT_OverrideCursor aWaitCursor;
-
-  // get active study
-  SalomeApp_Study* activeStudy = dynamic_cast<SalomeApp_Study*>(application()->activeStudy());
-  if(!activeStudy) return;
-
-  // get SALOMEDS client study
-  _PTR(Study) aStudy = activeStudy->studyDS();
-  if(!aStudy) return;
-
-  // find VISU component in a study
-  _PTR(SComponent) aVisuComp = aStudy->FindComponent( "VISU" );
-  if(!aVisuComp) return;
-
-  // get SObject client by entry
-  _PTR(SObject) aSObj = aStudy->FindObjectID(qPrintable(theEntry));
-  if (!aSObj) return;
-
-  // get CORBA SObject
-  SALOMEDS_SObject* aSObject = _CAST(SObject, aSObj);
-  if ( !aSObject ) return;
-
-  // load VISU engine
-  SALOME_NamingService* aNamingService = SalomeApp_Application::namingService();
-  SALOME_LifeCycleCORBA aLCC(aNamingService);
-
-  Engines::EngineComponent_var aComponent = aLCC.FindOrLoad_Component("FactoryServer","VISU");
-  VISU::VISU_Gen_var aVISU = VISU::VISU_Gen::_narrow(aComponent);
-  if(CORBA::is_nil(aVISU)) return;
-
-  _PTR(StudyBuilder) aStudyBuilder = aStudy->NewBuilder();
-  aStudyBuilder->LoadWith( aVisuComp, SalomeApp_Application::orb()->object_to_string(aVISU) );
-
-  // get VISU result object
-  CORBA::Object_var aResultObject = aSObject->GetObject();
-  if (CORBA::is_nil(aResultObject)) return;
-  VISU::Result_var aResult = VISU::Result::_narrow( aResultObject );
-  if (CORBA::is_nil(aResult)) return;
-
-  // export VISU result to the MED file
-  std::string aTmpDir = SALOMEDS_Tool::GetTmpDir();
-  std::string aFileName = aSObject->GetName();
-  std::string aFilePath = aTmpDir + aFileName;
-
-  if (aResult->ExportMED(aFilePath.c_str())) {
-    openFile(aFilePath.c_str());
-    myTemporaryFiles.append(QString(aFilePath.c_str()));
-  }
-#else
-  MESSAGE("Visu module is not found.");
-#endif
-}
-
-/*!
-  \brief Deletes temporary files created during import operation from VISU
-*/
-void PVGUI_Module::deleteTemporaryFiles()
-{
-  foreach(QString aFile, myTemporaryFiles) {
-    if (QFile::exists(aFile)) {
-      QFile::remove(aFile);
-    }
-  }
-}
-
-
-/*!
   \brief Returns current active ParaView server
 */
 pqServer* PVGUI_Module::getActiveServer()
@@ -1263,6 +978,8 @@ void PVGUI_Module::createPreferences()
   int aParaVisSettingsTab = addPreference( tr( "TIT_PVISSETTINGS" ) );
   addPreference( tr( "PREF_STOP_TRACE" ), aParaVisSettingsTab, LightApp_Preferences::Bool, "PARAVIS", "stop_trace");
 
+  addPreference( tr( "PREF_NO_EXT_PVSERVER" ), aParaVisSettingsTab, LightApp_Preferences::Bool, "PARAVIS", "no_ext_pv_server");
+
   int aSaveType = addPreference(tr( "PREF_SAVE_TYPE_LBL" ), aParaVisSettingsTab,
                                 LightApp_Preferences::Selector,
                                 "PARAVIS", "savestate_type");
@@ -1274,11 +991,6 @@ void PVGUI_Module::createPreferences()
   aStrings<<tr("PREF_SAVE_TYPE_2");
   setPreferenceProperty(aSaveType, "strings", aStrings);
   setPreferenceProperty(aSaveType, "indexes", aIndices);
-
-  //rnv: imp 21712: [CEA 581] Preference to display legend by default 
-  // [ABN]: now fixed in ParaView.
-//  int aDispColoreLegend = addPreference( tr( "PREF_SHOW_COLOR_LEGEND" ), aParaVisSettingsTab,
-//                                        LightApp_Preferences::Bool, "PARAVIS", "show_color_legend");
 }
 
 /*!
@@ -1315,7 +1027,7 @@ void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QS
       return;
     }
 
-    QString paravisDataType(PARAVIS::GetParavisGen(this)->ComponentDataType());
+    QString paravisDataType(GetCPPEngine()->ComponentDataType());
     if(activeStudy && activeStudy->isComponent(entry) && 
        activeStudy->componentDataType(entry) == paravisDataType) {
       // ParaViS module object
@@ -1376,14 +1088,6 @@ void PVGUI_Module::onRestartTrace()
 }
 
 /*!
-  \brief Show ParaView view.
-*/
-void PVGUI_Module::onNewParaViewWindow()
-{
-  showView(true);
-}
-
-/*!
   \brief Save state under the module root object.
 */
 void PVGUI_Module::onSaveMultiState()
@@ -1397,7 +1101,7 @@ void PVGUI_Module::onSaveMultiState()
   }
   
   _PTR(SComponent) paravisComp = 
-    studyDS->FindComponent(PARAVIS::GetParavisGen(this)->ComponentDataType());
+    studyDS->FindComponent(GetCPPEngine()->ComponentDataType());
   if(!paravisComp) {
     return;
   }
@@ -1432,8 +1136,7 @@ void PVGUI_Module::onSaveMultiState()
  
   // File name for state saving
   QString tmpDir = QString::fromStdString(SALOMEDS_Tool::GetTmpDir());
-  QString fileName = QString("%1_paravisstate:%2").arg(tmpDir, 
-						       stateEntry);
+  QString fileName = QString("%1_paravisstate:%2").arg(tmpDir, stateEntry);
 
   anAttr = studyBuilder->FindOrCreateAttribute(newSObj, "AttributeString");
   _PTR(AttributeString) stringAttr(anAttr);
@@ -1505,10 +1208,10 @@ void PVGUI_Module::onRename()
     if (stateSObj->FindAttribute(anAttr, "AttributeName")) {
       _PTR(AttributeName) nameAttr (anAttr);
       QString newName = 
-	LightApp_NameDlg::getName(getApp()->desktop(), nameAttr->Value().c_str());
+          LightApp_NameDlg::getName(getApp()->desktop(), nameAttr->Value().c_str());
       if (!newName.isEmpty()) {
-	nameAttr->SetValue(newName.toLatin1().constData());
-	aListIO.First()->setName(newName.toLatin1().constData());
+        nameAttr->SetValue(newName.toLatin1().constData());
+        aListIO.First()->setName(newName.toLatin1().constData());
       }
     }
     
@@ -1560,6 +1263,12 @@ void PVGUI_Module::onDelete()
     // Update object browser
     updateObjBrowser();
   }
+}
+
+void PVGUI_Module::onPushTraceTimer()
+{
+//  MESSAGE("onPushTraceTimer(): Pushing trace to engine...");
+  GetCPPEngine()->PutPythonTraceStringToEngine(getTraceString().toStdString().c_str());
 }
 
 /*!
@@ -1618,7 +1327,7 @@ void PVGUI_Module::loadSelectedState(bool toClear)
       QString stringValue(aStringAttr->Value().c_str());
 
       if (QFile::exists(stringValue)) {
-	fileName = stringValue;
+          fileName = stringValue;
       }
     }
   }
@@ -1637,24 +1346,6 @@ void PVGUI_Module::loadSelectedState(bool toClear)
   }
 }
 
-void PVGUI_Module::onRepresentationChanged(pqRepresentation*) {
-
-
-  //rnv: to fix the issue "21712: [CEA 581] Preference to display legend by default"
-  //     find the pqDisplayColorWidget instances and connect the variableChanged SIGNAL on the 
-  //     onVariableChanged slot of this class. This connection needs to change visibility 
-  //     of the "Colored Legend" after change the "Color By" array.
-  QList<pqDisplayColorWidget*> aWidget = getApp()->desktop()->findChildren<pqDisplayColorWidget*>();
-  
-  for (int i = 0; i < aWidget.size() ; i++ ) {
-    if( aWidget[i] ) {
-      connect( aWidget[i], SIGNAL ( variableChanged ( pqVariableType, const QString ) ), 
-              this, SLOT(onVariableChanged( pqVariableType, const QString) ), Qt::UniqueConnection );
-    }    
-  }
-}
-
-
 /*!
   \fn CAM_Module* createModule();
   \brief Export module instance (factory function).
@@ -1671,10 +1362,6 @@ extern "C" {
 
   bool flag = false;
   PVGUI_EXPORT CAM_Module* createModule() {
-//    if(!flag) {
-//        vtkEDFHelperInit();
-//        flag = true;
-//    }
     return new PVGUI_Module();
   }
   

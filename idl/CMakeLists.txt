@@ -33,18 +33,27 @@ IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
   # (again, this shouldn't last for long ...) 
   SET(OMNIORB_IDLCXXFLAGS "${OMNIORB_IDLCXXFLAGS};-DPARAVIS_WITH_FULL_CORBA")
   SET(OMNIORB_IDLPYFLAGS "${OMNIORB_IDLPYFLAGS};-DPARAVIS_WITH_FULL_CORBA")
-ENDIF()  
-  ADD_DEFINITIONS(${OMNIORB_DEFINITIONS})
-SET(SalomeIDLPARAVIS_IDLSOURCES
-  PARAVIS_Gen.idl
-  PARAVIS_Gen_Types.idl
-  ${WRAP_IDL}
+  
+  SET(SalomeIDLPARAVIS_IDLSOURCES
+    PARAVIS_Gen.idl
+    PARAVIS_Gen_Types.idl
+    ${WRAP_IDL}
   )
+  SET(_idl_include_dirs
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${KERNEL_ROOT_DIR}/idl/salome
+  )
+ELSE()
+  SET(SalomeIDLPARAVIS_IDLSOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/no_wrap/PARAVIS_Gen.idl
+  )
+  SET(_idl_include_dirs
+    ${CMAKE_CURRENT_SOURCE_DIR}/no_wrap
+    ${KERNEL_ROOT_DIR}/idl/salome
+  )  
+ENDIF()  
 
-SET(_idl_include_dirs
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${KERNEL_ROOT_DIR}/idl/salome
-)
+ADD_DEFINITIONS(${OMNIORB_DEFINITIONS})
 
 SET(_idl_link_flags
   ${KERNEL_SalomeIDLKernel}

@@ -345,7 +345,7 @@ int vtkMEDReader::RequestData(vtkInformation *request, vtkInformationVector **in
     }
   catch(INTERP_KERNEL::Exception& e)
     {
-      std::cerr << "Exception has been thrown in vtkMEDReader::RequestInformation : " << e.what() << std::endl;
+      std::cerr << "Exception has been thrown in vtkMEDReader::RequestData : " << e.what() << std::endl;
       return 0;
     }
   return 1;

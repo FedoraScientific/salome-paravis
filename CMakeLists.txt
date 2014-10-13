@@ -78,7 +78,7 @@ OPTION(SALOME_PARAVIS_ALL_TEST "Add all tests for Salome PARAVIS module" OFF)
 OPTION(SALOME_PARAVIS_BUILD_PLUGINS "Build PARAVIS plugins (MEDReader, etc ...)" ON)
 CMAKE_DEPENDENT_OPTION(SALOME_LIGHT_ONLY "Build SALOME Light only (no CORBA)" OFF
                        "NOT SALOME_KERNEL_LIGHT_ONLY" ON)
-CMAKE_DEPENDENT_OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" OFF
+CMAKE_DEPENDENT_OPTION(SALOME_PARAVIS_MINIMAL_CORBA "Build PARAVIS with a minimal CORBA interface" ON
                        "NOT SALOME_LIGHT_ONLY" ON)
 
 IF(SALOME_BUILD_TESTS)
@@ -141,7 +141,7 @@ INCLUDE_DIRECTORIES(${GUI_INCLUDE_DIRS})
 ##
 ## From GUI: part 2
 ##
-FIND_PACKAGE(SalomeCAS REQUIRED)
+FIND_PACKAGE(SalomeCAS REQUIRED)  # [ABN] I wish I could avoid that ...
 
 ##
 ## From MED
@@ -251,7 +251,7 @@ INCLUDE(CMakePackageConfigHelpers)
 # List of targets in this project we want to make visible to the rest of the world.
 # They all have to be INSTALL'd with the option "EXPORT ${PROJECT_NAME}TargetGroup"
 IF(NOT SALOME_LIGHT_ONLY)
-  SET(_${PROJECT_NAME}_exposed_targets SalomeIDLPARAVIS PARAVISEngine PARAVIS)
+  SET(_${PROJECT_NAME}_exposed_targets SalomeIDLPARAVIS PARAVIS)
 
   # Add all targets to the build-tree export set
   EXPORT(TARGETS ${_${PROJECT_NAME}_exposed_targets}

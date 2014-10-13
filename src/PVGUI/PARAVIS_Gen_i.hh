@@ -46,7 +46,7 @@ class SalomeApp_Application;
 class PVGUI_Module;
 class vtkObjectBase;
 
-#define PVSTATEID 15555
+//#define PVSTATEID 15555  // now in PVGUI_Tools.h
 
 namespace PARAVIS
 {

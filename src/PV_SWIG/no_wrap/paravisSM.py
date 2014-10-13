@@ -17,8 +17,14 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-SET(_adm_data
-  FindSalomePARAVIS.cmake
-  )
+r""" This module is a direct forward to the initial 
+'servermanager' module of ParaView. We keep it for backward compatibility only.
+"""
 
-INSTALL(FILES ${_adm_data} DESTINATION ${SALOME_INSTALL_CMAKE_LOCAL})
+from paraview import servermanager
+
+for name in dir(servermanager):
+  if not name.startswith("__"):
+    globals()[name] = getattr(servermanager, name)
+del servermanager
+ 

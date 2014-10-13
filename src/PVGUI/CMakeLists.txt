@@ -30,13 +30,17 @@ INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${QT_INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/view
     ${CMAKE_CURRENT_BINARY_DIR}
     )
 
+# Process viewer:
+#ADD_SUBDIRECTORY(view)
+
 # additional preprocessor / compiler flags
 ADD_DEFINITIONS(${CAS_DEFINITIONS})
-ADD_DEFINITIONS(${KERNEL_DEFINITIONS})
 ADD_DEFINITIONS(${OMNIORB_DEFINITIONS})
+ADD_DEFINITIONS(${KERNEL_DEFINITIONS})
 
 # libraries to link to
 SET(_PARAVIEW_APP_COMPO_LIB
@@ -46,14 +50,13 @@ SET(_PARAVIEW_APP_COMPO_LIB
 SET(_link_LIBRARIES 
   ${OMNIORB_LIBRARIES}
   ${QT_LIBRARIES}
-  ${CAS_KERNEL}
   ${PYTHON_LIBS}
-  ${KERNEL_LDFLAGS} ${KERNEL_SalomeDS} ${KERNEL_SALOMELocalTrace} ${KERNEL_SalomeIDLKernel} 
-                    ${KERNEL_SalomeNS} ${KERNEL_SalomeLifeCycleCORBA} ${KERNEL_SalomeContainer} ${KERNEL_TOOLSDS}
-  ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_CAM} ${GUI_qtx} ${GUI_suit} ${GUI_Event} ${GUI_PyInterp} 
+  ${KERNEL_LDFLAGS} 
+  ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_CAM} ${GUI_qtx} ${GUI_suit} ${GUI_Event}  
                  ${GUI_SalomeObject} ${GUI_vtkTools}
   ${MED_SalomeIDLMED}
   ${_PARAVIEW_APP_COMPO_LIB}
+  ${GUI_PVViewer}
   SalomeIDLPARAVIS
 )
 
@@ -68,22 +71,24 @@ QT4_WRAP_UI(_ui_FORMS_HEADERS ${_ui_files})
 # header files / to be processed by moc
 SET(_moc_HEADERS
   PVGUI_Module.h
-  PVGUI_ViewManager.h
-  PVGUI_ViewModel.h
-  PVGUI_ViewWindow.h
+#  PVGUI_ViewManager.h
+#  PVGUI_ViewModel.h
+#  PVGUI_ViewWindow.h
   PVGUI_ParaViewSettingsPane.h
 )
 
 # header files / no moc processing
 SET(_other_HEADERS
-  PVGUI_OutputWindowAdapter.h
+#  PVGUI_OutputWindowAdapter.h
   PVGUI_Tools.h
-  #PVGUI_MatplotlibMathTextUtilities.h
   PV_I.h
   PARAVIS_Gen_i.hh
   PV_Events.h
-  PV_Tools.h
 )
+
+IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
+    LIST(APPEND _other_HEADERS PV_Tools.h)
+ENDIF()
 
 # header files / to install
 SET(PVGUI_HEADERS ${_moc_HEADERS} ${_other_HEADERS} ${_ui_FORMS_HEADERS})
@@ -138,15 +143,8 @@ SET(_other_SOURCES
   PVGUI_Module.cxx
   PVGUI_Module_actions.cxx
   PVGUI_Module_widgets.cxx
-  PVGUI_ViewManager.cxx
-  PVGUI_ViewModel.cxx
-  PVGUI_ViewWindow.cxx
-  PVGUI_OutputWindowAdapter.cxx
   PVGUI_Tools.cxx
   PVGUI_ParaViewSettingsPane.cxx
-  #PVGUI_MatplotlibMathTextUtilities.cxx
-  PARAVIS_Gen_i.cc
-  PV_Tools.cxx
   )
 
 IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
@@ -162,6 +160,7 @@ IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
   SET(WRAP_IDL_I_CC "${WRAP_IDL_I_CC}" PARENT_SCOPE)
 
   SET(_VTK_wrap_SOURCES
+    PARAVIS_Gen_i.cc
     PARAVIS_CreateClass.cxx
     ${WRAP_IDL_I_CC}
   )

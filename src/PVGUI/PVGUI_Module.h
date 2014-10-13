@@ -27,9 +27,13 @@
 #define PVGUI_Module_H
 
 #include <SalomeApp_Module.h>
+#include "SALOMEconfig.h"
+#include CORBA_SERVER_HEADER(SALOMEDS)
+#include CORBA_SERVER_HEADER(PARAVIS_Gen)
 
 #include <ostream>
 #include <vtkType.h>
+#include <QTimer>
 
 #include <pqVariableType.h>
 
@@ -39,15 +43,13 @@ class QToolBar;
 class vtkPVMain;
 class pqOptions;
 class pqServer;
-class pqTabbedMultiViewWidget;
 class pqMainWindowCore;
 class vtkEventQtSlotConnect;
 class pqPythonScriptEditor;
 class pqPVApplicationCore;
 class pqDataRepresentation;
 class pqRepresentation;
-
-class PyConsole_Interp;
+class PVViewer_GUIElements;
 
 class PVGUI_Module : public SalomeApp_Module
 {
@@ -143,8 +145,6 @@ public:
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
 
-  pqTabbedMultiViewWidget*         getMultiViewManager() const;
-
   virtual QString engineIOR() const;
 
   void openFile(const char* theName);
@@ -164,12 +164,15 @@ public:
 
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
+  // Get the unwrapped version of the engine - compare with PVViewer_EngineWrapper.
+  inline static PARAVIS_ORB::PARAVIS_Gen_var GetCPPEngine();
+  inline static pqPVApplicationCore * GetPVApplication();
+
 public slots:
-  void onImportFromVisu(QString theEntry);
+  //void onImportFromVisu(QString theEntry);
 
 private:
-  //! Initialize ParaView if not yet done (once per session)
-  static bool            pvInit();  
+  void deleteTemporaryFiles();
  
   //! Create actions for ParaView GUI operations
   void                   pvCreateActions();
@@ -197,10 +200,6 @@ private:
   
   //! Discover help project files from the resources.
   QString getHelpFileName();
-
-  void                   deleteTemporaryFiles();
-  
-  //QList<QToolBar*>       getParaViewToolbars();
 
   //! Create actions for ParaViS
   void createActions();
@@ -236,11 +235,7 @@ private slots:
   //void showParaViewHelp();
   //void showHelp(const QString& url);
 
-  void onFinishedAddingServer(pqServer*);
-  void onDataRepresentationCreated(pqDataRepresentation*);
   void onDataRepresentationUpdated();
-  void onVariableChanged(pqVariableType, const QString);
-  void onRepresentationChanged(pqRepresentation*);
 
   void onStartProgress();
   void onEndProgress();
@@ -264,14 +259,10 @@ public slots:
 
 protected slots:
   virtual void           onModelOpened();
-
-protected:
-  void timerEvent(QTimerEvent *event);
+  virtual void           onPushTraceTimer();
+  virtual void           onInitTimer();
 
 private:
-  class pqImplementation;
-  pqImplementation*      Implementation;
-
   int                    mySelectionControlsTb;
   int                    mySourcesMenuId;
   int                    myFiltersMenuId;
@@ -298,7 +289,15 @@ private:
 
   int myStateCounter;
 
-  static pqPVApplicationCore* MyCoreApp;
+  //! Single shot timer used to connect to the PVServer, and start the trace.
+  QTimer             * myInitTimer;
+
+  //! Timer used to regularly push the Python trace to the engine.
+  QTimer             * myPushTraceTimer;
+
+  PVViewer_GUIElements * myGuiElements;
+
+  static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
 };
 
 #endif // PVGUI_Module_H

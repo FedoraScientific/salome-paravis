@@ -1,0 +1,237 @@
+# Copyright (C) 2007-2014  CEA/DEN, EDF R&D, OPEN CASCADE
+#
+# Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+# CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+# Author : Adrien Bruneton (CEA)
+#
+
+import PARAVIS_ORB__POA
+import SALOME_ComponentPy
+import SALOME_DriverPy
+import SALOMEDS
+import SALOME
+import PARAVIS_utils
+import subprocess as subp
+import socket
+from time import sleep
+import os
+#from SALOME_utilities import MESSAGE
+
+def MESSAGE(m):
+    os.system("echo \"%s\" >> /tmp/paravis_log.txt" % m)
+
+class PARAVIS_Impl:
+    """ The core implementation (non CORBA, or Study related).
+        See the IDL for the documentation.
+    """
+    MAX_PVSERVER_PORT_TRIES = 10
+    PARAVIEW_ROOT_DIR = "@PARAVIEW_ROOT_DIR@"
+    PVSERVER_DEFAULT_PORT = 11111
+    
+    def __init__(self):
+        self.pvserverPort = -1
+        self.pvserverPop = None  # Popen object from subprocess module
+        self.lastTrace = ""
+        self.isGUIConnected = False  # whether there is an active connection from the GUI.
+            
+    """
+    Private. Identify a free port to launch the PVServer. 
+    """
+    def __getFreePort(self, startPort):
+        cnt = 0
+        currPort = startPort
+        while cnt < self.MAX_PVSERVER_PORT_TRIES:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.bind(('', currPort))
+                s.close()
+                return currPort
+            except socket.error as e:
+                cnt += 1
+                currPort += 1
+                pass
+        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
+                            "[PARAVIS] maximum number of tries to retrieve a free port for the PVServer",
+                            "PARAVIS.py", 0))
+                                           
+    def FindOrStartPVServer( self, port ):
+        MESSAGE("[PARAVIS] FindOrStartPVServer ...")
+        host = "localhost"
+        alive = True
+        if self.pvserverPop is None:
+            alive = False
+        else:
+            # Poll active server to check if still alive
+            self.pvserverPop.poll()
+            if not self.pvserverPop.returncode is None:  # server terminated
+                alive = False
+        
+        if alive:
+            return "cs://%s:%d" % (host, self.pvserverPort)  
+          
+        # (else) Server not alive, start it:
+        pvServerPath = os.path.join(self.PARAVIEW_ROOT_DIR, 'bin', 'pvserver')
+        opt = []
+        if port <= 0:
+            port = self.__getFreePort(self.PVSERVER_DEFAULT_PORT)
+        self.pvserverPop = subp.Popen([pvServerPath, "--multi-clients", "--server-port=%d" % port])
+        sleep(3)  # Give some time to the server to start up to avoid 
+                  # ugly messages on the client side saying that it cannot connect
+        # Is PID still alive? If yes, consider that the launch was successful
+        self.pvserverPop.poll()
+        if self.pvserverPop.returncode is None:
+            success = True
+            self.pvserverPort = port
+            MESSAGE("[PARAVIS] pvserver successfully launched on port %d" % port)
+        else:
+            raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
+                            "[PARAVIS] Unable to start PVServer on port %d!" % port,
+                            "PARAVIS.py", 0))
+        return "cs://%s:%d" % (host, self.pvserverPort)
+
+    def StopPVServer( self ):
+        MESSAGE("[PARAVIS] Trying to stop PVServer (sending KILL) ...")
+        if not self.pvserverPop is None:
+            self.pvserverPop.poll()
+            if self.pvserverPop.returncode is None:
+                # Terminate if still running:
+                self.pvserverPop.terminate()
+                MESSAGE("[PARAVIS] KILL signal sent.")
+                return True
+        MESSAGE("[PARAVIS] Nothing to kill.")
+        return False
+    
+    def PutPythonTraceStringToEngine( self, t ):
+        self.lastTrace = t
+        
+    def GetPythonTraceString(self):
+        return self.lastTrace
+      
+    def SetGUIConnected( self, isConnected ):
+        self.isGUIConnected = isConnected
+        
+    def GetGUIConnected( self ):
+        return self.isGUIConnected
+    
+class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
+              SALOME_ComponentPy.SALOME_ComponentPy_i,
+              SALOME_DriverPy.SALOME_DriverPy_i,
+              PARAVIS_Impl):
+    """
+    Construct an instance of PARAVIS module engine.
+    The class PARAVIS implements CORBA interface PARAVIS_Gen (see PARAVIS_Gen.idl).
+    It is inherited from the classes SALOME_ComponentPy_i (implementation of
+    Engines::EngineComponent CORBA interface - SALOME component) and SALOME_DriverPy_i
+    (implementation of SALOMEDS::Driver CORBA interface - SALOME module's engine).
+    """
+    def __init__ ( self, orb, poa, contID, containerName, instanceName, 
+                   interfaceName ):
+        SALOME_ComponentPy.SALOME_ComponentPy_i.__init__(self, orb, poa,
+                    contID, containerName, instanceName, interfaceName, 0)
+        SALOME_DriverPy.SALOME_DriverPy_i.__init__(self, interfaceName)
+        PARAVIS_Impl.__init__(self)
+        #
+        self._naming_service = SALOME_ComponentPy.SALOME_NamingServicePy_i( self._orb )
+        #
+
+    """ Override base class destroy to make sure we try to kill the pvserver
+        before leaving.
+    """
+    def destroy(self):    
+        self.StopPVServer()
+        # Invokes super():
+        SALOME_ComponentPy.destroy(self)
+      
+    """
+    Get version information.
+    """
+    def getVersion( self ):
+        import salome_version
+        return salome_version.getVersion("PARAVIS", True)
+
+    def GetIOR(self):
+        return PARAVIS_utils.getEngineIOR()
+
+    """
+    Create object.
+    """
+    def createObject( self, study, name ):
+        MESSAGE("createObject()")
+        self._createdNew = True # used for getModifiedData method
+        builder = study.NewBuilder()
+        father  = findOrCreateComponent( study )
+        object  = builder.NewObject( father )
+        attr    = builder.FindOrCreateAttribute( object, "AttributeName" )
+        attr.SetValue( name )
+        attr    = builder.FindOrCreateAttribute( object, "AttributeLocalID" )
+        attr.SetValue( PARAVIS_utils.objectID() )
+        pass
+
+    """
+    Dump module data to the Python script.
+    """
+    def DumpPython( self, study, isPublished, isMultiFile ):
+        MESSAGE("dumpPython()") 
+        abuffer = self.GetPythonTraceString().split("\n")
+        if isMultiFile:
+            abuffer       = [ "  " + s for s in abuffer ]
+            abuffer[0:0]  = [ "def RebuildData( theStudy ):" ]
+            abuffer      += [ "  pass" ]
+        abuffer += [ "\0" ]
+        return ("\n".join( abuffer ), 1)
+  
+    """
+    Import file to restore module data
+    """
+    def importData(self, studyId, dataContainer, options):
+      MESSAGE("importData()")
+      # get study by Id
+      obj = self._naming_service.Resolve("myStudyManager")
+      myStudyManager = obj._narrow(SALOMEDS.StudyManager)
+      study = myStudyManager.GetStudyByID(studyId)
+      # create all objects from the imported stream
+      stream = dataContainer.get()
+      for objname in stream.split("\n"):
+        if len(objname) != 0:
+          self.createObject(study, objname)
+      self._createdNew = False # to store the modification of the study information later
+      return ["objects"] # identifier what is in this file
+ 
+    def getModifiedData(self, studyId):
+      MESSAGE("getModifiedData()")
+      if self._createdNew:
+        # get study by Id
+        obj = self._naming_service.Resolve("myStudyManager")
+        myStudyManager = obj._narrow(SALOMEDS.StudyManager)
+        study = myStudyManager.GetStudyByID(studyId)
+        # iterate all objects to get their names and store this information in stream
+        stream=""
+        father = study.FindComponent( moduleName() )
+        if father:
+            iter = study.NewChildIterator( father )
+            while iter.More():
+                name = iter.Value().GetName()
+                stream += name + "\n"
+                iter.Next()
+        # store stream to the temporary file to send it in DataContainer
+        dataContainer = SALOME_DataContainerPy_i(stream, "", "objects", False, True)
+        aVar = dataContainer._this()
+        return [aVar]
+      return []

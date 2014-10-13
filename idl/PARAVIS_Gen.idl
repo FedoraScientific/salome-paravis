@@ -82,7 +82,6 @@ module PARAVIS {
      */
     void SaveTrace(in string theFileName);
 
-#ifdef PARAVIS_WITH_FULL_CORBA
     /*!
      * \brief Returns list of names of extracted Paraview and VTK classes
      */
@@ -92,7 +91,6 @@ module PARAVIS {
      * \brief Returns container class for the requested Paraview class
      */
     PARAVIS_Base CreateClass(in string theClassName);
-#endif
 
     /*!
      * Returns parameters of current (usually built-in) connection which is active in GUI (Paraview client).

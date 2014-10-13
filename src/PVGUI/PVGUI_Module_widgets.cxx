@@ -23,6 +23,8 @@
 //
 
 #include "PVGUI_Module.h"
+#include "PVViewer_ViewManager.h"
+#include "PVViewer_GUIElements.h"
 
 #include <QtxActionToolMgr.h>
 #include <LightApp_Application.h>
@@ -65,31 +67,31 @@
 #include <pqColorMapEditor.h>
 #include <pqDeleteReaction.h>
 
-class ResizeHelper : public pqPVAnimationWidget
-{
-  // TEMPORARILY WORKAROUND AROUND PARAVIEW 3.14 BUG:
-  // WHEN ANIMATION VIEW IS RESIZED, ITS CONTENTS IS NOT PREPERLY RE-ARRANGED
-  // CAUSING SOME CONTROLS TO STAY NON-VISIBLE
-  // THIS BUG IS NATURALLY FIXED BY ADDING 
-  //      this->updateGeometries();
-  // TO THE
-  //     void pqAnimationWidget::resizeEvent(QResizeEvent* e);
-  // BUT THIS CANNOT BE DONE DIRECTLY, SINCE CORRESPONDING API IS NOT PUBLIC
-  // THE ONLY WAY TO DO THIS BY SENDING SHOW EVENT TO THE WIDGET
-
-public:
-  ResizeHelper( QWidget* parent ) : pqPVAnimationWidget( parent ) {}
-protected:
-  void resizeEvent(QResizeEvent* e)
-  {
-    pqAnimationWidget* w = findChild<pqAnimationWidget*>( "pqAnimationWidget" );
-    if ( w ) { 
-      QShowEvent e;
-      QApplication::sendEvent( w, &e );
-    }
-    pqPVAnimationWidget::resizeEvent( e );
-  }
-};
+//class ResizeHelper : public pqPVAnimationWidget
+//{
+//  // TEMPORARILY WORKAROUND AROUND PARAVIEW 3.14 BUG:
+//  // WHEN ANIMATION VIEW IS RESIZED, ITS CONTENTS IS NOT PREPERLY RE-ARRANGED
+//  // CAUSING SOME CONTROLS TO STAY NON-VISIBLE
+//  // THIS BUG IS NATURALLY FIXED BY ADDING
+//  //      this->updateGeometries();
+//  // TO THE
+//  //     void pqAnimationWidget::resizeEvent(QResizeEvent* e);
+//  // BUT THIS CANNOT BE DONE DIRECTLY, SINCE CORRESPONDING API IS NOT PUBLIC
+//  // THE ONLY WAY TO DO THIS BY SENDING SHOW EVENT TO THE WIDGET
+//
+//public:
+//  ResizeHelper( QWidget* parent ) : pqPVAnimationWidget( parent ) {}
+//protected:
+//  void resizeEvent(QResizeEvent* e)
+//  {
+//    pqAnimationWidget* w = findChild<pqAnimationWidget*>( "pqAnimationWidget" );
+//    if ( w ) {
+//      QShowEvent e;
+//      QApplication::sendEvent( w, &e );
+//    }
+//    pqPVAnimationWidget::resizeEvent( e );
+//  }
+//};
 
 /*!
   \brief Create dock widgets for ParaView widgets such as object inspector, pipeline browser, etc.
@@ -99,6 +101,7 @@ protected:
 void PVGUI_Module::setupDockWidgets()
 {
   SUIT_Desktop* desk = application()->desktop();
+  PVViewer_GUIElements * guiElements = PVViewer_GUIElements::GetInstance(desk);
  
   desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
@@ -108,19 +111,17 @@ void PVGUI_Module::setupDockWidgets()
   pipelineBrowserDock->setObjectName("pipelineBrowserDock");
   pipelineBrowserDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, pipelineBrowserDock );
-  pqPipelineBrowserWidget* browser = new pqPipelineBrowserWidget(pipelineBrowserDock);
-  pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(*browser);
+  pqPipelineBrowserWidget* browser = guiElements->getPipelineBrowserWidget();
   pipelineBrowserDock->setWidget(browser);
   myDockWidgets[pipelineBrowserDock] = true;
 
   // Properties dock (previously called OBJECT_INSPECTOR)
   QDockWidget* propertiesDock = new QDockWidget( tr( "TTL_OBJECT_INSPECTOR" ), desk );
   propertiesDock->setObjectName("propertiesDock");
-  propertiesDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::NoDockWidgetArea|Qt::RightDockWidgetArea );
+  propertiesDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
   desk->addDockWidget( Qt::LeftDockWidgetArea, propertiesDock );
 
-  pqPropertiesPanel* propertiesPanel = new pqPropertiesPanel(propertiesDock);
-  propertiesDock->setObjectName("propertiesPanel");
+  pqPropertiesPanel* propertiesPanel = guiElements->getPropertiesPanel();
   propertiesDock->setWidget(propertiesPanel);
   connect( propertiesPanel, SIGNAL( helpRequested(const QString&, const QString&) ),  this, SLOT( showHelpForProxy(const QString&, const QString&) ) );
   //            hook delete to pqDeleteReaction.
@@ -157,7 +158,8 @@ void PVGUI_Module::setupDockWidgets()
 
   desk->setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
   desk->tabifyDockWidget(informationDock, propertiesDock);
-  propertiesDock->raise();
+  desk->tabifyDockWidget(propertiesDock, pipelineBrowserDock);
+  //propertiesDock->raise();
 
   // Statistic View
   QDockWidget* statisticsViewDock  = new QDockWidget( tr( "TTL_STATISTICS_VIEW" ), desk );
@@ -173,7 +175,7 @@ void PVGUI_Module::setupDockWidgets()
   QDockWidget* animationViewDock     = new QDockWidget( tr( "TTL_ANIMATION_VIEW" ), desk );
   animationViewDock->setObjectName("animationViewDock");
   desk->addDockWidget( Qt::BottomDockWidgetArea, animationViewDock );
-  pqPVAnimationWidget* animation_panel = new ResizeHelper(animationViewDock); //pqPVAnimationWidget
+  pqPVAnimationWidget* animation_panel = new pqPVAnimationWidget(animationViewDock); // [ABN] was resizeHelper
   animationViewDock->setWidget(animation_panel);
   myDockWidgets[animationViewDock] = false; // hidden by default
 
@@ -344,14 +346,16 @@ void PVGUI_Module::restoreDockWidgetsState()
     dw->setVisible( it1.value() );
     dw->toggleViewAction()->setVisible( true );
   }
-  // restore toolbar breaks state
-  QMapIterator<QWidget*, bool> it2( myToolbarBreaks );
-  while( it2.hasNext() ) {
-    it2.next();
-    QToolBar* tb = qobject_cast<QToolBar*>( it2.key() );
-    if ( myToolbarBreaks[tb] )
-      desk->insertToolBarBreak( tb );
-  }
+
+    // restore toolbar breaks state
+    QMapIterator<QWidget*, bool> it2( myToolbarBreaks );
+    while( it2.hasNext() ) {
+        it2.next();
+        QToolBar* tb = qobject_cast<QToolBar*>( it2.key() );
+        if ( myToolbarBreaks[tb] )
+          desk->insertToolBarBreak( tb );
+    }
+
   // restore toolbar visibility state
   QMapIterator<QWidget*, bool> it3( myToolbars );
   while( it3.hasNext() ) {
@@ -392,15 +396,15 @@ void PVGUI_Module::storeCommonWindowsState() {
       QDockWidget* dock = 0;
       QWidget* w = wg->parentWidget();
       while ( w && !dock ) {
-	dock = ::qobject_cast<QDockWidget*>( w );
-	w = w->parentWidget();
+          dock = ::qobject_cast<QDockWidget*>( w );
+          w = w->parentWidget();
       }
       if(dock){
-	if(!myCommonMap.contains(i)){
-	  myCommonMap.insert(i,dock->isVisible());
-	} else {
-	  myCommonMap[i] = dock->isVisible();
-	}
+          if(!myCommonMap.contains(i)){
+              myCommonMap.insert(i,dock->isVisible());
+          } else {
+              myCommonMap[i] = dock->isVisible();
+          }
       }
     }
   }
@@ -420,11 +424,11 @@ void PVGUI_Module::restoreCommonWindowsState() {
       QDockWidget* dock = 0;
       QWidget* w = wg->parentWidget();
       while ( w && !dock ) {
-	dock = ::qobject_cast<QDockWidget*>( w );
-	w = w->parentWidget();
+          dock = ::qobject_cast<QDockWidget*>( w );
+          w = w->parentWidget();
       }
       if(dock) {
-	dock->setVisible(it.value());
+          dock->setVisible(it.value());
       }
     }
   }

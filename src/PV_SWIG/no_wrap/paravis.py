@@ -16,15 +16,11 @@
 #
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-# Author: Adrien Bruneton
+#  File   : paravis.py
+#  Module : PARAVIS
 #
 
-# Graphviz detection for salome
-#
-#  !! Please read the generic detection procedure in SalomeMacros.cmake !!
-#
+import PARAVIS_utils
 
-SALOME_FIND_PACKAGE_AND_DETECT_CONFLICTS(ParaView PARAVIEW_USE_FILE 4)
-#MARK_AS_ADVANCED()
-
-INCLUDE(${PARAVIEW_USE_FILE})
+## Initialize PARAVIS interface
+myParavisEngine = PARAVIS_utils.getEngine()

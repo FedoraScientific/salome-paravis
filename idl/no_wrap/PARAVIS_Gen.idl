@@ -1,0 +1,79 @@
+// Copyright (C) 2010-2014  CEA/DEN, EDF R&D
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+//
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+//
+//  Author : Adrien Bruneton (CEA)
+
+
+#ifndef __PARAVIS_GEN__
+#define __PARAVIS_GEN__
+
+#include "SALOME_Exception.idl"
+#include "SALOME_Component.idl"
+#include "SALOMEDS.idl"
+#include "SALOME_Exception.idl"
+
+/*!
+  The main package of interfaces of the module %PARAVIS.
+*/
+module PARAVIS_ORB {
+
+  /*!
+   * \brief The main interface class for PARAVIS server. 
+   * Instantiation of this class has to be done before access to any other PARAVIS interfaces
+   */
+  interface PARAVIS_Gen : Engines::EngineComponent, SALOMEDS::Driver
+  {
+    
+    /*!
+     * \brief Returns IOR of the current object.
+     */
+    string GetIOR();
+    
+    /*! If a pvserver is already started, returns its current URL, regardless of the provided
+     * parameters. 
+     * If not, start a pvserver on the machine hosting the PARAVIS engine and on the given port.
+     * If port <= 0, a free port is automatically detected, starting from the usual 11111 pvserver port.
+     */
+    string FindOrStartPVServer(in long port);
+
+    /*! Tries to stop the PVserver currently running (send KILL). 
+     * @return false if no server was running, true otherwise. 
+     */
+    boolean StopPVServer();
+    
+    /*! Gets the last trace string pushed by the GUI onto the engine.
+     */
+    string GetPythonTraceString();
+    
+    /*! HACK!! For now ParaView's trace mechanism is implemented in such away that asking the trace
+     * outside the GUI provides an incomplete script. Hence the GUI regularly pushes to the engine
+     * the latest status of the trace which is then returned by GetPythonTraceString().
+     */
+    void PutPythonTraceStringToEngine(in string trace);
+    
+    /*! Indicates if the GUI process is already connected to the pvserver. 
+     * This avoids multiple attempts to connect from a single thread (makes ParaView crash). */ 
+    void SetGUIConnected(in boolean isConnected);
+    
+    boolean GetGUIConnected();
+    
+  };
+
+};
+
+#endif

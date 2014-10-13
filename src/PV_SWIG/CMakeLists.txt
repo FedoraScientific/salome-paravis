@@ -29,17 +29,17 @@ ELSE(SALOME_LIGHT_ONLY)
     # Use another set of Python files redirecting the API directly 
     # to the original ParaView modules.
     LIST(APPEND _PYFILES_TO_INSTALL
-      paravis.py
-      pvsimple.py
-      presentations.py
-      paravisSM.py
+      no_wrap/paravis.py
+      no_wrap/pvsimple.py
+      no_wrap/presentations.py
+      no_wrap/paravisSM.py
     )
   ELSE()
     LIST(APPEND _PYFILES_TO_INSTALL
-      VTKWrapping/paravis.py
-      VTKWrapping/paravisSM.py
-      VTKWrapping/pvsimple.py
-      VTKWrapping/presentations.py
+      paravis.py
+      paravisSM.py
+      pvsimple.py
+      presentations.py
     )
   ENDIF()
 ENDIF(SALOME_LIGHT_ONLY)

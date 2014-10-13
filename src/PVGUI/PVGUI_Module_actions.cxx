@@ -23,6 +23,7 @@
 //
 
 #include "PVGUI_Module.h"
+#include <PVViewer_GUIElements.h>
 
 #include <QtxAction.h>
 #include <QtxActionMenuMgr.h>
@@ -422,10 +423,8 @@ void PVGUI_Module::pvCreateMenus()
    QMenu* aMenu = menuMgr()->findMenu( myRecentMenuId );
    pqRecentFilesMenu* aRecentFilesMenu = new pqRecentFilesMenu( *aMenu, getApp()->desktop() );
    QList<QAction*> anActns = aMenu->actions();
-   for (int i = 0; i < anActns.size(); ++i) {
-	createMenu( anActns.at(i), myRecentMenuId );
-   }
-
+   for (int i = 0; i < anActns.size(); ++i)
+     createMenu( anActns.at(i), myRecentMenuId );
 
   createMenu( separator(), aPVMnu, -1, 5 );
 
@@ -481,30 +480,25 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( FullScreenId, aPVMnu );
   
   // --- Menu "Sources"
-
   // Install ParaView managers for "Sources" menu
   QMenu* aRes = 0;
+  PVViewer_GUIElements * guiElements = PVViewer_GUIElements::GetInstance(desk);
   mySourcesMenuId = createMenu( tr( "MEN_DESK_SOURCES" ), -1, -1, 60);
-  if ( (aRes = getMenu( mySourcesMenuId )) ) {
-    pqParaViewMenuBuilders::buildSourcesMenu(*aRes, desk);
-  }
+  if ( (aRes = getMenu( mySourcesMenuId )) )
+    guiElements->updateSourcesMenu(aRes);
   
   // --- Menu "Filters"
-
   // Install ParaView managers for "Filters" menu
   myFiltersMenuId = createMenu( tr( "MEN_DESK_FILTERS" ), -1, -1, 70 );
-  if ( (aRes = getMenu( myFiltersMenuId )) ) {
-    pqParaViewMenuBuilders::buildFiltersMenu(*aRes, desk);
-  }
+  if ( (aRes = getMenu( myFiltersMenuId )) )
+    guiElements->updateFiltersMenu(aRes);
 
    // --- Menu "Macros"
   myMacrosMenuId = createMenu( tr( "MEN_MACROS" ), -1, -1, 80 );
-  if ( (aRes = getMenu( myMacrosMenuId )) ) {
-    pqParaViewMenuBuilders::buildMacrosMenu(*aRes);
-  }
+  if ( (aRes = getMenu( myMacrosMenuId )) )
+    guiElements->updateMacrosMenu(aRes);
  
   // --- Menu "Tools"
-
   int aToolsMnu = createMenu( tr( "MEN_DESK_TOOLS" ), -1, -1, 90 );
 
   createMenu( CreateCustomFilterId, aToolsMnu );
@@ -629,11 +623,11 @@ void PVGUI_Module::createActions()
 {
   QAction* anAction;
 
-  // New ParaView window
-  anAction = new QtxAction(tr("MEN_NEW_PV_VIEW"), tr("MEN_NEW_PV_VIEW"), 0, 
-			   this, false, "ParaViS:Create new ParaView view");
-  connect(anAction, SIGNAL(triggered()), this, SLOT(onNewParaViewWindow()));
-  registerAction(ParaViewNewWindowId, anAction);
+//  // New ParaView window
+//  anAction = new QtxAction(tr("MEN_NEW_PV_VIEW"), tr("MEN_NEW_PV_VIEW"), 0,
+//        this, false, "ParaViS:Create new ParaView view");
+//  connect(anAction, SIGNAL(triggered()), this, SLOT(onNewParaViewWindow()));
+//  registerAction(ParaViewNewWindowId, anAction);
 
   // Save state under the module root object
   anAction = new QAction(tr("MEN_SAVE_MULTI_STATE"), this);
