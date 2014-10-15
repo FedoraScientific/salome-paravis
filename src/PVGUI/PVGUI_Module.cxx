@@ -348,7 +348,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
 
   // Initialize ParaView client and associated behaviors
   // and connect to externally launched pvserver
-  PVViewer_ViewManager::ParaviewInitApp(aDesktop);
+  PVViewer_ViewManager::ParaviewInitApp(aDesktop, 0); // VSR: temporary, to make PARAVIS compilable
   myGuiElements = PVViewer_GUIElements::GetInstance(aDesktop);
 
   // Remember current state of desktop toolbars
@@ -528,7 +528,7 @@ void PVGUI_Module::showView( bool toShow )
   PVViewer_ViewManager* viewMgr =
     dynamic_cast<PVViewer_ViewManager*>( anApp->getViewManager( PVViewer_Viewer::Type(), false ) );
   if ( !viewMgr ) {
-    viewMgr = new PVViewer_ViewManager( anApp->activeStudy(), anApp->desktop() );
+    viewMgr = new PVViewer_ViewManager( anApp->activeStudy(), anApp->desktop(), 0 );  // VSR: temporary, to make PARAVIS compilable
     anApp->addViewManager( viewMgr );
     connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
              anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
@@ -971,6 +971,7 @@ void PVGUI_Module::createPreferences()
 {
   // Paraview settings tab
   int aParaViewSettingsTab = addPreference( tr( "TIT_PVIEWSETTINGS" ) );
+  setPreferenceProperty(aParaViewSettingsTab, "stretch", false );
   int aPanel = addPreference(QString(), aParaViewSettingsTab, LightApp_Preferences::UserDefined, "PARAVIS", "");
   setPreferenceProperty(aPanel, "content", (qint64)(new PVGUI_ParaViewSettingsPane()));
 
