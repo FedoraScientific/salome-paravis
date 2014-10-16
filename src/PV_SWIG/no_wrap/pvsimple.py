@@ -23,7 +23,7 @@ On top of that it also establishes a connection to a valid PVServer whose addres
 is provided by the PARAVIS engine.
 """
 
-__DEBUG = 1
+__DEBUG = 0
 
 def __my_log(msg):
     if __DEBUG:

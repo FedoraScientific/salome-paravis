@@ -24,3 +24,4 @@ import PVSERVER_utils
 
 ## Initialize PARAVIS interface
 myParavisEngine = PVSERVER_utils.getEngine()
+myParavis = myParavisEngine
