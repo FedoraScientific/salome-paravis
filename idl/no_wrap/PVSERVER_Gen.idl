@@ -19,8 +19,8 @@
 //  Author : Adrien Bruneton (CEA)
 
 
-#ifndef __PARAVIS_GEN__
-#define __PARAVIS_GEN__
+#ifndef __PVSERVER_GEN__
+#define __PVSERVER_GEN__
 
 #include "SALOME_Exception.idl"
 #include "SALOME_Component.idl"
@@ -30,13 +30,13 @@
 /*!
   The main package of interfaces of the module %PARAVIS.
 */
-module PARAVIS_ORB {
+module PVSERVER_ORB {
 
   /*!
    * \brief The main interface class for PARAVIS server. 
    * Instantiation of this class has to be done before access to any other PARAVIS interfaces
    */
-  interface PARAVIS_Gen : Engines::EngineComponent, SALOMEDS::Driver
+  interface PVSERVER_Gen : Engines::EngineComponent, SALOMEDS::Driver
   {
     
     /*!

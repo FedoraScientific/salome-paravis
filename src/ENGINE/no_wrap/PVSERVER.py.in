@@ -22,12 +22,12 @@
 # Author : Adrien Bruneton (CEA)
 #
 
-import PARAVIS_ORB__POA
+import PVSERVER_ORB__POA
 import SALOME_ComponentPy
 import SALOME_DriverPy
 import SALOMEDS
 import SALOME
-import PARAVIS_utils
+import PVSERVER_utils
 import subprocess as subp
 import socket
 from time import sleep
@@ -38,7 +38,7 @@ def MESSAGE(m):
     pass
     #os.system("echo \"%s\" >> /tmp/paravis_log.txt" % m)
 
-class PARAVIS_Impl:
+class PVSERVER_Impl:
     """ The core implementation (non CORBA, or Study related).
         See the IDL for the documentation.
     """
@@ -69,11 +69,11 @@ class PARAVIS_Impl:
                 currPort += 1
                 pass
         raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
-                            "[PARAVIS] maximum number of tries to retrieve a free port for the PVServer",
-                            "PARAVIS.py", 0))
+                            "[PVSERVER] maximum number of tries to retrieve a free port for the PVServer",
+                            "PVSERVER.py", 0))
                                            
     def FindOrStartPVServer( self, port ):
-        MESSAGE("[PARAVIS] FindOrStartPVServer ...")
+        MESSAGE("[PVSERVER] FindOrStartPVServer ...")
         host = "localhost"
         alive = True
         if self.pvserverPop is None:
@@ -100,23 +100,23 @@ class PARAVIS_Impl:
         if self.pvserverPop.returncode is None:
             success = True
             self.pvserverPort = port
-            MESSAGE("[PARAVIS] pvserver successfully launched on port %d" % port)
+            MESSAGE("[PVSERVER] pvserver successfully launched on port %d" % port)
         else:
             raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
-                            "[PARAVIS] Unable to start PVServer on port %d!" % port,
-                            "PARAVIS.py", 0))
+                            "[PVSERVER] Unable to start PVServer on port %d!" % port,
+                            "PVSERVER.py", 0))
         return "cs://%s:%d" % (host, self.pvserverPort)
 
     def StopPVServer( self ):
-        MESSAGE("[PARAVIS] Trying to stop PVServer (sending KILL) ...")
+        MESSAGE("[PVSERVER] Trying to stop PVServer (sending KILL) ...")
         if not self.pvserverPop is None:
             self.pvserverPop.poll()
             if self.pvserverPop.returncode is None:
                 # Terminate if still running:
                 self.pvserverPop.terminate()
-                MESSAGE("[PARAVIS] KILL signal sent.")
+                MESSAGE("[PVSERVER] KILL signal sent.")
                 return True
-        MESSAGE("[PARAVIS] Nothing to kill.")
+        MESSAGE("[PVSERVER] Nothing to kill.")
         return False
     
     def PutPythonTraceStringToEngine( self, t ):
@@ -131,13 +131,13 @@ class PARAVIS_Impl:
     def GetGUIConnected( self ):
         return self.isGUIConnected
     
-class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
+class PVSERVER(PVSERVER_ORB__POA.PVSERVER_Gen,
               SALOME_ComponentPy.SALOME_ComponentPy_i,
               SALOME_DriverPy.SALOME_DriverPy_i,
-              PARAVIS_Impl):
+              PVSERVER_Impl):
     """
-    Construct an instance of PARAVIS module engine.
-    The class PARAVIS implements CORBA interface PARAVIS_Gen (see PARAVIS_Gen.idl).
+    Construct an instance of PVSERVER module engine.
+    The class PVSERVER implements CORBA interface PVSERVER_Gen (see PVSERVER_Gen.idl).
     It is inherited from the classes SALOME_ComponentPy_i (implementation of
     Engines::EngineComponent CORBA interface - SALOME component) and SALOME_DriverPy_i
     (implementation of SALOMEDS::Driver CORBA interface - SALOME module's engine).
@@ -147,7 +147,7 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
         SALOME_ComponentPy.SALOME_ComponentPy_i.__init__(self, orb, poa,
                     contID, containerName, instanceName, interfaceName, 0)
         SALOME_DriverPy.SALOME_DriverPy_i.__init__(self, interfaceName)
-        PARAVIS_Impl.__init__(self)
+        PVSERVER_Impl.__init__(self)
         #
         self._naming_service = SALOME_ComponentPy.SALOME_NamingServicePy_i( self._orb )
         #
@@ -165,10 +165,10 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
     """
     def getVersion( self ):
         import salome_version
-        return salome_version.getVersion("PARAVIS", True)
+        return salome_version.getVersion("PVSERVER", True)
 
     def GetIOR(self):
-        return PARAVIS_utils.getEngineIOR()
+        return PVSERVER_utils.getEngineIOR()
 
     """
     Create object.
@@ -182,7 +182,7 @@ class PARAVIS(PARAVIS_ORB__POA.PARAVIS_Gen,
         attr    = builder.FindOrCreateAttribute( object, "AttributeName" )
         attr.SetValue( name )
         attr    = builder.FindOrCreateAttribute( object, "AttributeLocalID" )
-        attr.SetValue( PARAVIS_utils.objectID() )
+        attr.SetValue( PVSERVER_utils.objectID() )
         pass
 
     """

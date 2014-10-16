@@ -26,18 +26,18 @@
     <type-list></type-list>
     <component-list>
         <component>
-            <component-name>PARAVIS</component-name>
+            <component-name>PVSERVER</component-name>
             <component-username>ParaView</component-username>
             <component-type>PARAVIS</component-type>
             <component-author>vsv</component-author>
             <component-version>@SALOMEPARAVIS_VERSION@</component-version>
-            <component-comment>ParaView module</component-comment>
+            <component-comment>PVServer control service</component-comment>
             <component-multistudy>1</component-multistudy>
             <component-impltype>1</component-impltype>
             <component-icone>pqAppIcon22.png</component-icone>
             <constraint></constraint>
             <component-interface-list>
-                <component-interface-name>PARAVIS_Gen</component-interface-name>
+                <component-interface-name>PVSERVER_Gen</component-interface-name>
                 <component-interface-comment>unknown</component-interface-comment>
                 <component-service-list>
                     <component-service>

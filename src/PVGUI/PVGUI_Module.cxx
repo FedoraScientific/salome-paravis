@@ -29,9 +29,9 @@
 #include <vtkPython.h> // Python first
 #include "PVGUI_Module.h"
 
-#ifdef PARAVIS_WITH_FULL_CORBA
-# include "PARAVIS_Gen_i.hh"
-#endif
+//#ifdef PARAVIS_WITH_FULL_CORBA
+//# include "PARAVIS_Gen_i.hh"
+//#endif
 
 #include CORBA_SERVER_HEADER(SALOME_ModuleCatalog)
 #include CORBA_SERVER_HEADER(SALOMEDS)
@@ -141,10 +141,11 @@
 
 //----------------------------------------------------------------------------
 PVGUI_Module* ParavisModule = 0;
-PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::MyEngine;
+PVSERVER_ORB::PVSERVER_Gen_var PVGUI_Module::MyEngine;
 
 /*!
   \mainpage
+  TODO TODO update this:
 
   <h2>Building and installing PARAVIS</h2>
   As any other SALOME module, PARAVIS requires PARAVIS_ROOT_DIR environment variable to be set to PARAVIS
@@ -210,45 +211,45 @@ PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::MyEngine;
          SALOME module wrapping ParaView GUI.
 */
 
-//_PTR(SComponent)
-//ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
-//{
-//  _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
-//  if (!aSComponent) {
-//    _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
-//    aStudyBuilder->NewCommand();
-//    int aLocked = theStudyDocument->GetProperties()->IsLocked();
-//    if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
-//    aSComponent = aStudyBuilder->NewComponent("PARAVIS");
-//    _PTR(GenericAttribute) anAttr =
-//      aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
-//    _PTR(AttributeName) aName (anAttr);
-//
-//    ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
-//    CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
-//
-//    SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
-//    CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
-//    SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
-//      SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
-//    SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
-//    if (!Comp->_is_nil()) {
-//      aName->SetValue(Comp->componentusername());
-//    }
-//
-//    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
-//    _PTR(AttributePixMap) aPixmap (anAttr);
-//    aPixmap->SetPixMap( "pqAppIcon16.png" );
-//
-//    // Create Attribute parameters for future using
-//    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
-//
-//    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetCPPEngine()->GetIOR());
-//    if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
-//    aStudyBuilder->CommitCommand();
-//  }
-//  return aSComponent;
-//}
+_PTR(SComponent)
+ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
+{
+  _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PVSERVER");
+  if (!aSComponent) {
+    _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
+    aStudyBuilder->NewCommand();
+    int aLocked = theStudyDocument->GetProperties()->IsLocked();
+    if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
+    aSComponent = aStudyBuilder->NewComponent("PVSERVER");
+    _PTR(GenericAttribute) anAttr =
+      aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
+    _PTR(AttributeName) aName (anAttr);
+
+    ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
+    CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
+
+    SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
+    CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
+    SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
+      SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
+    SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PVSERVER" );
+    if (!Comp->_is_nil()) {
+      aName->SetValue(Comp->componentusername());
+    }
+
+    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
+    _PTR(AttributePixMap) aPixmap (anAttr);
+    aPixmap->SetPixMap( "pqAppIcon16.png" );
+
+    // Create Attribute parameters for future using
+    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
+
+    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetCPPEngine()->GetIOR());
+    if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
+    aStudyBuilder->CommitCommand();
+  }
+  return aSComponent;
+}
 
 /*!
   Clean up function; used to stop ParaView progress events when
@@ -316,6 +317,16 @@ PVViewer_EngineWrapper * PVGUI_Module::GetEngine()
   return PVViewer_EngineWrapper::GetInstance();
 }
 
+PVSERVER_ORB::PVSERVER_Gen_var PVGUI_Module::GetCPPEngine()
+{
+  // initialize PARAVIS module engine (load, if necessary)
+  if ( CORBA::is_nil( MyEngine ) ) {
+      Engines::EngineComponent_var comp =
+          SalomeApp_Application::lcc()->FindOrLoad_Component( "FactoryServer", "PVSERVER" );
+      MyEngine = PVSERVER_ORB::PVSERVER_Gen::_narrow( comp );
+ }
+  return MyEngine;
+}
 
 /*!
   \brief Create data model.
@@ -663,7 +674,7 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   if ( myRecentMenuId != -1 ) menuMgr()->show(myRecentMenuId);
 
-  //ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
+  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
 
   return isDone;
 }
@@ -810,9 +821,8 @@ void PVGUI_Module::onModelOpened()
 */
 QString PVGUI_Module::engineIOR() const
 {
-//  CORBA::String_var anIOR = GetCPPEngine()->GetIOR();
-//  return QString(anIOR.in());
-  return QString("");
+  CORBA::String_var anIOR = GetCPPEngine()->GetIOR();
+  return QString(anIOR.in());
 }
 
 /*!

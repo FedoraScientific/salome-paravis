@@ -20,7 +20,7 @@
 #  Module : PARAVIS
 #
 
-import PARAVIS_utils
+import PVSERVER_utils
 
 ## Initialize PARAVIS interface
-myParavisEngine = PARAVIS_utils.getEngine()
+myParavisEngine = PVSERVER_utils.getEngine()

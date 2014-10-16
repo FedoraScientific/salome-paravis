@@ -18,7 +18,7 @@
 #
 
 # ---
-# File   : PARAVIS_utils.py
+# File   : PVSERVER_utils.py
 # Author : Vadim SANDLER, Open CASCADE S.A.S. (vadim.sandler@opencascade.com)
 # ---
 #
@@ -44,18 +44,18 @@ from SALOME_NamingServicePy import SALOME_NamingServicePy_i
 from LifeCycleCORBA import LifeCycleCORBA
 import SALOMEDS
 import SALOMEDS_Attributes_idl
-import PARAVIS_ORB
+import PVSERVER_ORB
 import os
 
 ###
-# Get PARAVIS module's ID
+# Get PVSERVER module's ID
 ###
 def moduleID():
     MODULE_ID = 1000
     return MODULE_ID
 
 ###
-# Get PARAVIS object's ID
+# Get PVSERVER object's ID
 ###
 def objectID():
     OBJECT_ID = 1010
@@ -69,16 +69,16 @@ def unknownID():
     return FOREIGN_ID
 
 ###
-# Get PARAVIS module's name
+# Get PVSERVER module's name
 ###
 def moduleName():
-    return "PARAVIS"
+    return "PVSERVER"
 
 ###
 # Get module's pixmap name
 ###
 def modulePixmap():
-    return "PARAVIS_small.png"
+    return "PVSERVER_small.png"
 
 ###
 # Get verbose level
@@ -141,7 +141,7 @@ def getStudyManager():
     return __study_manager__
 
 ###
-# Get PARAVIS engine
+# Get PVSERVER engine
 ###
 __engine__ = None
 def getEngine():
@@ -152,7 +152,7 @@ def getEngine():
     return __engine__
 
 ###
-# Get PARAVIS engine IOR
+# Get PVSERVER engine IOR
 ###
 def getEngineIOR():
     IOR = ""
@@ -162,7 +162,7 @@ def getEngineIOR():
     return IOR
 
 ###
-# Find or create PARAVIS component object in a study
+# Find or create PVSERVER component object in a study
 ###
 def findOrCreateComponent( study ):
     father = study.FindComponent( moduleName() )

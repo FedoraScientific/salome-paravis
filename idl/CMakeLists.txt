@@ -45,7 +45,7 @@ IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
   )
 ELSE()
   SET(SalomeIDLPARAVIS_IDLSOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/no_wrap/PARAVIS_Gen.idl
+    ${CMAKE_CURRENT_SOURCE_DIR}/no_wrap/PVSERVER_Gen.idl
   )
   SET(_idl_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/no_wrap
@@ -59,5 +59,5 @@ SET(_idl_link_flags
   ${KERNEL_SalomeIDLKernel}
 )
 
-OMNIORB_ADD_MODULE(SalomeIDLPARAVIS "${SalomeIDLPARAVIS_IDLSOURCES}" "${_idl_include_dirs}" "${_idl_link_flags}")
-INSTALL(TARGETS SalomeIDLPARAVIS EXPORT ${PROJECT_NAME}TargetGroup DESTINATION ${SALOME_INSTALL_LIBS})
+OMNIORB_ADD_MODULE(SalomeIDLPVServer "${SalomeIDLPARAVIS_IDLSOURCES}" "${_idl_include_dirs}" "${_idl_link_flags}")
+INSTALL(TARGETS SalomeIDLPVServer EXPORT ${PROJECT_NAME}TargetGroup DESTINATION ${SALOME_INSTALL_LIBS})

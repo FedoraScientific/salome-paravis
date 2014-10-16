@@ -27,9 +27,8 @@
 #define PVGUI_Module_H
 
 #include <SalomeApp_Module.h>
-#include "SALOMEconfig.h"
-#include CORBA_SERVER_HEADER(SALOMEDS)
-#include CORBA_SERVER_HEADER(PARAVIS_Gen)
+#include <SALOMEconfig.h>
+#include CORBA_SERVER_HEADER(PVSERVER_Gen)
 
 #include <ostream>
 #include <vtkType.h>
@@ -166,6 +165,7 @@ public:
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
   inline static PVViewer_EngineWrapper * GetEngine();
+  inline static PVSERVER_ORB::PVSERVER_Gen_var GetCPPEngine();  // to be removed once light!
   inline static pqPVApplicationCore * GetPVApplication();
 
   virtual CAM_DataModel* createDataModel();
@@ -299,7 +299,8 @@ private:
 
   PVViewer_GUIElements * myGuiElements;
 
-  static PARAVIS_ORB::PARAVIS_Gen_var MyEngine;
+  static PVSERVER_ORB::PVSERVER_Gen_var MyEngine;
+
 };
 
 #endif // PVGUI_Module_H

@@ -29,7 +29,7 @@ ELSE(SALOME_LIGHT_ONLY)
     # Use another set of Python files redirecting the API directly 
     # to the original ParaView modules.
     LIST(APPEND _PYFILES_TO_INSTALL
-      no_wrap/paravis.py
+      no_wrap/pvserver.py
       no_wrap/pvsimple.py
       no_wrap/presentations.py
       no_wrap/paravisSM.py

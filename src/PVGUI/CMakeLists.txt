@@ -57,7 +57,7 @@ SET(_link_LIBRARIES
   ${MED_SalomeIDLMED}
   ${_PARAVIEW_APP_COMPO_LIB}
   ${GUI_PVViewer}
-  SalomeIDLPARAVIS
+  SalomeIDLPVServer
 )
 
 # --- headers ---

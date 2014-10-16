@@ -68,7 +68,7 @@ def ShowParaviewView():
 ShowParaviewView()  
 
 import paraview
-import paravis
+import pvserver
 from paraview import simple
 
 def SalomeConnectToPVServer():

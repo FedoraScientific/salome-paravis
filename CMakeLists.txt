@@ -251,7 +251,7 @@ INCLUDE(CMakePackageConfigHelpers)
 # List of targets in this project we want to make visible to the rest of the world.
 # They all have to be INSTALL'd with the option "EXPORT ${PROJECT_NAME}TargetGroup"
 IF(NOT SALOME_LIGHT_ONLY)
-  SET(_${PROJECT_NAME}_exposed_targets SalomeIDLPARAVIS PARAVIS)
+  SET(_${PROJECT_NAME}_exposed_targets SalomeIDLPVServer PARAVIS)
 
   # Add all targets to the build-tree export set
   EXPORT(TARGETS ${_${PROJECT_NAME}_exposed_targets}
