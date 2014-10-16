@@ -982,7 +982,10 @@ void PVGUI_Module::createPreferences()
 {
   // Paraview settings tab
   int aParaViewSettingsTab = addPreference( tr( "TIT_PVIEWSETTINGS" ) );
+
+  setPreferenceProperty(aParaViewSettingsTab, "stretch", false );
   int aPanel = addPreference(QString(), aParaViewSettingsTab, LightApp_Preferences::UserDefined, PARAVIS_MODULE_NAME, "");
+
   setPreferenceProperty(aPanel, "content", (qint64)(new PVGUI_ParaViewSettingsPane()));
 
   // Paravis settings tab
