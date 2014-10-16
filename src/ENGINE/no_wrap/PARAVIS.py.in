@@ -35,7 +35,8 @@ import os
 #from SALOME_utilities import MESSAGE
 
 def MESSAGE(m):
-    os.system("echo \"%s\" >> /tmp/paravis_log.txt" % m)
+    pass
+    #os.system("echo \"%s\" >> /tmp/paravis_log.txt" % m)
 
 class PARAVIS_Impl:
     """ The core implementation (non CORBA, or Study related).

@@ -20,10 +20,6 @@
 SET(dist_salomeres_DATA
   pqAppIcon22.png
   pqAppIcon16.png
-  ParaViewFilters.xml
-  ParaViewReaders.xml
-  ParaViewSources.xml
-  ParaViewWriters.xml
   )
 
 SET(input ${CMAKE_CURRENT_SOURCE_DIR}/PARAVISCatalog.xml.in)

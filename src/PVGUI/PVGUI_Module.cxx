@@ -20,6 +20,8 @@
 //
 // File   : PVGUI_Module.cxx
 
+#define PARAVIS_MODULE_NAME "PARAVIS"
+
 #include <Standard_math.hxx>  // E.A. must be included before Python.h to fix compilation on windows
 #ifdef HAVE_FINITE
 #undef HAVE_FINITE            // VSR: avoid compilation warning on Linux : "HAVE_FINITE" redefined
@@ -41,8 +43,10 @@
 #include "PVGUI_ParaViewSettingsPane.h"
 #include "PVViewer_GUIElements.h"
 #include "PVViewer_EngineWrapper.h"
+#include "PVGUI_DataModel.h"
 
 // SALOME Includes
+#include <utilities.h>
 #include <SUIT_DataBrowser.h>
 #include <SUIT_Desktop.h>
 #include <SUIT_MessageBox.h>
@@ -56,7 +60,8 @@
 
 #include <LightApp_SelectionMgr.h>
 #include <LightApp_NameDlg.h>
-#include <SalomeApp_Application.h>
+#include <LightApp_Application.h>
+#include <SalomeApp_Application.h>  // should ultimately be a LightApp only
 #include <SalomeApp_Study.h>
 #include <SALOME_ListIO.hxx>
 #include <SALOMEDS_Tool.hxx>
@@ -131,6 +136,8 @@
 // TO REMOVE:
 #include <PyInterp_Interp.h>
 
+#include <PVViewer_EngineWrapper.h>
+
 
 //----------------------------------------------------------------------------
 PVGUI_Module* ParavisModule = 0;
@@ -203,45 +210,45 @@ PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::MyEngine;
          SALOME module wrapping ParaView GUI.
 */
 
-_PTR(SComponent)
-ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
-{
-  _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
-  if (!aSComponent) {
-    _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
-    aStudyBuilder->NewCommand();
-    int aLocked = theStudyDocument->GetProperties()->IsLocked();
-    if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
-    aSComponent = aStudyBuilder->NewComponent("PARAVIS");
-    _PTR(GenericAttribute) anAttr =
-      aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
-    _PTR(AttributeName) aName (anAttr);
-
-    ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
-    CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
-
-    SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
-    CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
-    SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
-      SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
-    SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
-    if (!Comp->_is_nil()) {
-      aName->SetValue(Comp->componentusername());
-    }
-
-    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
-    _PTR(AttributePixMap) aPixmap (anAttr);
-    aPixmap->SetPixMap( "pqAppIcon16.png" );
-
-    // Create Attribute parameters for future using
-    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
-
-    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetCPPEngine()->GetIOR());
-    if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
-    aStudyBuilder->CommitCommand();
-  }
-  return aSComponent;
-}
+//_PTR(SComponent)
+//ClientFindOrCreateParavisComponent(_PTR(Study) theStudyDocument)
+//{
+//  _PTR(SComponent) aSComponent = theStudyDocument->FindComponent("PARAVIS");
+//  if (!aSComponent) {
+//    _PTR(StudyBuilder) aStudyBuilder = theStudyDocument->NewBuilder();
+//    aStudyBuilder->NewCommand();
+//    int aLocked = theStudyDocument->GetProperties()->IsLocked();
+//    if (aLocked) theStudyDocument->GetProperties()->SetLocked(false);
+//    aSComponent = aStudyBuilder->NewComponent("PARAVIS");
+//    _PTR(GenericAttribute) anAttr =
+//      aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeName");
+//    _PTR(AttributeName) aName (anAttr);
+//
+//    ORB_INIT& init = *SINGLETON_<ORB_INIT>::Instance();
+//    CORBA::ORB_var anORB = init( qApp->argc(), qApp->argv() );
+//
+//    SALOME_NamingService *NamingService = new SALOME_NamingService( anORB );
+//    CORBA::Object_var objVarN = NamingService->Resolve("/Kernel/ModulCatalog");
+//    SALOME_ModuleCatalog::ModuleCatalog_var Catalogue =
+//      SALOME_ModuleCatalog::ModuleCatalog::_narrow(objVarN);
+//    SALOME_ModuleCatalog::Acomponent_var Comp = Catalogue->GetComponent( "PARAVIS" );
+//    if (!Comp->_is_nil()) {
+//      aName->SetValue(Comp->componentusername());
+//    }
+//
+//    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributePixMap");
+//    _PTR(AttributePixMap) aPixmap (anAttr);
+//    aPixmap->SetPixMap( "pqAppIcon16.png" );
+//
+//    // Create Attribute parameters for future using
+//    anAttr = aStudyBuilder->FindOrCreateAttribute(aSComponent, "AttributeParameter");
+//
+//    aStudyBuilder->DefineComponentInstance(aSComponent, PVGUI_Module::GetCPPEngine()->GetIOR());
+//    if (aLocked) theStudyDocument->GetProperties()->SetLocked(true);
+//    aStudyBuilder->CommitCommand();
+//  }
+//  return aSComponent;
+//}
 
 /*!
   Clean up function; used to stop ParaView progress events when
@@ -259,7 +266,7 @@ void paravisCleanUp()
   \brief Constructor. Sets the default name for the module.
 */
 PVGUI_Module::PVGUI_Module()
-  : SalomeApp_Module( "PARAVIS" ),
+    : SalomeApp_Module( PARAVIS_MODULE_NAME ),
     mySelectionControlsTb( -1 ),
     mySourcesMenuId( -1 ),
     myFiltersMenuId( -1 ),
@@ -304,17 +311,20 @@ PVGUI_Module::~PVGUI_Module()
     delete myInitTimer;
 }
 
-PARAVIS_ORB::PARAVIS_Gen_var PVGUI_Module::GetCPPEngine()
+PVViewer_EngineWrapper * PVGUI_Module::GetEngine()
 {
-  // initialize PARAVIS module engine (load, if necessary)
-  if ( CORBA::is_nil( MyEngine ) ) {
-      Engines::EngineComponent_var comp =
-          SalomeApp_Application::lcc()->FindOrLoad_Component( "FactoryServer", "PARAVIS" );
-      MyEngine = PARAVIS_ORB::PARAVIS_Gen::_narrow( comp );
-  }
-  return MyEngine;
+  return PVViewer_EngineWrapper::GetInstance();
 }
 
+
+/*!
+  \brief Create data model.
+  \return module specific data model
+*/
+CAM_DataModel* PVGUI_Module::createDataModel()
+{
+  return new PVGUI_DataModel( this );
+}
 
 pqPVApplicationCore * PVGUI_Module::GetPVApplication()
 {
@@ -327,7 +337,7 @@ pqPVApplicationCore * PVGUI_Module::GetPVApplication()
 */
 void PVGUI_Module::initialize( CAM_Application* app )
 {
-  SalomeApp_Module::initialize( app );
+  LightApp_Module::initialize( app );
 
   // Create ParaViS actions
   createActions();
@@ -343,12 +353,12 @@ void PVGUI_Module::initialize( CAM_Application* app )
   }
   */
 
-  SalomeApp_Application* anApp = getApp();
+  LightApp_Application* anApp = getApp();
   SUIT_Desktop* aDesktop = anApp->desktop();
 
   // Initialize ParaView client and associated behaviors
   // and connect to externally launched pvserver
-  PVViewer_ViewManager::ParaviewInitApp(aDesktop);
+  PVViewer_ViewManager::ParaviewInitApp(aDesktop, anApp->logWindow());
   myGuiElements = PVViewer_GUIElements::GetInstance(aDesktop);
 
   // Remember current state of desktop toolbars
@@ -414,7 +424,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
   updateMacros();
  
   SUIT_ResourceMgr* aResourceMgr = SUIT_Session::session()->resourceMgr();
-  bool isStop = aResourceMgr->booleanValue( "PARAVIS", "stop_trace", false );
+  bool isStop = aResourceMgr->booleanValue( PARAVIS_MODULE_NAME, "stop_trace", false );
   if(!isStop)
     {
       // Start a timer to schedule asap:
@@ -524,11 +534,11 @@ void PVGUI_Module::windows( QMap<int, int>& m ) const
 */
 void PVGUI_Module::showView( bool toShow )
 {
-  SalomeApp_Application* anApp = getApp();
+  LightApp_Application* anApp = getApp();
   PVViewer_ViewManager* viewMgr =
     dynamic_cast<PVViewer_ViewManager*>( anApp->getViewManager( PVViewer_Viewer::Type(), false ) );
   if ( !viewMgr ) {
-    viewMgr = new PVViewer_ViewManager( anApp->activeStudy(), anApp->desktop() );
+    viewMgr = new PVViewer_ViewManager( anApp->activeStudy(), anApp->desktop(), anApp->logWindow() );
     anApp->addViewManager( viewMgr );
     connect( viewMgr, SIGNAL( lastViewClosed( SUIT_ViewManager* ) ),
              anApp, SLOT( onCloseView( SUIT_ViewManager* ) ) );
@@ -612,7 +622,7 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   storeCommonWindowsState();
 
-  bool isDone = SalomeApp_Module::activateModule( study );
+  bool isDone = LightApp_Module::activateModule( study );
   if ( !isDone ) return false;
 
   showView( true );
@@ -653,7 +663,7 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
 
   if ( myRecentMenuId != -1 ) menuMgr()->show(myRecentMenuId);
 
-  ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
+  //ClientFindOrCreateParavisComponent(PARAVIS::GetCStudy(this));
 
   return isDone;
 }
@@ -714,7 +724,7 @@ bool PVGUI_Module::deactivateModule( SUIT_Study* study )
 
   restoreCommonWindowsState();
   
-  return SalomeApp_Module::deactivateModule( study );
+  return LightApp_Module::deactivateModule( study );
 }
 
 
@@ -762,7 +772,7 @@ void PVGUI_Module::studyClosed(SUIT_Study* study)
 {
   clearParaviewState();
 
-  SalomeApp_Module::studyClosed(study);
+  LightApp_Module::studyClosed(study);
 }
 
 /*!
@@ -774,9 +784,9 @@ void PVGUI_Module::onModelOpened()
   if(!studyDS) {
     return;
   }
-  
-  _PTR(SComponent) paravisComp = 
-    studyDS->FindComponent(GetCPPEngine()->ComponentDataType());
+
+  _PTR(SComponent) paravisComp =
+    studyDS->FindComponent(PARAVIS_MODULE_NAME);
   if(!paravisComp) {
     return;
   }
@@ -796,12 +806,13 @@ void PVGUI_Module::onModelOpened()
 }
 
 /*!
-  \brief Returns IOR of current engine
+\brief Returns IOR of current engine
 */
 QString PVGUI_Module::engineIOR() const
 {
-  CORBA::String_var anIOR = GetCPPEngine()->GetIOR();
-  return QString(anIOR.in());
+//  CORBA::String_var anIOR = GetCPPEngine()->GetIOR();
+//  return QString(anIOR.in());
+  return QString("");
 }
 
 /*!
@@ -971,18 +982,18 @@ void PVGUI_Module::createPreferences()
 {
   // Paraview settings tab
   int aParaViewSettingsTab = addPreference( tr( "TIT_PVIEWSETTINGS" ) );
-  int aPanel = addPreference(QString(), aParaViewSettingsTab, LightApp_Preferences::UserDefined, "PARAVIS", "");
+  int aPanel = addPreference(QString(), aParaViewSettingsTab, LightApp_Preferences::UserDefined, PARAVIS_MODULE_NAME, "");
   setPreferenceProperty(aPanel, "content", (qint64)(new PVGUI_ParaViewSettingsPane()));
 
   // Paravis settings tab
   int aParaVisSettingsTab = addPreference( tr( "TIT_PVISSETTINGS" ) );
-  addPreference( tr( "PREF_STOP_TRACE" ), aParaVisSettingsTab, LightApp_Preferences::Bool, "PARAVIS", "stop_trace");
+  addPreference( tr( "PREF_STOP_TRACE" ), aParaVisSettingsTab, LightApp_Preferences::Bool, PARAVIS_MODULE_NAME, "stop_trace");
 
-  addPreference( tr( "PREF_NO_EXT_PVSERVER" ), aParaVisSettingsTab, LightApp_Preferences::Bool, "PARAVIS", "no_ext_pv_server");
+  addPreference( tr( "PREF_NO_EXT_PVSERVER" ), aParaVisSettingsTab, LightApp_Preferences::Bool, PARAVIS_MODULE_NAME, "no_ext_pv_server");
 
   int aSaveType = addPreference(tr( "PREF_SAVE_TYPE_LBL" ), aParaVisSettingsTab,
                                 LightApp_Preferences::Selector,
-                                "PARAVIS", "savestate_type");
+                                PARAVIS_MODULE_NAME, "savestate_type");
   QList<QVariant> aIndices;
   QStringList aStrings;
   aIndices<<0<<1<<2;
@@ -998,8 +1009,8 @@ void PVGUI_Module::createPreferences()
 */
 void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle)
 {
-  SalomeApp_Module::contextMenuPopup(theClient, theMenu, theTitle);
-  
+  LightApp_Module::contextMenuPopup(theClient, theMenu, theTitle);
+
   // Check if we are in Object Browser
   SUIT_DataBrowser* ob = getApp()->objectBrowser();
   bool isOBClient = (ob && theClient == ob->popupClientType());
@@ -1013,22 +1024,22 @@ void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QS
   aSelectionMgr->selectedObjects(aListIO);
   if (aListIO.Extent() == 1 && aListIO.First()->hasEntry()) {
     QString entry = QString(aListIO.First()->getEntry());
-    
+
     // Get active study
-    SalomeApp_Study* activeStudy = 
+    SalomeApp_Study* activeStudy =
       dynamic_cast<SalomeApp_Study*>(getApp()->activeStudy());
     if(!activeStudy) {
       return;
     }
 
-    // Get SALOMEDS client study 
+    // Get SALOMEDS client study
     _PTR(Study) studyDS = activeStudy->studyDS();
     if(!studyDS) {
       return;
     }
 
-    QString paravisDataType(GetCPPEngine()->ComponentDataType());
-    if(activeStudy && activeStudy->isComponent(entry) && 
+    QString paravisDataType(PARAVIS_MODULE_NAME);
+    if(activeStudy && activeStudy->isComponent(entry) &&
        activeStudy->componentDataType(entry) == paravisDataType) {
       // ParaViS module object
       theMenu->addSeparator();
@@ -1036,12 +1047,12 @@ void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QS
     }
     else {
       // Try to get state object
-      _PTR(SObject) stateSObj = 
+      _PTR(SObject) stateSObj =
           studyDS->FindObjectID(entry.toLatin1().constData());
       if (!stateSObj) {
           return;
       }
-      
+
       // Check local id
       _PTR(GenericAttribute) anAttr;
       if (!stateSObj->FindAttribute(anAttr, "AttributeLocalID")) {
@@ -1049,7 +1060,7 @@ void PVGUI_Module::contextMenuPopup(const QString& theClient, QMenu* theMenu, QS
       }
 
       _PTR(AttributeLocalID) anID(anAttr);
-      
+
       if (anID->Value() == PVSTATEID) {
         // Paraview state object
         theMenu->addSeparator();
@@ -1099,9 +1110,9 @@ void PVGUI_Module::onSaveMultiState()
   if(!studyDS) {
     return;
   }
-  
+
   _PTR(SComponent) paravisComp = 
-    studyDS->FindComponent(GetCPPEngine()->ComponentDataType());
+      studyDS->FindComponent(PARAVIS_MODULE_NAME);
   if(!paravisComp) {
     return;
   }
@@ -1267,8 +1278,8 @@ void PVGUI_Module::onDelete()
 
 void PVGUI_Module::onPushTraceTimer()
 {
-//  MESSAGE("onPushTraceTimer(): Pushing trace to engine...");
-  GetCPPEngine()->PutPythonTraceStringToEngine(getTraceString().toStdString().c_str());
+  //MESSAGE("onPushTraceTimer(): Pushing trace to engine...");
+  GetEngine()->PutPythonTraceStringToEngine(getTraceString().toStdString().c_str());
 }
 
 /*!

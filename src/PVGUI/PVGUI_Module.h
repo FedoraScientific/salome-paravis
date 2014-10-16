@@ -50,6 +50,7 @@ class pqPVApplicationCore;
 class pqDataRepresentation;
 class pqRepresentation;
 class PVViewer_GUIElements;
+class PVViewer_EngineWrapper;
 
 class PVGUI_Module : public SalomeApp_Module
 {
@@ -145,7 +146,7 @@ public:
   virtual void           initialize( CAM_Application* );
   virtual void           windows( QMap<int, int>& ) const;
 
-  virtual QString engineIOR() const;
+  virtual QString engineIOR() const;  // to be removed when becoming Light
 
   void openFile(const char* theName);
   void executeScript(const char *script);
@@ -164,9 +165,10 @@ public:
 
   virtual void contextMenuPopup(const QString& theClient, QMenu* theMenu, QString& theTitle);
 
-  // Get the unwrapped version of the engine - compare with PVViewer_EngineWrapper.
-  inline static PARAVIS_ORB::PARAVIS_Gen_var GetCPPEngine();
+  inline static PVViewer_EngineWrapper * GetEngine();
   inline static pqPVApplicationCore * GetPVApplication();
+
+  virtual CAM_DataModel* createDataModel();
 
 public slots:
   //void onImportFromVisu(QString theEntry);

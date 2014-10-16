@@ -71,9 +71,7 @@ QT4_WRAP_UI(_ui_FORMS_HEADERS ${_ui_files})
 # header files / to be processed by moc
 SET(_moc_HEADERS
   PVGUI_Module.h
-#  PVGUI_ViewManager.h
-#  PVGUI_ViewModel.h
-#  PVGUI_ViewWindow.h
+  PVGUI_DataModel.h
   PVGUI_ParaViewSettingsPane.h
 )
 
@@ -145,6 +143,7 @@ SET(_other_SOURCES
   PVGUI_Module_widgets.cxx
   PVGUI_Tools.cxx
   PVGUI_ParaViewSettingsPane.cxx
+  PVGUI_DataModel.cxx
   )
 
 IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)

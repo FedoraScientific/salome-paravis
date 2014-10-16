@@ -31,7 +31,7 @@
 #include <SUIT_Desktop.h>
 #include <SUIT_ResourceMgr.h>
 #include <SUIT_Session.h>
-#include <SalomeApp_Application.h>
+#include <SalomeApp_Application.h>  // should ultimately be a LightApp only
 #include <LightApp_Application.h>
 
 #include <QAction>
@@ -551,7 +551,8 @@ void PVGUI_Module::pvCreateToolBars()
 QMenu* PVGUI_Module::getMenu( const int id )
 {
   QMenu* res = 0;
-  SalomeApp_Application* anApp = getApp();
+  //SalomeApp_Application* anApp = getApp();
+  LightApp_Application* anApp = getApp();
   SUIT_Desktop* desk = anApp->desktop();
   if ( desk ){
     QtxActionMenuMgr* menuMgr = desk->menuMgr();

@@ -28,7 +28,7 @@
 
 #include <QtxActionToolMgr.h>
 #include <LightApp_Application.h>
-#include <SalomeApp_Application.h>
+#include <SalomeApp_Application.h>   // // should ultimately be a LightApp only
 #include <SUIT_Desktop.h>
 
 #include <QApplication>
@@ -105,6 +105,7 @@ void PVGUI_Module::setupDockWidgets()
  
   desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+  desk->setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
 
   // Pipeline
   QDockWidget* pipelineBrowserDock = new QDockWidget( tr( "TTL_PIPELINE_BROWSER" ), desk );
@@ -137,7 +138,7 @@ void PVGUI_Module::setupDockWidgets()
 
   QWidget* informationWidgetFrame = new QWidget(informationDock);
   informationWidgetFrame->setObjectName("informationWidgetFrame");
-  
+
   QVBoxLayout* verticalLayout_2 = new QVBoxLayout(informationWidgetFrame);
   verticalLayout_2->setSpacing(0);
   verticalLayout_2->setContentsMargins(0, 0, 0, 0);
@@ -156,7 +157,7 @@ void PVGUI_Module::setupDockWidgets()
 
   myDockWidgets[informationDock] = true;
 
-  desk->setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
+
   desk->tabifyDockWidget(informationDock, propertiesDock);
   desk->tabifyDockWidget(propertiesDock, pipelineBrowserDock);
   //propertiesDock->raise();
@@ -263,8 +264,8 @@ void PVGUI_Module::setupDockWidgets()
   aProgress->setEnabled(true);
 
   // Set up the dock window corners to give the vertical docks more room.
-  desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-  desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+//  desk->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+//  desk->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
   // Setup the default dock configuration ...
   statisticsViewDock->hide();
@@ -384,12 +385,15 @@ void PVGUI_Module::storeCommonWindowsState() {
   //     restoreCommonWindowsState() method, and at the moment of the ParaVis activation we call 
   //     this method.
 
+  //LightApp_Application* anApp = getApp();
   SalomeApp_Application* anApp = getApp();
   if(!anApp)
     return;
 
-  int begin = SalomeApp_Application::WT_ObjectBrowser;
-  int end = SalomeApp_Application::WT_NoteBook;
+//  int begin = SalomeApp_Application::WT_ObjectBrowser;
+//  int end = SalomeApp_Application::WT_NoteBook;
+  int begin = LightApp_Application::WT_ObjectBrowser;
+  int end = LightApp_Application::WT_User;
   for( int i = begin; i <= end; i++ ) {
     QWidget* wg = anApp->getWindow(i);
     if(wg) {
@@ -415,6 +419,7 @@ void PVGUI_Module::storeCommonWindowsState() {
 */
 void PVGUI_Module::restoreCommonWindowsState() {
   SalomeApp_Application* anApp = getApp();
+//  LightApp_Application* anApp = getApp();
   if(!anApp)
     return;
   DockWindowMap::const_iterator it = myCommonMap.begin();
