@@ -115,6 +115,7 @@ void PVGUI_Module::setupDockWidgets()
   pqPipelineBrowserWidget* browser = guiElements->getPipelineBrowserWidget();
   pipelineBrowserDock->setWidget(browser);
   myDockWidgets[pipelineBrowserDock] = true;
+  pipelineBrowserDock->hide();
 
   // Properties dock (previously called OBJECT_INSPECTOR)
   QDockWidget* propertiesDock = new QDockWidget( tr( "TTL_OBJECT_INSPECTOR" ), desk );
@@ -129,8 +130,8 @@ void PVGUI_Module::setupDockWidgets()
   QAction* tempDeleteAction = new QAction(this);
   pqDeleteReaction* handler = new pqDeleteReaction(tempDeleteAction);
   handler->connect(propertiesPanel, SIGNAL(deleteRequested(pqPipelineSource*)), SLOT(deleteSource(pqPipelineSource*)));
-
   myDockWidgets[propertiesDock] = true;
+  propertiesDock->hide();
 
   // Information dock
   QDockWidget* informationDock = new QDockWidget(tr( "TTL_INFORMATION" ), desk);
