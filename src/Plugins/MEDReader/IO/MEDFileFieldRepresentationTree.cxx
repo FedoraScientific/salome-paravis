@@ -1151,7 +1151,24 @@ void MEDFileFieldRepresentationTree::loadMainStructureOfFile(const char *fileNam
         {
           MEDCouplingAutoRefCountObjectPtr<MEDFileAnyTypeFieldMultiTS> fmts((*fields)->getFieldAtPos((int)j));
           std::vector< MEDCouplingAutoRefCountObjectPtr< MEDFileAnyTypeFieldMultiTS > > tmp(fmts->splitDiscretizations());
-          allFMTSLeavesToDisplaySafe.insert(allFMTSLeavesToDisplaySafe.end(),tmp.begin(),tmp.end());
+          // EDF 8655
+          for(std::vector< MEDCouplingAutoRefCountObjectPtr< MEDFileAnyTypeFieldMultiTS > >::const_iterator it=tmp.begin();it!=tmp.end();it++)
+            {
+              if(!(*it)->presenceOfMultiDiscPerGeoType())
+                allFMTSLeavesToDisplaySafe.push_back(*it);
+              else
+                {// The case of some parts of field have more than one discretization per geo type.
+                  std::vector< MEDCouplingAutoRefCountObjectPtr< MEDFileAnyTypeFieldMultiTS > > subTmp((*it)->splitMultiDiscrPerGeoTypes());
+                  std::size_t it0Cnt(0);
+                  for(std::vector< MEDCouplingAutoRefCountObjectPtr< MEDFileAnyTypeFieldMultiTS > >::iterator it0=subTmp.begin();it0!=subTmp.end();it0++,it0Cnt++)//not const because setName
+                    {
+                      std::ostringstream oss; oss << (*it0)->getName() << "_" << std::setfill('M') << std::setw(3) << it0Cnt;
+                      (*it0)->setName(oss.str());
+                      allFMTSLeavesToDisplaySafe.push_back(*it0);
+                    }
+                }
+            }
+         // end EDF 8655
         }
     }
   std::vector< MEDFileAnyTypeFieldMultiTS *> allFMTSLeavesToDisplay(allFMTSLeavesToDisplaySafe.size());
