@@ -78,11 +78,11 @@ def SalomeConnectToPVServer():
     __my_log("Connecting to PVServer ...")
     server_url = ""
     try:
-        isGUIConnected = paravis.myParavisEngine.GetGUIConnected()
+        isGUIConnected = paravis.myPVServerService.GetGUIConnected()
         if isGUIConnected and __getFromGUI():
             __my_log("Importing pvsimple from GUI and already connected. Won't reconnect.")
             return
-        server_url = paravis.myParavisEngine.FindOrStartPVServer(0)
+        server_url = paravis.myPVServerService.FindOrStartPVServer(0)
         # Extract host and port from URL:
         a = server_url.split(':')
         b = a[1].split('//')
@@ -90,7 +90,7 @@ def SalomeConnectToPVServer():
         simple.Connect(host, port)
         __my_log("Connected to %s!" % server_url)
         if __getFromGUI():
-            paravis.myParavisEngine.SetGUIConnected(True)
+            paravis.myPVServerService.SetGUIConnected(True)
     except Exception as e:
         __my_log("*******************************************")
         __my_log("** Could not connect to a running PVServer!")
