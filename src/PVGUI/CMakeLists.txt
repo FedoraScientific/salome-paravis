@@ -51,7 +51,7 @@ SET(_link_LIBRARIES
   ${OMNIORB_LIBRARIES}
   ${QT_LIBRARIES}
   ${PYTHON_LIBS}
-  ${KERNEL_LDFLAGS} 
+  ${KERNEL_LDFLAGS} ${KERNEL_SalomeDS}
   ${GUI_LDFLAGS} ${GUI_SalomeApp} ${GUI_LightApp} ${GUI_CAM} ${GUI_qtx} ${GUI_suit} ${GUI_Event}  
                  ${GUI_SalomeObject} ${GUI_vtkTools}
   ${MED_SalomeIDLMED}

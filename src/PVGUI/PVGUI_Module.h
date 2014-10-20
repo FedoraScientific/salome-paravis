@@ -244,7 +244,7 @@ private slots:
   void onShowTrace();
   void onRestartTrace();
 
-  void onNewParaViewWindow();
+//  void onNewParaViewWindow();
 
   void onSaveMultiState();
   void onAddState();
