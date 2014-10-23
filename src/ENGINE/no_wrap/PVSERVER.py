@@ -43,7 +43,6 @@ class PVSERVER_Impl:
         See the IDL for the documentation.
     """
     MAX_PVSERVER_PORT_TRIES = 10
-    PARAVIEW_ROOT_DIR = "@PARAVIEW_ROOT_DIR@"
     PVSERVER_DEFAULT_PORT = 11111
     
     def __init__(self):
@@ -51,7 +50,20 @@ class PVSERVER_Impl:
         self.pvserverPop = None  # Popen object from subprocess module
         self.lastTrace = ""
         self.isGUIConnected = False  # whether there is an active connection from the GUI.
-            
+        try:
+            import paraview
+            tmp=paraview.__file__
+        except:
+            raise Exception("PVSERVER_Impl.__init__ : \"import paraview\" failed !")
+        # deduce dynamically PARAVIEW_ROOT_DIR from the paraview module location
+        self.PARAVIEW_ROOT_DIR = None
+        ZE_KEY_TO_FIND_PV_ROOT_DIR="lib"
+        li=tmp.split(os.path.sep) ; li.reverse()
+        if ZE_KEY_TO_FIND_PV_ROOT_DIR not in li:
+            raise Exception("PVSERVER_Impl.__init__ : error during dynamic deduction of PARAVIEW_ROOT_DIR : Loc of paraview module is \"%s\" ! \"%s\" is supposed to be the key to deduce it !"%(tmp,ZE_KEY_TO_FIND_PV_ROOT_DIR))
+        li=li[li.index("lib")+1:] ; li.reverse()
+        self.PARAVIEW_ROOT_DIR = os.path.sep.join(li)
+
     """
     Private. Identify a free port to launch the PVServer. 
     """
