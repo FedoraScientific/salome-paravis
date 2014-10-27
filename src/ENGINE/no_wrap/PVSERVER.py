@@ -60,7 +60,9 @@ class PVSERVER_Impl:
         ZE_KEY_TO_FIND_PV_ROOT_DIR="lib"
         li=tmp.split(os.path.sep) ; li.reverse()
         if ZE_KEY_TO_FIND_PV_ROOT_DIR not in li:
-            raise Exception("PVSERVER_Impl.__init__ : error during dynamic deduction of PARAVIEW_ROOT_DIR : Loc of paraview module is \"%s\" ! \"%s\" is supposed to be the key to deduce it !"%(tmp,ZE_KEY_TO_FIND_PV_ROOT_DIR))
+            raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.INTERNAL_ERROR,
+                      "PVSERVER_Impl.__init__ : error during dynamic deduction of PARAVIEW_ROOT_DIR : Loc of paraview module is \"%s\" ! \"%s\" is supposed to be the key to deduce it !"%(tmp,ZE_KEY_TO_FIND_PV_ROOT_DIR),
+                      "PVSERVER.py", 0))
         li=li[li.index("lib")+1:] ; li.reverse()
         self.PARAVIEW_ROOT_DIR = os.path.sep.join(li)
 

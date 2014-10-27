@@ -24,6 +24,7 @@
 
 #include "PVGUI_Module.h"
 #include <PVViewer_GUIElements.h>
+#include <PVViewer_ViewManager.h>
 
 #include <QtxAction.h>
 #include <QtxActionMenuMgr.h>
@@ -482,21 +483,22 @@ void PVGUI_Module::pvCreateMenus()
   // --- Menu "Sources"
   // Install ParaView managers for "Sources" menu
   QMenu* aRes = 0;
+  QMenu* filtersMenu = 0;
   PVViewer_GUIElements * guiElements = PVViewer_GUIElements::GetInstance(desk);
   mySourcesMenuId = createMenu( tr( "MEN_DESK_SOURCES" ), -1, -1, 60);
   if ( (aRes = getMenu( mySourcesMenuId )) )
-    guiElements->updateSourcesMenu(aRes);
+    pqParaViewMenuBuilders::buildSourcesMenu(*aRes, desk);
   
   // --- Menu "Filters"
   // Install ParaView managers for "Filters" menu
   myFiltersMenuId = createMenu( tr( "MEN_DESK_FILTERS" ), -1, -1, 70 );
-  if ( (aRes = getMenu( myFiltersMenuId )) )
-    guiElements->updateFiltersMenu(aRes);
+  if ( (filtersMenu = getMenu( myFiltersMenuId )) )
+    pqParaViewMenuBuilders::buildFiltersMenu(*filtersMenu, desk);
 
    // --- Menu "Macros"
   myMacrosMenuId = createMenu( tr( "MEN_MACROS" ), -1, -1, 80 );
   if ( (aRes = getMenu( myMacrosMenuId )) )
-    guiElements->updateMacrosMenu(aRes);
+    pqParaViewMenuBuilders::buildMacrosMenu(*aRes);
  
   // --- Menu "Tools"
   int aToolsMnu = createMenu( tr( "MEN_DESK_TOOLS" ), -1, -1, 90 );
@@ -533,6 +535,20 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( separator(),     aPVHelpMnu );
 #endif
   createMenu( AboutParaViewId, aPVHelpMnu );
+
+  // Reload configuration to populate dynamic menus from ParaView:
+  PVViewer_ViewManager::ParaviewLoadConfigurations(true);
+
+  // Disable all filters for now (for some weird reasons they are all on when starting?)
+  QList<QMenu*> sub_menus = filtersMenu->findChildren<QMenu*>();
+  foreach(QMenu * m, sub_menus)
+    {
+      QList<QAction *> act_list = m->actions();
+      foreach(QAction * a, act_list)
+      {
+        a->setEnabled(false);
+      }
+    }
 }
 
 /*!

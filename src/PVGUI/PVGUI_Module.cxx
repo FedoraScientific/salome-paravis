@@ -643,12 +643,12 @@ bool PVGUI_Module::activateModule( SUIT_Study* study )
   if ( myToolbarsMenuId != -1 ) menuMgr()->show(myToolbarsMenuId);
 
   // Update the various menus with the content pre-loaded in myGuiElements
-  QMenu* srcMenu = menuMgr()->findMenu( mySourcesMenuId );
-  myGuiElements->updateSourcesMenu(srcMenu);
-  QMenu* filtMenu = menuMgr()->findMenu( myFiltersMenuId );
-  myGuiElements->updateFiltersMenu(filtMenu);
-  QMenu* macMenu = menuMgr()->findMenu( myMacrosMenuId );
-  myGuiElements->updateMacrosMenu(macMenu);
+//  QMenu* srcMenu = menuMgr()->findMenu( mySourcesMenuId );
+//  myGuiElements->updateSourcesMenu(srcMenu);
+//  QMenu* filtMenu = menuMgr()->findMenu( myFiltersMenuId );
+//  myGuiElements->updateFiltersMenu(filtMenu);
+//  QMenu* macMenu = menuMgr()->findMenu( myMacrosMenuId );
+//  myGuiElements->updateMacrosMenu(macMenu);
 
   setMenuShown( true );
   setToolShown( true );
