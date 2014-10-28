@@ -32,6 +32,7 @@ class QAbstractButton;
 class vtkSMProperty;
 class QShowEvent;
 class QHideEvent;
+class LightApp_Application;
 
 /**!
  * Almost identical copy/paste of what is found in
@@ -45,7 +46,7 @@ class PVGUI_ParaViewSettingsPane : public QtxUserDefinedContent
   Q_OBJECT
 
 public:
-  PVGUI_ParaViewSettingsPane(QWidget *parent=0);
+  PVGUI_ParaViewSettingsPane(QWidget *parent, LightApp_Application * app);
   virtual ~PVGUI_ParaViewSettingsPane();
 
   /// Implementation of QtxUserDefinedContent interface

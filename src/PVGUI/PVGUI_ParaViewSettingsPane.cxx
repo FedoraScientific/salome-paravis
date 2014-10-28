@@ -25,6 +25,8 @@
 #include "PVGUI_ParaViewSettingsPane.h"
 #include "ui_pqCustomSettingsWidget.h"
 
+#include <LightApp_Application.h>
+
 #include <QtxDialog.h>
 
 #include <QString>
@@ -70,7 +72,7 @@ public:
 bool PVGUI_ParaViewSettingsPane::ShowRestartRequired = false;
 
 //----------------------------------------------------------------------------
-PVGUI_ParaViewSettingsPane::PVGUI_ParaViewSettingsPane(QWidget *widgetParent)
+PVGUI_ParaViewSettingsPane::PVGUI_ParaViewSettingsPane(QWidget *widgetParent, LightApp_Application * app)
   : QtxUserDefinedContent(widgetParent),
     Internals (new PVGUI_ParaViewSettingsPane::pqInternals())
 {
@@ -156,6 +158,10 @@ PVGUI_ParaViewSettingsPane::PVGUI_ParaViewSettingsPane(QWidget *widgetParent)
 //  this->connect(ui.buttonBox->button(QDialogButtonBox::RestoreDefaults), SIGNAL(clicked()),
 //                SLOT(onRestoreDefaults()));
 //  this->connect(ui.buttonBox, SIGNAL(clicked(QAbstractButton*)), SLOT(clicked(QAbstractButton*)));
+
+  // [ABN] connect to reset to default emitted by Light_App:
+  this->connect(app, SIGNAL(preferenceResetToDefaults()), this, SLOT(onRestoreDefaults()));
+
   this->connect(this, SIGNAL(accepted()), SLOT(onAccepted()));
   this->connect(this, SIGNAL(rejected()), SLOT(onRejected()));
   this->connect(ui.tabBar, SIGNAL(currentChanged(int)), this, SLOT(onTabIndexChanged(int)));
