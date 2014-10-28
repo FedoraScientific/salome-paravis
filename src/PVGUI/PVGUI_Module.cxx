@@ -380,11 +380,14 @@ void PVGUI_Module::initialize( CAM_Application* app )
   // Behaviors and connection must be instanciated *after* widgets are in place
   // In PARAVIS module we do not wait for PVViewer_ViewWindow to be instanciated to have this:
   PVViewer_ViewManager::ParaviewInitBehaviors(true, aDesktop);
-  PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
 
   pvCreateActions();
-  pvCreateToolBars();
   pvCreateMenus();
+  pvCreateToolBars();
+
+  // Connect after toolbar creation, etc ... as some activations of the toolbars is triggered
+  // by the ServerConnection event:
+  PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
 
   QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
   QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();

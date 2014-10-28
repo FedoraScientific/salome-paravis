@@ -82,6 +82,7 @@
 #include <pqViewManager.h>
 #include <pqDataQueryReaction.h>
 #include <pqRecentFilesMenu.h>
+#include <pqPipelineBrowserWidget.h>
 
 #include "PVGUI_Tools.h"
 
@@ -535,6 +536,10 @@ void PVGUI_Module::pvCreateMenus()
   createMenu( separator(),     aPVHelpMnu );
 #endif
   createMenu( AboutParaViewId, aPVHelpMnu );
+
+  // -- Context menu in the pipeline browser
+  pqPipelineBrowserWidget * pq = guiElements->getPipelineBrowserWidget();
+  pqParaViewMenuBuilders::buildPipelineBrowserContextMenu( *pq );
 
   // Reload configuration to populate dynamic menus from ParaView:
   PVViewer_ViewManager::ParaviewLoadConfigurations(true);
