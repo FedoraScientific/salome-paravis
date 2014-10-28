@@ -53,6 +53,7 @@ GAP_COEFFICIENT = 0.0001
 
 # Globals
 _current_bar = None
+_med_field_sep = '@@][@@'
 
 
 # Enumerations
@@ -97,11 +98,11 @@ class EntityType:
     NODE = 0
     CELL = 1
 
-    _type2name = {NODE: 'OnPoint',
-                  CELL: 'OnCell'}
+    _type2name = {NODE: 'P1',
+                  CELL: 'P0'}
 
-    _name2type = {'OnPoint': NODE,
-                  'OnCell': CELL}
+    _name2type = {'P1': NODE,
+                  'P0': CELL}
 
     _type2pvtype = {NODE: 'POINT_DATA',
                     CELL: 'CELL_DATA'}
@@ -171,6 +172,42 @@ class GaussType:
 
 
 # Auxiliary functions
+
+def get_field_mesh_name(full_field_name):
+    """Return mesh name of the field by its full name."""
+    aList = full_field_name.split('/')
+    if len(aList) >= 2 :
+        field_name = full_field_name.split('/')[1]
+        return field_name
+
+
+def get_field_entity(full_field_name):
+    """Return entity type of the field by its full name."""
+    aList = full_field_name.split(_med_field_sep)
+    if len(aList) == 2 :
+        entity_name = full_field_name.split(_med_field_sep)[-1]
+        entity = EntityType.get_type(entity_name)
+        return entity
+
+
+def get_field_short_name(full_field_name):
+    """Return short name of the field by its full name."""
+    aList = full_field_name.split('/')
+    if len(aList) == 4 :
+        short_name_with_type = full_field_name.split('/')[-1]
+        short_name = short_name_with_type.split(_med_field_sep)[0]
+        return short_name
+
+
+def find_mesh_full_name(proxy, short_mesh_name):
+    """Return full mesh path by short mesh name, if found"""
+    proxy.UpdatePipeline()
+    all_mesh_names = get_mesh_full_names(proxy)
+    for name in all_mesh_names:
+        if short_mesh_name == get_field_short_name(name):
+            return name
+
+
 def process_prs_for_test(prs, view, picture_name, show_bar=True):
     """Show presentation and record snapshot image.
 
@@ -243,9 +280,13 @@ def hide_all(view, to_remove=False):
 
 def display_only(prs, view=None):
     """Display only the given presentation in the view."""
-    hide_all(view)
-    if (hasattr(prs, 'Visibility') and prs.Visibility != 1):
-        prs.Visibility = 1
+    if not view:
+        view = pvs.GetRenderView()
+
+    rep_list = view.Representations
+    for rep in rep_list:
+        if hasattr(rep, 'Visibility'):
+            rep.Visibility = (rep == prs)
     pvs.Render(view=view)
 
 
@@ -328,6 +369,7 @@ def get_data_range(proxy, entity, field_name, vector_mode='Magnitude',
       Data range as [min, max]
 
     """
+    proxy.UpdatePipeline()
     entity_data_info = None
     field_data = proxy.GetFieldDataInformation()
 
@@ -360,6 +402,7 @@ def get_data_range(proxy, entity, field_name, vector_mode='Magnitude',
 
 def get_bounds(proxy):
     """Get bounds of the proxy in 3D."""
+    proxy.UpdatePipeline()
     dataInfo = proxy.GetDataInformation()
     bounds_info = dataInfo.GetBounds()
     return bounds_info
@@ -367,24 +410,28 @@ def get_bounds(proxy):
 
 def get_x_range(proxy):
     """Get X range of the proxy bounds in 3D."""
+    proxy.UpdatePipeline()
     bounds_info = get_bounds(proxy)
     return bounds_info[0:2]
 
 
 def get_y_range(proxy):
     """Get Y range of the proxy bounds in 3D."""
+    proxy.UpdatePipeline()
     bounds_info = get_bounds(proxy)
     return bounds_info[2:4]
 
 
 def get_z_range(proxy):
     """Get Z range of the proxy bounds in 3D."""
+    proxy.UpdatePipeline()
     bounds_info = get_bounds(proxy)
     return bounds_info[4:6]
 
 
 def is_planar_input(proxy):
     """Check if the given input is planar."""
+    proxy.UpdatePipeline()
     bounds_info = get_bounds(proxy)
 
     if (abs(bounds_info[0] - bounds_info[1]) <= FLT_MIN or
@@ -397,6 +444,7 @@ def is_planar_input(proxy):
 
 def is_data_on_cells(proxy, field_name):
     """Check the existence of a field on cells with the given name."""
+    proxy.UpdatePipeline()
     cell_data_info = proxy.GetCellDataInformation()
     return (field_name in cell_data_info.keys())
 
@@ -409,6 +457,7 @@ def is_empty(proxy):
       False: otherwise
 
     """
+    proxy.UpdatePipeline()
     data_info = proxy.GetDataInformation()
 
     nb_cells = data_info.GetNumberOfCells()
@@ -419,6 +468,7 @@ def is_empty(proxy):
 
 def get_orientation(proxy):
     """Get the optimum cutting plane orientation for Plot 3D."""
+    proxy.UpdatePipeline()
     orientation = Orientation.XY
 
     bounds = get_bounds(proxy)
@@ -590,14 +640,17 @@ def get_contours(scalar_range, nb_contours):
 
 def get_nb_components(proxy, entity, field_name):
     """Return number of components for the field."""
+    proxy.UpdatePipeline()
     entity_data_info = None
     field_data = proxy.GetFieldDataInformation()
 
     if field_name in field_data.keys():
         entity_data_info = field_data
     elif entity == EntityType.CELL:
+        select_cells_with_data(proxy, on_cells=[field_name])
         entity_data_info = proxy.GetCellDataInformation()
     elif entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
         entity_data_info = proxy.GetPointDataInformation()
 
     nb_comp = None
@@ -643,6 +696,7 @@ def get_scale_factor(proxy):
 
 def get_default_scale(prs_type, proxy, entity, field_name):
     """Get default scale factor."""
+    proxy.UpdatePipeline()
     data_range = get_data_range(proxy, entity, field_name)
 
     if prs_type == PrsTypeEnum.DEFORMEDSHAPE:
@@ -670,6 +724,7 @@ def get_calc_magnitude(proxy, array_entity, array_name):
       the calculator object.
 
     """
+    proxy.UpdatePipeline()
     calculator = None
 
     # Transform vector array to scalar array if possible
@@ -704,6 +759,7 @@ def get_add_component_calc(proxy, array_entity, array_name):
       the calculator object.
 
     """
+    proxy.UpdatePipeline()
     calculator = None
 
     nb_components = get_nb_components(proxy, array_entity, array_name)
@@ -727,14 +783,13 @@ def select_all_cells(proxy):
     Used in creation of mesh/submesh presentation.
 
     """
-    ### Old API all_cell_types = proxy.CellTypes.Available
-    all_cell_types = proxy.Entity.Available
-    ### Old API proxy.CellTypes = all_cell_types
-    proxy.Entity = all_cell_types
     proxy.UpdatePipeline()
+    extractCT = pvs.ExtractCellType()
+    extractCT.AllGeoTypes = extractCT.GetProperty("GeoTypesInfo")[::2]
+    extractCT.UpdatePipelineInformation()
 
 
-def select_cells_with_data(proxy, on_points=None, on_cells=None):
+def select_cells_with_data(proxy, on_points=[], on_cells=[], on_gauss=[]):
     """Select cell types with data.
 
     Only cell types with data for the given fields will be selected.
@@ -742,8 +797,36 @@ def select_cells_with_data(proxy, on_points=None, on_cells=None):
     types with data for even one field (from available) will be selected.
 
     """
-    if not hasattr(proxy, 'Entity'):
+    if not proxy.GetProperty("FieldsTreeInfo"):
         return
+
+    proxy.UpdatePipeline()
+    if not hasattr(proxy, 'Entity'):
+        fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
+        arr_name_with_dis=[elt.split("/")[-1] for elt in fields_info]
+
+        proxy.AllArrays = []
+        proxy.UpdatePipeline()
+        
+        fields = []
+        for name in on_gauss:
+            fields.append(name+_med_field_sep+'GAUSS')
+        for name in on_cells:
+            fields.append(name+_med_field_sep+'P0')
+        for name in on_points:
+            fields.append(name+_med_field_sep+'P1')
+
+        field_list = []
+        for name in fields:
+            if arr_name_with_dis.count(name) > 0:
+                index = arr_name_with_dis.index(name)
+                field_list.append(fields_info[index])
+                
+        proxy.AllArrays = field_list
+        proxy.UpdatePipeline()
+        return len(field_list) != 0
+
+    # TODO: VTN. Looks like this code is out of date.
     
     #all_cell_types = proxy.CellTypes.Available
     all_cell_types = proxy.Entity.Available
@@ -786,63 +869,9 @@ def select_cells_with_data(proxy, on_points=None, on_cells=None):
     proxy.Entity = cell_types_on
     proxy.UpdatePipeline()
 
-
-def extract_groups_for_field(proxy, field_name, field_entity, force=False):
-    """Exctract only groups which have the field.
-
-    Arguments:
-      proxy: the pipeline object, containig data
-      field_name: the field name
-      field_entity: the field entity
-      force: if True - ExtractGroup object will be created in any case
-
-    Returns:
-      ExtractGroup object: if not all groups have the field or
-      the force argument is true
-      The initial proxy: if no groups had been filtered.
-
-    """
-    source = proxy
-
-    # Remember the state
-    initial_groups = list(proxy.Groups)
-
-    # Get data information for the field entity
-    entity_data_info = None
-    field_data = proxy.GetFieldDataInformation()
-
-    if field_name in field_data.keys():
-        entity_data_info = field_data
-    elif field_entity == EntityType.CELL:
-        entity_data_info = proxy.GetCellDataInformation()
-    elif field_entity == EntityType.NODE:
-        entity_data_info = proxy.GetPointDataInformation()
-
-    # Collect groups for extraction
-    groups_to_extract = []
-
-    for group in initial_groups:
-        proxy.Groups = [group]
-        proxy.UpdatePipeline()
-        if field_name in entity_data_info.keys():
-            groups_to_extract.append(group)
-
-    # Restore state
-    proxy.Groups = initial_groups
-    proxy.UpdatePipeline()
-
-    # Extract groups if necessary
-    if force or (len(groups_to_extract) < len(initial_groups)):
-        extract_group = pvs.ExtractGroup(proxy)
-        extract_group.Groups = groups_to_extract
-        extract_group.UpdatePipeline()
-        source = extract_group
-
-    return source
-
-
-def if_possible(proxy, field_name, entity, prs_type):
+def if_possible(proxy, field_name, entity, prs_type, extrGrps=None):
     """Check if the presentation creation is possible on the given field."""
+    proxy.UpdatePipeline()
     result = True
     if (prs_type == PrsTypeEnum.DEFORMEDSHAPE or
         prs_type == PrsTypeEnum.DEFORMEDSHAPESCALARMAP or
@@ -854,7 +883,7 @@ def if_possible(proxy, field_name, entity, prs_type):
         result = (entity == EntityType.CELL or
                   field_name in proxy.QuadraturePointArrays.Available)
     elif (prs_type == PrsTypeEnum.MESH):
-        result = len(get_group_names(proxy, field_name, entity)) > 0
+        result = len(get_group_names(extrGrps)) > 0
 
     return result
 
@@ -952,40 +981,28 @@ def get_group_entity(full_group_name):
 
 def get_group_short_name(full_group_name):
     """Return short name of the group by its full name."""
-    aList = full_group_name.split('/')
-    if len(aList) >= 4 :
-        short_name = full_group_name.split('/')[3]
-        return short_name
+    short_name = re.sub('^GRP_', '', full_group_name)
+    return short_name
 
 
-def get_mesh_names(proxy):
+def get_mesh_full_names(proxy):
     """Return all mesh names in the given proxy as a set."""
-    groups = proxy.Groups.Available
-    mesh_names = set([get_group_mesh_name(item) for item in groups])
+    proxy.UpdatePipeline()
+    fields = proxy.GetProperty("FieldsTreeInfo")[::2]
+    mesh_full_names = set([item for item in fields if get_field_mesh_name(item) == get_field_short_name(item)])
+    return mesh_full_names
 
-    return mesh_names
 
-
-def get_group_names(proxy, mesh_name, entity, wo_nogroups=False):
-    """Return full names of all groups of the given entity type
-    from the mesh with the given name as a list.
+def get_group_names(extrGrps):
+    """Return full names of all groups of the given 'ExtractGroup' filter object.
     """
-    groups = proxy.Groups.Available
-
-    condition = lambda item: (get_group_mesh_name(item) == mesh_name and
-                              get_group_entity(item) == entity)
-    group_names = [item for item in groups if condition(item)]
-
-    if wo_nogroups:
-        # Remove "No_Group" group
-        not_no_group = lambda item: get_group_short_name(item) != "No_Group"
-        group_names = filter(not_no_group, group_names)
-
+    group_names = filter(lambda x:x[:4]=="GRP_",list(extrGrps.GetProperty("GroupsFlagsInfo")[::2]))
     return group_names
 
 
 def get_time(proxy, timestamp_nb):
     """Get time value by timestamp number."""
+    proxy.UpdatePipeline()
     # Check timestamp number
     timestamps = []
     
@@ -994,12 +1011,15 @@ def get_time(proxy, timestamp_nb):
     elif (hasattr(proxy.Input, 'TimestepValues')):
         timestamps = proxy.Input.TimestepValues.GetData()
 
-    if ((timestamp_nb - 1) not in xrange(len(timestamps))):
+    length = len(timestamps)
+    if (timestamp_nb > 0 and (timestamp_nb - 1) not in xrange(length) ) or (timestamp_nb < 0 and -timestamp_nb > length):
         raise ValueError("Timestamp number is out of range: " + str(timestamp_nb))
 
     # Return time value
-    return timestamps[timestamp_nb - 1]
-
+    if timestamp_nb > 0:
+        return timestamps[timestamp_nb - 1]
+    else:
+        return timestamps[timestamp_nb]
 
 def create_prs(prs_type, proxy, field_entity, field_name, timestamp_nb):
     """Auxiliary function.
@@ -1009,6 +1029,7 @@ def create_prs(prs_type, proxy, field_entity, field_name, timestamp_nb):
     Set the presentation properties like visu.CreatePrsForResult() do.
 
     """
+    proxy.UpdatePipeline()
     prs = None
 
     if prs_type == PrsTypeEnum.SCALARMAP:
@@ -1060,6 +1081,7 @@ def ScalarMapOnField(proxy, entity, field_name, timestamp_nb,
       Scalar Map as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
     if entity == EntityType.NODE:
         select_cells_with_data(proxy, on_points=[field_name])
@@ -1077,12 +1099,8 @@ def ScalarMapOnField(proxy, entity, field_name, timestamp_nb,
     pvs.GetRenderView().ViewTime = time_value
     pvs.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity,
-                                         force=True)
-
     # Get Scalar Map representation object
-    scalarmap = pvs.GetRepresentation(new_proxy)
+    scalarmap = pvs.GetRepresentation(proxy)
 
     # Get lookup table
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
@@ -1134,6 +1152,12 @@ def CutPlanesOnField(proxy, entity, field_name, timestamp_nb,
       Cut Planes as representation object.
 
     """
+    proxy.UpdatePipeline()
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1224,6 +1248,12 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
       (Cut Lines as representation object, list of 'PlotOverLine') otherwise
 
     """
+    proxy.UpdatePipeline()
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1346,6 +1376,12 @@ def CutSegmentOnField(proxy, entity, field_name, timestamp_nb,
       Cut Segment as 3D representation object.
 
     """
+    proxy.UpdatePipeline()
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1414,6 +1450,12 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
       Vectors as representation object.
 
     """
+    proxy.UpdatePipeline()
+    if entity == EntityType.NODE:
+        select_cells_with_data(proxy, on_points=[field_name])
+    else:
+        select_cells_with_data(proxy, on_cells=[field_name])
+
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
@@ -1426,8 +1468,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
     pvs.UpdatePipeline(time_value, proxy)
 
     # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-    source = new_proxy
+    source = proxy
 
     # Cell centers
     if is_data_on_cells(proxy, field_name):
@@ -1470,7 +1511,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
         glyph.SetScaleFactor = scale_factor
     else:
         def_scale = get_default_scale(PrsTypeEnum.DEFORMEDSHAPE,
-                                      new_proxy, entity, field_name)
+                                      proxy, entity, field_name)
         glyph.SetScaleFactor = def_scale
 
     glyph.UpdatePipeline()
@@ -1528,6 +1569,7 @@ def DeformedShapeOnField(proxy, entity, field_name,
       Defromed Shape as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
     if entity == EntityType.NODE:
         select_cells_with_data(proxy, on_points=[field_name])
@@ -1545,11 +1587,8 @@ def DeformedShapeOnField(proxy, entity, field_name,
     pvs.GetRenderView().ViewTime = time_value
     pvs.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pvs.MergeBlocks(new_proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
@@ -1628,6 +1667,7 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
       Defromed Shape And Scalar Map as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
     on_points = []
     on_cells = []
@@ -1643,10 +1683,12 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         else:
             on_cells.append(scalar_field_name)
 
+    nb_components = get_nb_components(proxy, entity, field_name)
+
+    # Select fields
     select_cells_with_data(proxy, on_points, on_cells)
 
     # Check vector mode
-    nb_components = get_nb_components(proxy, entity, field_name)
     check_vector_mode(vector_mode, nb_components)
 
     # Get time value
@@ -1663,11 +1705,8 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         scalar_field_entity = entity
         scalar_field = field_name
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pvs.MergeBlocks(new_proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
@@ -1689,7 +1728,7 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
         warp_vector.ScaleFactor = scale_factor
     else:
         def_scale = get_default_scale(PrsTypeEnum.DEFORMEDSHAPE,
-                                      new_proxy, entity, field_name)
+                                      proxy, entity, field_name)
         warp_vector.ScaleFactor = def_scale
 
     # Get Defromed Shape And Scalar Map representation object
@@ -1753,6 +1792,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
       Plot 3D as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
     if entity == EntityType.NODE:
         select_cells_with_data(proxy, on_points=[field_name])
@@ -1770,11 +1810,8 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
     pvs.GetRenderView().ViewTime = time_value
     pvs.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    merge_blocks = pvs.MergeBlocks(new_proxy)
+    merge_blocks = pvs.MergeBlocks(proxy)
     merge_blocks.UpdatePipeline()
 
     poly_data = None
@@ -1913,6 +1950,7 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
       Iso Surfaces as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
     if entity == EntityType.NODE:
         select_cells_with_data(proxy, on_points=[field_name])
@@ -1930,11 +1968,8 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
     pvs.GetRenderView().ViewTime = time_value
     pvs.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pvs.MergeBlocks(new_proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Transform cell data into point data if necessary
     if is_data_on_cells(proxy, field_name):
@@ -2035,11 +2070,14 @@ def GaussPointsOnField(proxy, entity, field_name,
       Gauss Points as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
-    if entity == EntityType.NODE:
-        select_cells_with_data(proxy, on_points=[field_name])
-    else:
-        select_cells_with_data(proxy, on_cells=[field_name])
+    on_gauss = select_cells_with_data(proxy, on_gauss=[field_name])
+    if not on_gauss:
+        if entity == EntityType.NODE:
+            select_cells_with_data(proxy, on_points=[field_name])
+        else:
+            select_cells_with_data(proxy, on_cells=[field_name])
 
     # Check vector mode
     nb_components = get_nb_components(proxy, entity, field_name)
@@ -2052,16 +2090,12 @@ def GaussPointsOnField(proxy, entity, field_name,
     pvs.GetRenderView().ViewTime = time_value
     proxy.UpdatePipeline(time=time_value)
 
-    # Extract only groups with data for the field
-    source = extract_groups_for_field(proxy, field_name, entity)
-
-    # Quadrature point arrays
-    qp_arrays = proxy.QuadraturePointArrays.Available
+    source = proxy
 
     # If no quadrature point array is passed, use cell centers
-    if field_name in qp_arrays:
+    if on_gauss:
         generate_qp = pvs.GenerateQuadraturePoints(source)
-        generate_qp.SelectSourceArray = ['CELLS', 'ELGA_Offset']
+        generate_qp.QuadratureSchemeDef = ['CELLS', 'ELGA@0']
         source = generate_qp
     else:
         # Cell centers
@@ -2209,6 +2243,11 @@ def GaussPointsOnField1(proxy, entity, field_name,
       Gauss Points as representation object.
 
     """
+    proxy.UpdatePipeline()
+    select_cells_with_data(proxy, on_gauss=[field_name])
+
+    nb_components = get_nb_components(proxy, entity, field_name)
+
     # Get time value
     time_value = get_time(proxy, timestamp_nb)
 
@@ -2224,14 +2263,6 @@ def GaussPointsOnField1(proxy, entity, field_name,
     gausspnt = pvs.GetRepresentation(source)
 
     # Get lookup table
-    entity_data_info = None
-    point_data_info = source.GetPointDataInformation()
-    if field_name in point_data_info.keys():
-        entity_data_info = point_data_info
-    else:
-        entity_data_info = source.GetCellDataInformation()
-    nb_components = entity_data_info[field_name].GetNumberOfComponents()
-    
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
 
     # Set field range if necessary
@@ -2334,6 +2365,7 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
       Stream Lines as representation object.
 
     """
+    proxy.UpdatePipeline()
     # We don't need mesh parts with no data on them
     if entity == EntityType.NODE:
         select_cells_with_data(proxy, on_points=[field_name])
@@ -2351,11 +2383,8 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
     pvs.GetRenderView().ViewTime = time_value
     pvs.UpdatePipeline(time_value, proxy)
 
-    # Extract only groups with data for the field
-    new_proxy = extract_groups_for_field(proxy, field_name, entity)
-
     # Do merge
-    source = pvs.MergeBlocks(new_proxy)
+    source = pvs.MergeBlocks(proxy)
 
     # Cell data to point data
     if is_data_on_cells(proxy, field_name):
@@ -2390,7 +2419,7 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table = get_lookup_table(field_name, nb_components, vector_mode)
 
     # Set field range if necessary
-    data_range = get_data_range(new_proxy, entity,
+    data_range = get_data_range(proxy, entity,
                                 field_name, vector_mode)
     lookup_table.LockScalarRange = 1
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
@@ -2418,21 +2447,25 @@ def MeshOnEntity(proxy, mesh_name, entity):
 
     Arguments:
       proxy -- the pipeline object, containig data
-      mesh_name -- the mesh name
-      entity -- the entity type
+      mesh_name -- the full or short name of mesh field
 
     Returns:
       Submesh as representation object of the given source.
 
     """
-    # Select all cell types
-    select_all_cells(proxy)
-
-    # Get subset of groups on the given entity
-    subset = get_group_names(proxy, mesh_name, entity)
-
-    # Select only groups of the given entity type
-    proxy.Groups = subset
+    proxy.UpdatePipeline()
+    mesh_full_name = None
+    aList = mesh_name.split('/')
+    if len(aList) >= 2:
+        mesh_full_name = mesh_name
+    else:
+        mesh_full_name = find_mesh_full_name(proxy, mesh_name)
+    if not mesh_full_name:
+        raise RuntimeError, "The given mesh name was not found"
+    # Select only the given mesh
+    proxy.AllArrays = []
+    proxy.UpdatePipeline()
+    proxy.AllArrays = [mesh_full_name]
     proxy.UpdatePipeline()
 
     # Get representation object if the submesh is not empty
@@ -2445,42 +2478,42 @@ def MeshOnEntity(proxy, mesh_name, entity):
     return prs
 
 
-def MeshOnGroup(proxy, group_name):
+def MeshOnGroup(proxy, extrGroups, group_name):
     """Creates submesh on the group.
 
     Arguments:
       proxy -- the pipeline object, containig data
       group_name -- the full group name
+      extrGroups -- all extracted groups object
 
     Returns:
       Representation object of the given source with single group
       selected.
 
     """
-    # Select all cell types
-    select_all_cells(proxy)
-
-    # Select only the group with the given name
-    one_group = [group_name]
-    proxy.Groups = one_group
     proxy.UpdatePipeline()
+    # Deselect all groups
+    extrGroups.AllGroups = []
+    extrGroups.UpdatePipelineInformation()
+    # Select only the group with the given name
+    extrGroups.AllGroups = [group_name]
+    extrGroups.UpdatePipelineInformation()
 
     # Get representation object if the submesh is not empty
     prs = None
 
     # Check if the group was set
-    if proxy.Groups.GetData() == one_group:
-        group_entity = get_group_entity(group_name)
+    if len(extrGroups.AllGroups) == 1 and \
+       extrGroups.AllGroups[0] == group_name:
         # Check if the submesh is not empty
-        nb_items = 0
-        if group_entity == EntityType.NODE:
-            nb_items = proxy.GetDataInformation().GetNumberOfPoints()
-        elif group_entity == EntityType.CELL:
-            nb_items = proxy.GetDataInformation().GetNumberOfCells()
+        nb_points = proxy.GetDataInformation().GetNumberOfPoints()
+        nb_cells = proxy.GetDataInformation().GetNumberOfCells()
 
-        if nb_items:
-            prs = pvs.GetRepresentation(proxy)
+        if nb_points or nb_cells:
+#            prs = pvs.GetRepresentation(proxy)
+            prs = pvs.Show()
             prs.ColorArrayName = ''
+            display_only(prs)
 
     return prs
 
@@ -2503,8 +2536,7 @@ def CreatePrsForFile(paravis_instance, file_name, prs_types,
     print "Import " + file_name.split(os.sep)[-1] + "..."
 
     try:
-        paravis_instance.ImportFile(file_name)
-        proxy = pvs.GetActiveSource()
+        proxy = pvs.MEDReader(FileName=file_name)
         if proxy is None:
             print "FAILED"
         else:
@@ -2520,7 +2552,6 @@ def CreatePrsForFile(paravis_instance, file_name, prs_types,
         CreatePrsForProxy(proxy, view, prs_types,
                           picture_dir, picture_ext)
 
-
 def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
     """Build presentations of the given types for all fields of the proxy.
 
@@ -2535,10 +2566,9 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
       picture_ext: graphics files extension (determines file type)
 
     """
+    proxy.UpdatePipeline()
     # List of the field names
-    field_names = list(proxy.PointArrays.GetData())
-    nb_on_nodes = len(field_names)
-    field_names.extend(proxy.CellArrays.GetData())
+    fields_info = proxy.GetProperty("FieldsTreeInfo")[::2]
 
     # Add path separator to the end of picture path if necessery
     if not picture_dir.endswith(os.sep):
@@ -2546,76 +2576,59 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
     # Mesh Presentation
     if PrsTypeEnum.MESH in prs_types:
-        # Create Mesh presentation. Build all possible submeshes.
-
-        # Remember the current state
-        groups = list(proxy.Groups)
-
         # Iterate on meshes
-        mesh_names = get_mesh_names(proxy)
+        mesh_names = get_mesh_full_names(proxy)
         for mesh_name in mesh_names:
-            # Build mesh on nodes and cells
-            for entity in (EntityType.NODE, EntityType.CELL):
-                entity_name = EntityType.get_name(entity)
-                if if_possible(proxy, mesh_name, entity, PrsTypeEnum.MESH):
-                    print "Creating submesh on " + entity_name + " for '" + mesh_name + "' mesh... "
-                    prs = MeshOnEntity(proxy, mesh_name, entity)
+            # Build mesh field presentation
+            print "Creating submesh for '" + get_field_short_name(mesh_name) + "' mesh... "
+            prs = MeshOnEntity(proxy, mesh_name, None)
+            if prs is None:
+                print "FAILED"
+                continue
+            else:
+                print "OK"
+            # Construct image file name
+            pic_name = picture_dir + get_field_short_name(mesh_name) + "." + picture_ext
+            
+            # Show and dump the presentation into a graphics file
+            process_prs_for_test(prs, view, pic_name, False)
+
+            # Create Mesh presentation. Build all groups.
+            extGrp = pvs.ExtractGroup()
+            extGrp.UpdatePipelineInformation()
+            if if_possible(proxy, None, None, PrsTypeEnum.MESH, extGrp):
+                for group in get_group_names(extGrp):
+                    print "Creating submesh on group " + get_group_short_name(group) + "... "
+                    prs = MeshOnGroup(proxy, extGrp, group)
                     if prs is None:
                         print "FAILED"
                         continue
                     else:
                         print "OK"
                     # Construct image file name
-                    pic_name = picture_dir + mesh_name + "_" + entity_name + "." + picture_ext
-
+                    pic_name = picture_dir + get_group_short_name(group) + "." + picture_ext
+                    
                     # Show and dump the presentation into a graphics file
                     process_prs_for_test(prs, view, pic_name, False)
-
-                # Build submesh on all groups of the mesh
-                mesh_groups = get_group_names(proxy, mesh_name,
-                                              entity, wo_nogroups=True)
-                for group in mesh_groups:
-                    print "Creating submesh on group " + group + "... "
-                    prs = MeshOnGroup(proxy, group)
-                    if prs is None:
-                        print "FAILED"
-                        continue
-                    else:
-                        print "OK"
-                    # Construct image file name
-                    pic_name = picture_dir + group.replace('/', '_') + "." + picture_ext
-
-                    # Show and dump the presentation into a graphics file
-                    process_prs_for_test(prs, view, pic_name, False)
-
-        # Restore the state
-        proxy.Groups = groups
-        proxy.UpdatePipeline()
 
     # Presentations on fields
-    for (i, field_name) in enumerate(field_names):
+    for field in fields_info:
+        field_name = get_field_short_name(field)
+        # Ignore mesh presentation
+        if field_name == get_field_mesh_name(field):
+            continue
+        field_entity = get_field_entity(field)
+        # Clear fields selection state
+        proxy.AllArrays = []
+        proxy.UpdatePipeline()
         # Select only the current field:
         # necessary for getting the right timestamps
-        cell_arrays = proxy.CellArrays.GetData()
-        point_arrays = proxy.PointArrays.GetData()
-        field_entity = None
-        if (i >= nb_on_nodes):
-            field_entity = EntityType.CELL
-            proxy.PointArrays.DeselectAll()
-            proxy.CellArrays = [field_name]
-        else:
-            field_entity = EntityType.NODE
-            proxy.CellArrays.DeselectAll()
-            proxy.PointArrays = [field_name]
+        proxy.AllArrays = field
+        proxy.UpdatePipeline()
 
         # Get timestamps
-        proxy.UpdatePipelineInformation()
+        entity_data_info = proxy.GetCellDataInformation()
         timestamps = proxy.TimestepValues.GetData()
-
-        # Restore fields selection state
-        proxy.CellArrays = cell_arrays
-        proxy.PointArrays = point_arrays
-        proxy.UpdatePipelineInformation()
 
         for prs_type in prs_types:
             # Ignore mesh presentation
@@ -2634,6 +2647,12 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
                 for timestamp_nb in xrange(1, len(timestamps) + 1):
                     time = timestamps[timestamp_nb - 1]
+                    if (time == 0.0):
+                        scalar_range = get_data_range(proxy, field_entity,
+                                                      field_name, cut_off=True)
+                        # exclude time stamps with null lenght of scalar range
+                        if (scalar_range[0] == scalar_range[1]):
+                            continue
                     print "Creating " + prs_name + " on " + field_name + ", time = " + str(time) + "... "
                     prs = create_prs(prs_type, proxy,
                                      field_entity, field_name, timestamp_nb)
@@ -2648,3 +2667,4 @@ def CreatePrsForProxy(proxy, view, prs_types, picture_dir, picture_ext):
 
                     # Show and dump the presentation into a graphics file
                     process_prs_for_test(prs, view, pic_name)
+    return
