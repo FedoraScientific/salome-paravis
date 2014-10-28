@@ -33,7 +33,7 @@ print "**** Stage1: Import from MED file in ParaVis"
 print 'Import "Tria3.med"....................',
 
 file_path = datadir + "Tria3.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

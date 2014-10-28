@@ -31,7 +31,7 @@ my_paravis = paravis.myParavis
 # 1. MED file import
 print 'Import "ResOK_0000.med"...............',
 med_file_path = datadir + "ResOK_0000.med"
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError, "ResOK_0000.med was not imported!!!"

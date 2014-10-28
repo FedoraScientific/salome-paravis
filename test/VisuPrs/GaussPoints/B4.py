@@ -39,7 +39,7 @@ file_name = datadir + "champc.med"
 field_name = "Am241_restriction"
 timestamp_nb = -1 # last timestamp
 
-paravis.myParavis.ImportFile(file_name)
+paravis.OpenDataFile(file_name)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError("File wasn't imported!!!")

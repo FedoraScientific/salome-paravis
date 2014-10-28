@@ -29,7 +29,7 @@ my_paravis = paravis.myParavis
 
 # 1. Import MED file
 med_file_path = datadir + "hexa_28320_ELEM.med"
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 # 2. Create vectors

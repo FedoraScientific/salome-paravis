@@ -38,7 +38,7 @@ print " --------------------------------- "
 print "file ", theFileName
 print " --------------------------------- "
 
-myParavis.ImportFile(theFileName)
+OpenDataFile(theFileName)
 
 aProxy = GetActiveSource()
 if aProxy is None:

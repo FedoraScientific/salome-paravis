@@ -39,7 +39,7 @@ file_name = datadir + "occ4050.med"
 field_name = "champ_reel"
 timestamp_nb = -1 # last timestamp
 
-paravis.myParavis.ImportFile(file_name)
+paravis.OpenDataFile(file_name)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError("File wasn't imported!!!")

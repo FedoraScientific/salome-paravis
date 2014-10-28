@@ -39,7 +39,7 @@ if tmp_dir == None:
 save_file = tmp_dir + "/TimeStamps_save.hdf"
 print "Save to file ", save_file
 
-paravis.myParavis.ImportFile(data_file)
+paravis.OpenDataFile(data_file)
 myStudyManager.SaveAs(save_file, myStudy, 0)
 myStudyManager.Close(myStudy)
 openedStudy = myStudyManager.Open(data_file)

@@ -38,7 +38,7 @@ print " --------------------------------- "
 
 
 #print "Import %s..." % theFileName.split('/')[-1],
-result = myParavis.ImportFile(theFileName)
+result = OpenDataFile(theFileName)
 aProxy = GetActiveSource()
 if aProxy is None:
 	raise RuntimeError, "Error: can't import file."

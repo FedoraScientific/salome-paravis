@@ -29,7 +29,7 @@ my_paravis = paravis.myParavis
 
 print 'Importing "TimeStamps.med"...............',
 file_path = datadir + "TimeStamps.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

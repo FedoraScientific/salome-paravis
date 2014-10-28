@@ -39,7 +39,7 @@ file_name = datadir + "test_hydro_darcy4_out.med"
 field_name = "DarcyVelocity"
 timestamp_nb = -1 # last timestamp
 
-paravis.myParavis.ImportFile(file_name)
+paravis.OpenDataFile(file_name)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError("File wasn't imported!!!")

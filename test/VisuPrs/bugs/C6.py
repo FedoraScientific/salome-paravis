@@ -34,7 +34,7 @@ picturedir = get_picture_dir("bugs/C6")
 med_file_path = datadir + "relachement_brutal_sans_dudg_gauss.med"
 
 print 'Importing "relachement_brutal_sans_dudg_gauss.med"....',
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

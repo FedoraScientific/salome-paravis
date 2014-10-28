@@ -37,7 +37,7 @@ pic_path = os.path.join(picturedir, "A2." + pictureext)
 print "BREAKPOINT_1"
 # 1. Import MED file
 print 'Importing "carre_MIXTE_0000.med"...',
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

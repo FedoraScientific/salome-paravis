@@ -59,7 +59,7 @@ def set_prs_colored(prs, proxy, entity, field_name, vector_mode, timestamp_nb):
 # 1. Import of the "Penta6.med" file
 print 'Import "Penta6.med" file........',
 file_path = datadir + "Penta6.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError, "Penta6.med was not imported!!!"

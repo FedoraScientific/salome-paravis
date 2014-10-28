@@ -32,7 +32,7 @@ my_paravis = paravis.myParavis
 # 1. TimeStamps.med import
 print 'Importing "TimeStamps.med"................',
 file_path = datadir + "TimeStamps.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = GetActiveSource()
 if med_reader is None:
     print "FAILED"

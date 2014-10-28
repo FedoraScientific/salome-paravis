@@ -40,7 +40,7 @@ field_name = "gravit__VARI_ELGA"
 #timestamp_nb = 1
 timestamp_nb = 6 # timestamp 1 is empty
 
-paravis.myParavis.ImportFile(file_name)
+paravis.OpenDataFile(file_name)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError("File wasn't imported!!!")

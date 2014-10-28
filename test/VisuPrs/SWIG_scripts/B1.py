@@ -55,7 +55,7 @@ field_name = "fieldnodedouble"
 entity = EntityType.NODE
 timestamp = 1
 
-my_paravis.ImportFile(med_file)
+OpenDataFile(med_file)
 med_reader = pvsimple.GetActiveSource()
 
 
@@ -288,7 +288,7 @@ field_name = "vitesse"
 entity = EntityType.NODE
 timestamp = 2
 
-my_paravis.ImportFile(med_file)
+OpenDataFile(med_file)
 med_reader = pvsimple.GetActiveSource()
 
 isosurf = IsoSurfacesOnField(med_reader, entity, field_name, timestamp)

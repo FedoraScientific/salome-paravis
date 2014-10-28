@@ -36,7 +36,7 @@ print "file ", theFileName
 print " --------------------------------- "
 
 
-result = myParavis.ImportFile(theFileName)
+result = OpenDataFile(theFileName)
 aProxy = GetActiveSource()
 if aProxy is None:
 	raise RuntimeError, "Error: can't import file."

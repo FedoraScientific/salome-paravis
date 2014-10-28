@@ -47,7 +47,7 @@ class DisplayManager:
              
     def loadData(self, medFile, meshName=None, myEntity=EntityType.NODE):
         self.medFile  = medFile
-        my_paravis.ImportFile(medFile)
+        OpenDataFile(medFile)
         self.myData   = pvsimple.GetActiveSource()
         self.myEntity = myEntity
         if meshName is not None:

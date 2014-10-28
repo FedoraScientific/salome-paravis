@@ -34,7 +34,7 @@ my_paravis = paravis.myParavis
 # Step 1
 print 'Importing "pointe.med"...............',
 file_path = datadir + "pointe.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

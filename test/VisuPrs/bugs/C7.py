@@ -34,7 +34,7 @@ picturedir = get_picture_dir("bugs/C7")
 med_file_path = datadir + "Bug583-Quadratique.resu.med"
 
 print 'Importing "Bug583-Quadratique.resu.med"....',
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

@@ -30,7 +30,7 @@ my_paravis = paravis.myParavis
 
 # 1. Import MED file
 file_path = datadir + "new_case.rmed"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError, "new_case.rmed was not imported!!!"

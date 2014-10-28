@@ -33,7 +33,7 @@ picturedir = get_picture_dir("bugs/A0")
 # 1. Import MED file
 print 'Importing "hydro_sea_alv.med"...',
 file_path = datadir + "hydro_sea_alv.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

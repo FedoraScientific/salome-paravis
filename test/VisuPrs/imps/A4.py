@@ -29,7 +29,7 @@ error = 0
 
 # Import MED file
 med_file_path = datadir + "fra.med"
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

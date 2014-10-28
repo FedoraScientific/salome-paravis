@@ -34,7 +34,7 @@ print "**** Step1: Import MED file"
 
 print 'Import "Hexa8.med"....................',
 file_path = datadir + "Hexa8.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader1 = pvsimple.GetActiveSource()
 
 if med_reader1 is None:
@@ -116,7 +116,7 @@ hide_all(view)
 print 'Importing file "cube_hexa8_quad4.med".',
 file_path = datadir + "cube_hexa8_quad4.med"
 mesh_name2 = 'CUBE_EN_HEXA8_QUAD4'
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader2 = pvsimple.GetActiveSource()
 
 if med_reader2 is None:
@@ -160,7 +160,7 @@ hide_all(view)
 
 print 'Importing file "Penta6.med"...........',
 file_path = datadir + "Penta6.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader3 = pvsimple.GetActiveSource()
 
 if med_reader3 is None:
@@ -221,7 +221,7 @@ hide_all(view)
 
 print 'Importing "Quad4.med".................',
 file_path = datadir + "Quad4.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader4 = pvsimple.GetActiveSource()
 
 if med_reader4 is None:
@@ -269,7 +269,7 @@ print "OK"
 
 print 'Importing "Tetra4.med"................',
 file_path = datadir + "Tetra4.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader5 = pvsimple.GetActiveSource()
 
 if med_reader5 is None:
@@ -305,7 +305,7 @@ print "OK"
 
 print 'Importing "Tria3.med".................',
 file_path = datadir + "Tria3.med"
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader6 = pvsimple.GetActiveSource()
 
 if med_reader6 is None:

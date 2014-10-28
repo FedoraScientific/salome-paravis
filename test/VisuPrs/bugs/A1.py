@@ -35,7 +35,7 @@ med_file_path = datadir + "fra1.med"
 pic_path = os.path.join(picturedir, "A1." + pictureext)
 
 # 1. Import MED file
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 # 2. Create mesh

@@ -39,7 +39,7 @@ file_name = datadir + "cube_hexa8_quad4.med"
 field_name = "fieldcelldouble"
 timestamp_nb = -1 # last timestamp
 
-paravis.myParavis.ImportFile(file_name)
+paravis.OpenDataFile(file_name)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError("File wasn't imported!!!")

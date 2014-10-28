@@ -40,7 +40,7 @@ print " --------------------------------- "
     
 """Build presentations of the given types for all fields of the given file."""
 #print "Import %s..." % theFileName.split('/')[-1],
-result = myParavis.ImportFile(theFileName)
+result = OpenDataFile(theFileName)
 proxy = GetActiveSource()
 if proxy is None:
 	raise RuntimeError, "Error: can't import file."

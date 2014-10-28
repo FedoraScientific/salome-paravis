@@ -34,7 +34,7 @@ print "**** Stage1: Importing MED file"
 
 print 'Import "ResOK_0000.med"...............',
 medFile = datadir + "ResOK_0000.med"
-my_paravis.ImportFile(medFile)
+OpenDataFile(medFile)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

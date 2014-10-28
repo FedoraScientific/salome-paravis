@@ -36,7 +36,7 @@ picturedir = get_picture_dir("StreamLines/F9")
 # Import of the "Bug829_resu_mode.med" file
 file_path = datadir + "Bug829_resu_mode.med"
 
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

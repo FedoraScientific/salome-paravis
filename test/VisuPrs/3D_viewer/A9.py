@@ -73,7 +73,7 @@ print " --------------------------------- "
 print "file ", theFileName
 print " --------------------------------- "
 
-myParavis.ImportFile(theFileName)
+OpenDataFile(theFileName)
 proxy = GetActiveSource()
 if proxy is None:
     raise RuntimeError("Error: can't import file.")

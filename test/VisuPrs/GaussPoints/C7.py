@@ -39,7 +39,7 @@ file_name = datadir + "homard_ASTER_OSF_MEDV2.1.5_1_v2.2.med"
 field_names = ["REMEUN__ERRE_ELGA_NORE__________", "REMEZEROERRE_ELGA_NORE__________"]
 timestamp_nb = -1 # last timestamp
 
-paravis.myParavis.ImportFile(file_name)
+paravis.OpenDataFile(file_name)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     raise RuntimeError("File wasn't imported!!!")

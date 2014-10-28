@@ -32,7 +32,7 @@ picturedir = get_picture_dir("bugs/D1")
 
 # 1. Import of the "Bug829_resu_mode.med" file at first time
 med_file_path = datadir + "Bug829_resu_mode.med"
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader1 = pvsimple.GetActiveSource()
 if med_reader1 is None:
     raise RuntimeError, "Bug829_resu_mode.med was not imported!!!"
@@ -60,7 +60,7 @@ if abs(max(sizes)-min(sizes)) > 0.01*max(sizes):
     raise RuntimeError
 
 # 3. Import of the "Bug829_resu_mode.med" file at second time
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader2 = pvsimple.GetActiveSource()
 if med_reader2 is None:
     raise RuntimeError, "Bug829_resu_mode.med was not imported second time!!!"

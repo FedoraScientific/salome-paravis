@@ -46,7 +46,7 @@ def get_group_full_name(source, group_name):
 # 1. Import of the "Bug619-result_calcul_OCC.med" file
 med_file_path = datadir + "Bug619-result_calcul_OCC.med"
 
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

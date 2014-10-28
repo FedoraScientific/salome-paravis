@@ -96,7 +96,7 @@ file_path = datadir + "ResOK_0000.med"
 field_name = 'vitesse'
 node_entity = EntityType.NODE
 
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:
@@ -132,7 +132,7 @@ file_path = datadir + "fra.med"
 field_name = 'VITESSE'
 
 pvsimple.SetActiveSource(None)
-my_paravis.ImportFile(file_path)
+OpenDataFile(file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

@@ -34,7 +34,7 @@ picturedir = get_picture_dir("bugs/B1")
 med_file_path = datadir + "resultat.01.med"
 
 print 'Importing "resultat.01.med"....',
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

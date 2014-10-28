@@ -32,7 +32,7 @@ my_paravis = paravis.myParavis
 print 'Importing "Fields_group3D.med"........',
 
 med_file_path = datadir + "Fields_group3D.med"
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 if med_reader is None:
     print "FAILED"

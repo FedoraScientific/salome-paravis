@@ -32,7 +32,7 @@ my_paravis = paravis.myParavis
 
 # Import MED file
 med_file_path = datadir + "pointe.med"
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:

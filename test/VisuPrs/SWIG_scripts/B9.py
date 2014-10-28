@@ -36,7 +36,7 @@ field_name = "fieldnodedouble"
 entity = EntityType.NODE
 timestamp = 1
 
-my_paravis.ImportFile(med_file)
+OpenDataFile(med_file)
 med_reader = pvsimple.GetActiveSource()
 
 # Create presentations

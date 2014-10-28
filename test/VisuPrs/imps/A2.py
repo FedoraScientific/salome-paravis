@@ -36,7 +36,7 @@ timestamp = 1
 # 1. Import MED file
 print 'Import "pointe.med"....................',
 med_file_path = datadir + med_file
-my_paravis.ImportFile(med_file_path)
+OpenDataFile(med_file_path)
 med_reader = pvsimple.GetActiveSource()
 
 if med_reader is None:
