@@ -1111,8 +1111,7 @@ def ScalarMapOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table.LockScalarRange = 1
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
     # Set properties
-    scalarmap.ColorAttributeType = EntityType.get_pvtype(entity)
-    scalarmap.ColorArrayName = field_name
+    scalarmap.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     scalarmap.LookupTable = lookup_table
 
     # Add scalar bar
@@ -1196,8 +1195,7 @@ def CutPlanesOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
 
     # Set properties
-    cut_planes.ColorAttributeType = EntityType.get_pvtype(entity)
-    cut_planes.ColorArrayName = field_name
+    cut_planes.ColorArrayName = (EntityType.get_pvtype(entity), field_name) 
     cut_planes.LookupTable = lookup_table
 
     # Add scalar bar
@@ -1338,8 +1336,7 @@ def CutLinesOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
 
     # Set properties
-    cut_lines.ColorAttributeType = EntityType.get_pvtype(entity)
-    cut_lines.ColorArrayName = field_name
+    cut_lines.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     cut_lines.LookupTable = lookup_table
 
     # Set wireframe represenatation mode
@@ -1412,8 +1409,7 @@ def CutSegmentOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
 
     # Set properties
-    cut_segment.ColorAttributeType = EntityType.get_pvtype(entity)
-    cut_segment.ColorArrayName = field_name
+    cut_segment.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     cut_segment.LookupTable = lookup_table
 
     # Set wireframe represenatation mode
@@ -1487,7 +1483,7 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
     glyph = pvs.Glyph(source)
     glyph.Vectors = vector_array
     glyph.ScaleMode = 'vector'
-    glyph.MaskPoints = 0
+    #glyph.MaskPoints = 0
 
     # Set glyph type
     glyph.GlyphType = glyph_type
@@ -1508,11 +1504,11 @@ def VectorsOnField(proxy, entity, field_name, timestamp_nb,
             glyph.GlyphType.Center = [0.0, 0.0, 0.0]
 
     if scale_factor is not None:
-        glyph.SetScaleFactor = scale_factor
+        glyph.ScaleFactor = scale_factor
     else:
         def_scale = get_default_scale(PrsTypeEnum.DEFORMEDSHAPE,
                                       proxy, entity, field_name)
-        glyph.SetScaleFactor = def_scale
+        glyph.ScaleFactor = def_scale
 
     glyph.UpdatePipeline()
 
@@ -1627,8 +1623,7 @@ def DeformedShapeOnField(proxy, entity, field_name,
 
     # Set properties
     if is_colored:
-        defshape.ColorAttributeType = EntityType.get_pvtype(entity)
-        defshape.ColorArrayName = field_name
+        defshape.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     else:
         defshape.ColorArrayName = ''
     defshape.LookupTable = lookup_table
@@ -1744,9 +1739,8 @@ def DeformedShapeAndScalarMapOnField(proxy, entity, field_name,
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
 
     # Set properties
-    defshapemap.ColorArrayName = scalar_field
+    defshapemap.ColorArrayName = (EntityType.get_pvtype(scalar_field_entity), scalar_field)
     defshapemap.LookupTable = lookup_table
-    defshapemap.ColorAttributeType = EntityType.get_pvtype(scalar_field_entity)
 
     # Add scalar bar
     add_scalar_bar(field_name, nb_components,
@@ -1914,8 +1908,7 @@ def Plot3DOnField(proxy, entity, field_name, timestamp_nb,
     lookup_table.RGBPoints = [data_range[0], 0, 0, 1, data_range[1], 1, 0, 0]
 
     # Set properties
-    plot3d.ColorAttributeType = EntityType.get_pvtype(entity)
-    plot3d.ColorArrayName = field_name
+    plot3d.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     plot3d.LookupTable = lookup_table
 
     # Add scalar bar
@@ -2016,8 +2009,7 @@ def IsoSurfacesOnField(proxy, entity, field_name, timestamp_nb,
 
     # Set display properties
     if (is_colored):
-        isosurfaces.ColorAttributeType = EntityType.get_pvtype(entity)
-        isosurfaces.ColorArrayName = field_name
+        isosurfaces.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     else:
         isosurfaces.ColorArrayName = ''
         if color:
@@ -2141,8 +2133,7 @@ def GaussPointsOnField(proxy, entity, field_name,
 
     # Set display properties
     if is_colored:
-        gausspnt.ColorAttributeType = EntityType.get_pvtype(entity)
-        gausspnt.ColorArrayName = field_name
+        gausspnt.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     else:
         gausspnt.ColorArrayName = ''
         if color:
@@ -2273,8 +2264,7 @@ def GaussPointsOnField1(proxy, entity, field_name,
 
     # Set display properties
     if is_colored:
-        gausspnt.ColorAttributeType = EntityType.get_pvtype(entity)
-        gausspnt.ColorArrayName = field_name
+        gausspnt.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     else:
         gausspnt.ColorArrayName = ''
         if color:
@@ -2426,8 +2416,7 @@ def StreamLinesOnField(proxy, entity, field_name, timestamp_nb,
 
     # Set properties
     if is_colored:
-        streamlines.ColorAttributeType = EntityType.get_pvtype(entity)
-        streamlines.ColorArrayName = field_name
+        streamlines.ColorArrayName = (EntityType.get_pvtype(entity), field_name)
     else:
         streamlines.ColorArrayName = ''
         if color:
