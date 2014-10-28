@@ -254,6 +254,10 @@
         <translation>Memory Inspector</translation>
     </message>
     <message>
+        <source>TTL_VIEW_PANEL</source>
+        <translation>View</translation>
+    </message>
+    <message>
         <source>TOP_OPEN_FILE</source>
         <translation>Open Paraview File</translation>
     </message>
