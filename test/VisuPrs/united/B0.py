@@ -21,7 +21,7 @@
 
 from paravistest import datadir, compare_lists
 from presentations import *
-import paravis
+import pvserver as paravis
 import pvsimple
 
 my_paravis = paravis.myParavis

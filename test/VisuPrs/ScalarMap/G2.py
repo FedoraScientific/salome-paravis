@@ -23,7 +23,7 @@
 import sys
 import os
 from paravistest import datadir, pictureext, get_picture_dir
-import paravis
+import pvserver as paravis
 from pvsimple import GetActiveSource, GetRenderView, Render
 from presentations import ScalarMapOnField, hide_all, EntityType, PrsTypeEnum,reset_view,process_prs_for_test
 

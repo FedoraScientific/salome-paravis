@@ -21,7 +21,7 @@
 # Create table of integer, create table of real, create curves
 
 from paravistest import tablesdir
-import paravis
+import pvserver as paravis
 import pvsimple
 
 

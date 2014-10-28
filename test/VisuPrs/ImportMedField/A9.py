@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "maill.0.med"
 field_names = ["REQT_GD_________________________", "RESUTRQUDEPL____________________", "RESUTRQUERRE_ELGA_NORE__________", "RESUTRQUSIEF_ELGA_DEPL__________", "RESUTRQUSIGM_ELNO_DEPL__________"]

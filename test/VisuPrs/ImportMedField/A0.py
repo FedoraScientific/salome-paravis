@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "ResOK_0000.med"
 field_names = ["temperature", "vitesse", "pression"]

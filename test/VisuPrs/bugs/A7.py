@@ -22,7 +22,7 @@
 import sys
 from paravistest import datadir, pictureext, get_picture_dir
 from presentations import CreatePrsForFile, PrsTypeEnum
-import paravis
+import pvserver as paravis
 
 my_paravis = paravis.myParavis
 os.environ["PARAVIS_TEST_PICS"] = sys.argv[1]

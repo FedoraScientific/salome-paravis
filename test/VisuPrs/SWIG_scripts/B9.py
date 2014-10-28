@@ -21,7 +21,7 @@
 
 from paravistest import datadir
 from presentations import EntityType, ScalarMapOnField, CutPlanesOnField
-import paravis
+import pvserver as paravis
 import pvsimple
 
 

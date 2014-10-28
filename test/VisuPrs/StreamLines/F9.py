@@ -24,7 +24,7 @@ import sys
 from paravistest import datadir, pictureext, get_picture_dir
 from presentations import StreamLinesOnField, EntityType, \
      reset_view, process_prs_for_test
-import paravis
+import pvserver as paravis
 import pvsimple
 
 

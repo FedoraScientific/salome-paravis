@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "homard_ASTER_OSF_MEDV2.1.5_1.med2.3.med"
 field_names = ["REMEZEROERRE_ELGA_NORE__________", "RETHZEROTEMP____________________"]

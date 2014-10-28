@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "pointe_4fields.med"
 field_names = ["fieldcelldoublescalar", "fieldcelldoublevector", "fieldnodedouble", "fieldnodedouble", "fieldnodedouble", "fieldnodeint"]

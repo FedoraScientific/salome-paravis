@@ -21,7 +21,7 @@
 # Create table
 
 from paravistest import tablesdir
-import paravis
+import pvserver as paravis
 import pvsimple
 
 

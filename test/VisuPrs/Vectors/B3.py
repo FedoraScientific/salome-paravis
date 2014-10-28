@@ -23,7 +23,7 @@ import sys
 
 from paravistest import datadir
 from presentations import VectorsOnField, EntityType
-import paravis
+import pvserver as paravis
 import pvsimple
 
 my_paravis = paravis.myParavis

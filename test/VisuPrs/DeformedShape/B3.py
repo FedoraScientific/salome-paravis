@@ -21,7 +21,7 @@
 
 from paravistest import datadir
 from presentations import DeformedShapeOnField, EntityType
-import paravis
+import pvserver as paravis
 import pvsimple
 
 

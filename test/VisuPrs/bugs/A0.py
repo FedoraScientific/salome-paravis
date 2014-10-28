@@ -23,7 +23,7 @@ import sys
 import os
 from paravistest import datadir, pictureext, get_picture_dir
 import presentations
-import paravis
+import pvserver as paravis
 import pvsimple
 
 my_paravis = paravis.myParavis

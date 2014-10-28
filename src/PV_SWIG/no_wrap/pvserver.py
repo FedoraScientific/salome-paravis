@@ -24,4 +24,5 @@ import PVSERVER_utils
 
 ## Initialize PARAVIS interface
 myPVServerService = PVSERVER_utils.getEngine()
-
+# Backward compatibility:
+myParavis = myPVServerService 

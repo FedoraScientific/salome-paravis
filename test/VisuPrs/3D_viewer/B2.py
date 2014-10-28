@@ -26,7 +26,7 @@ import time
 from paravistest import *
 from presentations import *
 from pvsimple import *
-import paravis
+import pvserver as paravis
 
 
 # Directory for saving snapshots

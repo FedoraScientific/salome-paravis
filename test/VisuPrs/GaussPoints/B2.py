@@ -25,7 +25,7 @@ import sys
 
 from paravistest import datadir, pictureext, get_picture_dir
 from presentations import GaussPointsOnField, EntityType, get_time, process_prs_for_test
-import paravis
+import pvserver as paravis
 import pvsimple
 
 

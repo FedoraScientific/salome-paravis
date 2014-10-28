@@ -24,7 +24,7 @@ import salome
 
 from paravistest import datadir, pictureext, get_picture_dir
 from presentations import *
-import paravis
+import pvserver as paravis
 import pvsimple
 
 myStudy = salome.myStudy

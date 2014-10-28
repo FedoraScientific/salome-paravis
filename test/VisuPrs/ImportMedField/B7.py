@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "recoll_bord.med"
 field_names = ["bord_:_distorsion","bord_:_familles","bord_:_non-ortho"]

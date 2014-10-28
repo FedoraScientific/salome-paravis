@@ -24,7 +24,7 @@ from paravistest import *
 from presentations import *
 from pvsimple import *
 import sys
-import paravis
+import pvserver as paravis
 import time
 
 

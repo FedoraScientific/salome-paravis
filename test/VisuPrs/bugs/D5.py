@@ -19,7 +19,7 @@
 
 from paravistest import tablesdir
 from presentations import *
-import paravis
+import pvserver as paravis
 import pvsimple
 
 # Import table from file

@@ -48,7 +48,7 @@ opened_study = salome.myStudyManager.Open(file_name)
 salome.myStudy = opened_study
 
 # 2. Load PARAVIS module
-import paravis
+import pvserver as paravis
 
 # 3. Find IsoSurfaces
 from pvsimple import *

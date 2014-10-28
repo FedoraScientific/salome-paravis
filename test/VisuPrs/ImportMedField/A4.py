@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "test_hydro_darcy1a_out.med"
 field_names = ["DarcyVelocity","Head"]

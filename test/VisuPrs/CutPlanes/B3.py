@@ -21,7 +21,7 @@
 
 from paravistest import datadir
 from presentations import CutPlanesOnField, EntityType
-import paravis
+import pvserver as paravis
 import pvsimple
 
 my_paravis = paravis.myParavis

@@ -21,7 +21,7 @@
 # Import MED file; create presentations for the given fields.
 
 from paravistest import datadir, Import_Med_Field
-import paravis
+import pvserver as paravis
 
 med_file = datadir + "clo2.med"
 field_names = ["PRESSION", "TAUX_DE_VIDE", "VITESSE"]
