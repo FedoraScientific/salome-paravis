@@ -33,6 +33,11 @@ if not os.getenv("OMNIORB_USER_PATH"):
 args = {}
 searchFreePort.searchFreePort(args)
 port = args['port']
+try:
+    import PortManager
+    PortManager.releasePort(os.environ['NSPORT'])
+except ImportError:
+    pass
 
 def timeout_handler(signum, frame):
     print "FAILED : timeout(" + sys.argv[1] + ") is reached"
