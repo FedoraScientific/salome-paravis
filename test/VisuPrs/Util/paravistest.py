@@ -80,13 +80,15 @@ class SalomeSession(object):
     def __init__(self):
         import runSalome
         import sys
-        #sys.argv += ["--killall"]
-        #sys.argv += ["--portkill=" + port]
-        sys.argv += ["--show-desktop=1"]
-        sys.argv += ["--splash=0"]
+        if "INGUI" in sys.argv:
+            sys.argv += ["--gui"]
+            sys.argv += ["--show-desktop=1"]
+            sys.argv += ["--splash=0"]
+            #sys.argv += ["--standalone=study"]
+            #sys.argv += ["--embedded=SalomeAppEngine,cppContainer,registry,moduleCatalog"]
+	else:
+            sys.argv += ["--terminal"]
         sys.argv += ["--modules=MED,PARAVIS"]
-        sys.argv += ["--standalone=study"]
-        sys.argv += ["--embedded=SalomeAppEngine,cppContainer,registry,moduleCatalog"]
         clt, d = runSalome.main()
         port = d['port']
         self.port = port
@@ -370,3 +372,9 @@ def delete_with_inputs(obj):
 # Run Salome
 salome_session = SalomeSession()
 salome.salome_init()
+session_server = salome.naming_service.Resolve('/Kernel/Session')
+if session_server:
+    session_server.emitMessage("connect_to_study")
+    session_server.emitMessage("activate_viewer/ParaView")
+    pass
+
