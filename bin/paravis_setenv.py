@@ -19,7 +19,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import os, re
+import os, re, sys
 
 # -----------------------------------------------------------------------------
 
@@ -27,9 +27,13 @@ def set_env( args ):
     """Initialize environment of PARAVIS module"""
     # set PV_PLUGIN_PATH to PARAVIS plug-ins
     paravis_plugin_dir = os.path.join( os.getenv( "PARAVIS_ROOT_DIR" ), "lib", "paraview" )
-    plugin_path = re.split( ":|;", os.getenv( 'PV_PLUGIN_PATH', paravis_plugin_dir ) )
+    if sys.platform == "win32":
+        splitsym = splitre  = ";"
+    else:
+        splitsym = ":"; splitre = ":|;"
+    plugin_path = re.split( splitre, os.getenv( 'PV_PLUGIN_PATH', paravis_plugin_dir ) )
     if paravis_plugin_dir not in plugin_path: plugin_path[0:0] = [paravis_plugin_dir]
-    os.environ['PV_PLUGIN_PATH'] = ";".join(plugin_path)
+    os.environ['PV_PLUGIN_PATH'] = splitsym.join(plugin_path)
     pass
 
 
