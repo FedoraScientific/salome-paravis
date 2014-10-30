@@ -19,50 +19,49 @@
 
 # This case corresponds to: /visu/2D_viewer/A1 case
 
-from paravistest import test_values
-from pvsimple import CreateXYPlotView
+from paravistest import *
+from presentations import *
+from pvsimple import *
 
 # Create view
 aXYPlot = CreateXYPlotView()
+Render(aXYPlot)
 
 error = 0
 
-aXYPlot.AxisUseCustomRange = [1, 1, 0, 0]
+# Apply custom axes range
+Etvalue = (1, 1, 1, 1)
+aXYPlot.LeftAxisUseCustomRange, aXYPlot.BottomAxisUseCustomRange, aXYPlot.RightAxisUseCustomRange, aXYPlot.TopAxisUseCustomRange = 1, 1, 1, 1
+Ranges = aXYPlot.LeftAxisUseCustomRange, aXYPlot.BottomAxisUseCustomRange, aXYPlot.RightAxisUseCustomRange, aXYPlot.TopAxisUseCustomRange
+error = error + test_values(Ranges, Etvalue)
+
+# Set custom axes range
+aXYPlot.LeftAxisUseCustomRange = 1
+aXYPlot.BottomAxisUseCustomRange = 1
+
 # Left axis range
-axisRange = aXYPlot.LeftAxisRange
-axisRange[0:2] = [200., 800.]
-Ranges = aXYPlot.LeftAxisRange
-Etvalue = [200, 800]
+Etvalue = (200., 800.)
+aXYPlot.LeftAxisRangeMinimum, aXYPlot.LeftAxisRangeMaximum = Etvalue
+Ranges = aXYPlot.LeftAxisRangeMinimum, aXYPlot.LeftAxisRangeMaximum
 error = error + test_values(Ranges, Etvalue)
+
 # Bottom axis range
-axisRange = aXYPlot.BottomAxisRange
-axisRange[0:2] = [350.,750.]
-Ranges = aXYPlot.BottomAxisRange
-Etvalue = [350, 750]
+Etvalue = (350., 750.)
+aXYPlot.BottomAxisRangeMinimum, aXYPlot.BottomAxisRangeMaximum = Etvalue
+Ranges = aXYPlot.BottomAxisRangeMinimum, aXYPlot.BottomAxisRangeMaximum
 error = error + test_values(Ranges, Etvalue)
-# Left and bottom axis range
-aXYPlot.LeftAxisRange[0:2] = [1350.,2750.]
-aXYPlot.BottomAxisRange[0:2] = [240.,2230.]
-Etvalue=[1350.,2750.,240.,2230.]
-Ranges=aXYPlot.LeftAxisRange
-error = error + test_values(Ranges, Etvalue[0:2])
-Ranges=aXYPlot.BottomAxisRange
-error = error + test_values(Ranges, Etvalue[2:4])
-aXYPlot.AxisUseCustomRange = [1, 1, 1, 1]
-# Left, bottom, right and top axis range
-aXYPlot.LeftAxisRange = [0, 200]
-aXYPlot.BottomAxisRange = [100, 450]
-aXYPlot.RightAxisRange = [0, 200]
-aXYPlot.TopAxisRange = [100, 450]
-Etvalue = [0, 200, 100, 450, 0, 200, 100, 450]
-Ranges=aXYPlot.LeftAxisRange
-error = error + test_values(Ranges, Etvalue[0:2])
-Ranges=aXYPlot.BottomAxisRange
-error = error + test_values(Ranges, Etvalue[2:4])
-Ranges=aXYPlot.RightAxisRange
-error = error + test_values(Ranges, Etvalue[4:6])
-Ranges=aXYPlot.TopAxisRange
-error = error + test_values(Ranges, Etvalue[6:8])
+
+# Right axis range
+Etvalue = (0., 300.)
+aXYPlot.RightAxisRangeMinimum, aXYPlot.RightAxisRangeMaximum = Etvalue
+Ranges = aXYPlot.RightAxisRangeMinimum, aXYPlot.RightAxisRangeMaximum
+error = error + test_values(Ranges, Etvalue)
+
+# Top axis range
+Etvalue = (100., 450.)
+aXYPlot.TopAxisRangeMinimum, aXYPlot.TopAxisRangeMaximum = Etvalue
+Ranges = aXYPlot.TopAxisRangeMinimum, aXYPlot.TopAxisRangeMaximum
+error = error + test_values(Ranges, Etvalue)
 
 if error > 0:
     raise RuntimeError, "There is(are) some error(s) was(were) found... For more info see ERRORs above..."

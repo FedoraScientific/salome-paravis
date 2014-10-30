@@ -19,59 +19,55 @@
 
 # This case corresponds to: /visu/2D_viewer/A0 case
 
-import paravistest
-
-from pvsimple import CreateXYPlotView, Delete
+from paravistest import *
+from presentations import *
+from pvsimple import *
 
 # Create view
 aXYPlot = CreateXYPlotView()
-# Delete view
-Delete(aXYPlot)
-# Create view again
-aXYPlot = CreateXYPlotView()
+Render(aXYPlot)
 
 # Set title
-print "Default chart title    ...", aXYPlot.ChartTitle
-aXYPlot.ChartTitle = '   '
+print "Default chart title  ...", aXYPlot.ChartTitle
 aXYPlot.ChartTitle = 'title of XY plot'
-print "Chart title for xyplot ...", aXYPlot.ChartTitle
+print "New chart title      ...", aXYPlot.ChartTitle
 
-error = 0
-
-aXYPlot.AxisUseCustomRange = [1, 1, 0, 0]
+# Apply custom axes range
+aXYPlot.LeftAxisUseCustomRange = 1
+aXYPlot.BottomAxisUseCustomRange = 1
 
 # Show grids
-aXYPlot.ShowAxisGrid = [1, 1, 0, 0]
+aXYPlot.ShowLeftAxisGrid = 1
+aXYPlot.ShowBottomAxisGrid = 1
 
 aMinX = 0
 aMaxX = 100
 aMinY = 0
 aMaxY = 10
-aXYPlot.BottomAxisRange = [aMinX, aMaxX]
-aXYPlot.LeftAxisRange = [aMinY, aMaxY]
+aXYPlot.LeftAxisRangeMinimum = aMinY
+aXYPlot.LeftAxisRangeMaximum = aMaxY
+aXYPlot.BottomAxisRangeMinimum = aMinX
+aXYPlot.BottomAxisRangeMaximum = aMaxX
 
 # Set horizontal scaling for left and bottom axis
-print "Default logarithmic scaling  ...", aXYPlot.AxisLogScale
+print "Default logarithmic scaling ... left = %s, bottom = %s" % ( aXYPlot.LeftAxisLogScale, aXYPlot.BottomAxisLogScale )
 # Set logarithmic scaling
-aXYPlot.AxisLogScale = [1, 1, 0, 0]
-print "Logarithmic scaling          ...", aXYPlot.AxisLogScale
+aXYPlot.LeftAxisLogScale = 1
+aXYPlot.BottomAxisLogScale = 1
+print "Set logarithmic scaling     ... left = %s, bottom = %s" % ( aXYPlot.LeftAxisLogScale, aXYPlot.BottomAxisLogScale )
 # Set linear scaling
-aXYPlot.AxisLogScale = [0, 0, 0, 0]
-print "Linear scaling               ...", aXYPlot.AxisLogScale
+aXYPlot.LeftAxisLogScale = 0
+aXYPlot.BottomAxisLogScale = 0
+print "Set linear scaling          ... left = %s, bottom = %s" % ( aXYPlot.LeftAxisLogScale, aXYPlot.BottomAxisLogScale )
 
 # Axis titles
-print "Default title of the left axis    ...", aXYPlot.AxisTitle[0]
-aXYPlot.AxisTitle[0] = '    '
-aXYPlot.AxisTitle[0] ="Xtitle of XY plot"
-print "Title of the left axis            ...", aXYPlot.AxisTitle[0]
-print "Default title of the bottom axis  ...", aXYPlot.AxisTitle[1]
-aXYPlot.AxisTitle[1] = '    '
-aXYPlot.AxisTitle[1] = "Ytitle of XY plot"
-print "Title of the bottom axis          ...", aXYPlot.AxisTitle[1]
+print "Default title of the left axis    ...", aXYPlot.LeftAxisTitle
+aXYPlot.LeftAxisTitle = "Ytitle of XY plot"
+print "New title of the left axis        ...", aXYPlot.LeftAxisTitle
+print "Default title of the bottom axis  ...", aXYPlot.BottomAxisTitle
+aXYPlot.BottomAxisTitle = "Xtitle of XY plot"
+print "New title of the bottom axis      ...", aXYPlot.BottomAxisTitle
 
 # Show/hide legend
 aXYPlot.ShowLegend = 1
 aXYPlot.ShowLegend = 0
-
-if error > 0:
-    raise RuntimeError, "There is(are) some error(s) was(were) found... For more info see ERRORs above..."
