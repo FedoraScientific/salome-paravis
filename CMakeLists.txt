@@ -237,6 +237,7 @@ IF(SALOME_BUILD_TESTS AND NOT SALOME_LIGHT_ONLY)
   ADD_SUBDIRECTORY(test)
 ENDIF()
 ADD_SUBDIRECTORY(bin)
+ADD_SUBDIRECTORY(examples)
 
 # Header configuration
 # ====================
