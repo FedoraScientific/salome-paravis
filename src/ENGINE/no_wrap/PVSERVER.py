@@ -179,7 +179,7 @@ class PVSERVER(PVSERVER_ORB__POA.PVSERVER_Gen,
     """
     def getVersion( self ):
         import salome_version
-        return salome_version.getVersion("PVSERVER", True)
+        return salome_version.getVersion("PARAVIS", True)
 
     def GetIOR(self):
         return PVSERVER_utils.getEngineIOR()
