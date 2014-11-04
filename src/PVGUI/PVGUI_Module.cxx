@@ -350,9 +350,7 @@ void PVGUI_Module::initialize( CAM_Application* app )
 {
   LightApp_Module::initialize( app );
 
-  // Create ParaViS actions
   createActions();
-  // Create ParaViS menus
   createMenus();
 
   // Uncomment to debug ParaView initialization
@@ -375,19 +373,17 @@ void PVGUI_Module::initialize( CAM_Application* app )
   // Remember current state of desktop toolbars
   QList<QToolBar*> foreignToolbars = aDesktop->findChildren<QToolBar*>();
 
+  // [ABN]: careful with the order of the GUI element creation, the loading of the configuration
+  // and the connection to the server. This order is very sensitive if one wants to make
+  // sure all menus, etc ... are correctly populated.
+  // Reference points are: ParaViewMainWindow.cxx and branded_paraview_initializer.cxx.in
   setupDockWidgets();
-
-  // Behaviors and connection must be instanciated *after* widgets are in place
-  // In PARAVIS module we do not wait for PVViewer_ViewWindow to be instanciated to have this:
-  PVViewer_ViewManager::ParaviewInitBehaviors(true, aDesktop);
 
   pvCreateActions();
   pvCreateMenus();
   pvCreateToolBars();
 
-  // Connect after toolbar creation, etc ... as some activations of the toolbars is triggered
-  // by the ServerConnection event:
-  PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
+  PVViewer_ViewManager::ParaviewInitBehaviors(true, aDesktop);
 
   QList<QDockWidget*> activeDocks = aDesktop->findChildren<QDockWidget*>();
   QList<QMenu*> activeMenus = aDesktop->findChildren<QMenu*>();
@@ -419,7 +415,10 @@ void PVGUI_Module::initialize( CAM_Application* app )
 //      }
 //    }
 
-  PVViewer_ViewManager::ParaviewLoadConfigurations();
+  // Connect after toolbar creation, etc ... as some activations of the toolbars is triggered
+  // by the ServerConnection event:
+  PVViewer_ViewManager::ParaviewLoadConfigurations(true);
+  PVViewer_ViewManager::ConnectToExternalPVServer(aDesktop);
   updateObjBrowser();
 
   // Find created toolbars

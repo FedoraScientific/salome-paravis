@@ -541,19 +541,19 @@ void PVGUI_Module::pvCreateMenus()
   pqPipelineBrowserWidget * pq = guiElements->getPipelineBrowserWidget();
   pqParaViewMenuBuilders::buildPipelineBrowserContextMenu( *pq );
 
-  // Reload configuration to populate dynamic menus from ParaView:
-  PVViewer_ViewManager::ParaviewLoadConfigurations(true);
-
-  // Disable all filters for now (for some weird reasons they are all on when starting?)
-  QList<QMenu*> sub_menus = filtersMenu->findChildren<QMenu*>();
-  foreach(QMenu * m, sub_menus)
-    {
-      QList<QAction *> act_list = m->actions();
-      foreach(QAction * a, act_list)
-      {
-        a->setEnabled(false);
-      }
-    }
+//  // Reload configuration to populate dynamic menus from ParaView:
+//  PVViewer_ViewManager::ParaviewLoadConfigurations(true);
+//
+//  // Disable all filters for now (for some weird reasons they are all on when starting?)
+//  QList<QMenu*> sub_menus = filtersMenu->findChildren<QMenu*>();
+//  foreach(QMenu * m, sub_menus)
+//    {
+//      QList<QAction *> act_list = m->actions();
+//      foreach(QAction * a, act_list)
+//      {
+//        a->setEnabled(false);
+//      }
+//    }
 }
 
 /*!
