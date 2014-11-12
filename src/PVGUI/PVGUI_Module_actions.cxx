@@ -484,22 +484,18 @@ void PVGUI_Module::pvCreateMenus()
   // --- Menu "Sources"
   // Install ParaView managers for "Sources" menu
   QMenu* aRes = 0;
-  QMenu* filtersMenu = 0;
   PVViewer_GUIElements * guiElements = PVViewer_GUIElements::GetInstance(desk);
-  mySourcesMenuId = createMenu( tr( "MEN_DESK_SOURCES" ), -1, -1, 60);
-  if ( (aRes = getMenu( mySourcesMenuId )) )
-    pqParaViewMenuBuilders::buildSourcesMenu(*aRes, desk);
+  aRes = guiElements->getSourcesMenu();
+  mySourcesMenuId = createMenu( tr( "MEN_DESK_SOURCES" ), -1, -1, 60, -1, aRes);
   
   // --- Menu "Filters"
   // Install ParaView managers for "Filters" menu
-  myFiltersMenuId = createMenu( tr( "MEN_DESK_FILTERS" ), -1, -1, 70 );
-  if ( (filtersMenu = getMenu( myFiltersMenuId )) )
-    pqParaViewMenuBuilders::buildFiltersMenu(*filtersMenu, desk);
+  aRes = guiElements->getFiltersMenu();
+  myFiltersMenuId = createMenu( tr( "MEN_DESK_FILTERS" ), -1, -1, 70, -1, aRes);
 
    // --- Menu "Macros"
-  myMacrosMenuId = createMenu( tr( "MEN_MACROS" ), -1, -1, 80 );
-  if ( (aRes = getMenu( myMacrosMenuId )) )
-    pqParaViewMenuBuilders::buildMacrosMenu(*aRes);
+  aRes = guiElements->getMacrosMenu();
+  myMacrosMenuId = createMenu( tr( "MEN_MACROS" ), -1, -1, 80, -1, aRes);
  
   // --- Menu "Tools"
   int aToolsMnu = createMenu( tr( "MEN_DESK_TOOLS" ), -1, -1, 90 );

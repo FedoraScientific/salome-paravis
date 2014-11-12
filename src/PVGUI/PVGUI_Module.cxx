@@ -132,11 +132,9 @@
 #include <pqScalarBarVisibilityReaction.h>
 #include <pqServerResource.h>
 #include <pqServerConnectReaction.h>
+#include <pqPluginManager.h>
 
-// TO REMOVE:
-#include <PyInterp_Interp.h>
-
-#include <PVViewer_EngineWrapper.h>
+//#include <PVViewer_EngineWrapper.h>
 
 
 //----------------------------------------------------------------------------
