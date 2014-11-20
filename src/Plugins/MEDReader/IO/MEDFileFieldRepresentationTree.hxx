@@ -163,6 +163,7 @@ private:
   const MEDFileFieldRepresentationLeaves& getTheSingleActivated(int& lev0, int& lev1, int& lev2) const;
   static ParaMEDMEM::MEDFileFields *BuildFieldFromMeshes(const ParaMEDMEM::MEDFileMeshes *ms);
   static void AppendFieldFromMeshes(const ParaMEDMEM::MEDFileMeshes *ms, ParaMEDMEM::MEDFileFields *ret);
+  static std::string BuildAUniqueArrayNameForMesh(const std::string& meshName, const ParaMEDMEM::MEDFileFields *ret);
   static std::vector<std::string> SplitFieldNameIntoParts(const std::string& fullFieldName, char sep);
 private:
   // 1st : timesteps, 2nd : meshName, 3rd : common support

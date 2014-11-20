@@ -1387,6 +1387,8 @@ void MEDFileFieldRepresentationTree::printMySelf(std::ostream& os) const
 
 void MEDFileFieldRepresentationTree::AppendFieldFromMeshes(const ParaMEDMEM::MEDFileMeshes *ms, ParaMEDMEM::MEDFileFields *ret)
 {
+  if(!ret)
+    throw INTERP_KERNEL::Exception("MEDFileFieldRepresentationTree::AppendFieldFromMeshes : internal error ! NULL ret !");
   for(int i=0;i<ms->getNumberOfMeshes();i++)
     {
       MEDFileMesh *mm(ms->getMeshAtPos(i));
@@ -1407,7 +1409,7 @@ void MEDFileFieldRepresentationTree::AppendFieldFromMeshes(const ParaMEDMEM::MED
 		  arr->setInfoOnComponent(0,std::string(COMPO_STR_TO_LOCATE_MESH_DA));
 		  arr->iota();
 		  f->setArray(arr);
-		  f->setName(mm->getName());
+		  f->setName(BuildAUniqueArrayNameForMesh(mm->getName(),ret));
 		  f1tsMultiLev->setFieldNoProfileSBT(f);
 		}
 	    }
@@ -1422,7 +1424,7 @@ void MEDFileFieldRepresentationTree::AppendFieldFromMeshes(const ParaMEDMEM::MED
 		  ParaMEDMEM::MEDCouplingAutoRefCountObjectPtr<ParaMEDMEM::DataArrayDouble> arr(ParaMEDMEM::DataArrayDouble::New()); arr->alloc(m->getNumberOfNodes());
 		  arr->setInfoOnComponent(0,std::string(COMPO_STR_TO_LOCATE_MESH_DA));
 		  arr->iota(); f->setArray(arr);
-		  f->setName(mm->getName());
+		  f->setName(BuildAUniqueArrayNameForMesh(mm->getName(),ret));
 		  f1tsMultiLev->setFieldNoProfileSBT(f);
 		}
 	      else
@@ -1438,7 +1440,7 @@ void MEDFileFieldRepresentationTree::AppendFieldFromMeshes(const ParaMEDMEM::MED
 	  arr->setInfoOnComponent(0,std::string(COMPO_STR_TO_LOCATE_MESH_DA));
 	  arr->iota();
 	  f->setArray(arr);
-	  f->setName(mm->getName());
+	  f->setName(BuildAUniqueArrayNameForMesh(mm->getName(),ret));
 	  f1tsMultiLev->setFieldNoProfileSBT(f);
 	}
       //
@@ -1446,6 +1448,20 @@ void MEDFileFieldRepresentationTree::AppendFieldFromMeshes(const ParaMEDMEM::MED
       fmtsMultiLev->pushBackTimeStep(f1tsMultiLev);
       ret->pushField(fmtsMultiLev);
     }
+}
+
+std::string MEDFileFieldRepresentationTree::BuildAUniqueArrayNameForMesh(const std::string& meshName, const ParaMEDMEM::MEDFileFields *ret)
+{
+  static const char KEY_STR_TO_AVOID_COLLIDE[]="MESH@";
+  if(!ret)
+    throw INTERP_KERNEL::Exception("MEDFileFieldRepresentationTree::BuildAUniqueArrayNameForMesh : internal error ! NULL ret !");
+  std::vector<std::string> fieldNamesAlreadyExisting(ret->getFieldsNames());
+  if(std::find(fieldNamesAlreadyExisting.begin(),fieldNamesAlreadyExisting.end(),meshName)==fieldNamesAlreadyExisting.end())
+    return meshName;
+  std::string tmpName(KEY_STR_TO_AVOID_COLLIDE); tmpName+=meshName;
+  while(std::find(fieldNamesAlreadyExisting.begin(),fieldNamesAlreadyExisting.end(),tmpName)!=fieldNamesAlreadyExisting.end())
+    tmpName=std::string(KEY_STR_TO_AVOID_COLLIDE)+tmpName;
+  return tmpName;
 }
 
 ParaMEDMEM::MEDFileFields *MEDFileFieldRepresentationTree::BuildFieldFromMeshes(const ParaMEDMEM::MEDFileMeshes *ms)
