@@ -158,7 +158,7 @@ vtkIdTypeArray *ELGACmp::createNew(const ParaMEDMEM::MEDFileFieldGlobsReal *glob
     }
   //
   vtkIdType ncell(ds->GetNumberOfCells());
-  int *pt(new int[ncell]),offset(0);
+  vtkIdType *pt(new vtkIdType[ncell]),offset(0);
   for(vtkIdType cellId=0;cellId<ncell;cellId++)
     {
       vtkCell *cell(ds->GetCell(cellId));
@@ -355,7 +355,7 @@ void MEDFileFieldRepresentationLeavesArrays::appendFields(const MEDTimeReq *tr, 
               vtkIdTypeArray *elno(vtkIdTypeArray::New());
               elno->SetNumberOfComponents(1);
               vtkIdType ncell(ds->GetNumberOfCells());
-              int *pt(new int[ncell]),offset(0);
+              vtkIdType *pt(new vtkIdType[ncell]),offset(0);
               std::set<int> cellTypes;
               for(vtkIdType cellId=0;cellId<ncell;cellId++)
                 {
@@ -633,27 +633,43 @@ vtkUnstructuredGrid *MEDFileFieldRepresentationLeaves::buildVTKInstanceNoTimeInt
   DataArrayByte *typesMC(0);
   DataArrayInt *cellLocationsMC(0),*cellsMC(0),*faceLocationsMC(0),*facesMC(0);
   bool statusOfCoords(mm->buildVTUArrays(coordsMC,typesMC,cellLocationsMC,cellsMC,faceLocationsMC,facesMC));
+  
   MEDCouplingAutoRefCountObjectPtr<DataArrayDouble> coordsSafe(coordsMC);
   MEDCouplingAutoRefCountObjectPtr<DataArrayByte> typesSafe(typesMC);
-  MEDCouplingAutoRefCountObjectPtr<DataArrayInt> cellLocationsSafe(cellLocationsMC),cellsSafe(cellsMC),faceLocationsSafe(faceLocationsMC),facesSafe(facesMC);
   //
   int nbOfCells(typesSafe->getNbOfElems());
   vtkUnstructuredGrid *ret(vtkUnstructuredGrid::New());
   vtkUnsignedCharArray *cellTypes(vtkUnsignedCharArray::New());
   cellTypes->SetArray(reinterpret_cast<unsigned char *>(typesSafe->getPointer()),nbOfCells,0,VTK_DATA_ARRAY_FREE); typesSafe->accessToMemArray().setSpecificDeallocator(0);
   vtkIdTypeArray *cellLocations(vtkIdTypeArray::New());
-  cellLocations->SetArray(cellLocationsSafe->getPointer(),nbOfCells,0,VTK_DATA_ARRAY_FREE); cellLocationsSafe->accessToMemArray().setSpecificDeallocator(0);
+  cellLocations->SetNumberOfValues(cellLocationsMC->getNbOfElems());
+  for(std::size_t i = 0; i < cellLocationsMC->getNbOfElems(); ++i)
+    {
+      cellLocations->SetValue(i,cellLocationsMC->getConstPointer()[i]);
+    }
   vtkCellArray *cells(vtkCellArray::New());
   vtkIdTypeArray *cells2(vtkIdTypeArray::New());
-  cells2->SetArray(cellsSafe->getPointer(),cellsSafe->getNbOfElems(),0,VTK_DATA_ARRAY_FREE); cellsSafe->accessToMemArray().setSpecificDeallocator(0);
+  cells2->SetNumberOfValues(cellsMC->getNbOfElems());
+  for(std::size_t i = 0; i < cellsMC->getNbOfElems(); ++i)
+    {
+      cells2->SetValue(i,cellsMC->getConstPointer()[i]);
+    }
   cells->SetCells(nbOfCells,cells2);
   cells2->Delete();
   if(faceLocationsMC!=0 && facesMC!=0)
     {
       vtkIdTypeArray *faces(vtkIdTypeArray::New());
-      faces->SetArray(facesSafe->getPointer(),facesSafe->getNbOfElems(),0,VTK_DATA_ARRAY_FREE); facesSafe->accessToMemArray().setSpecificDeallocator(0);
+      faces->SetNumberOfValues(facesMC->getNbOfElems());
+      for(std::size_t i = 0; i < facesMC->getNbOfElems(); ++i)
+        {
+          faces->SetValue(i,facesMC->getConstPointer()[i]);
+        }
       vtkIdTypeArray *faceLocations(vtkIdTypeArray::New());
-      faceLocations->SetArray(faceLocationsSafe->getPointer(),faceLocationsSafe->getNbOfElems(),0,VTK_DATA_ARRAY_FREE); faceLocationsSafe->accessToMemArray().setSpecificDeallocator(0);
+      faceLocations->SetNumberOfValues(faceLocationsMC->getNbOfElems());
+      for(std::size_t i = 0; i < faceLocationsMC->getNbOfElems(); ++i)
+        {
+          faceLocations->SetValue(i,faceLocationsMC->getConstPointer()[i]);
+        }
       ret->SetCells(cellTypes,cellLocations,cells,faceLocations,faces);
       faceLocations->Delete();
       faces->Delete();
