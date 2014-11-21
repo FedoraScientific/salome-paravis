@@ -83,7 +83,7 @@ TARGET_LINK_LIBRARIES(TableReaderPlugin vtkVisuTableReader vtkTableTo3D)
 # Install
 INSTALL(
     TARGETS TableReaderPlugin
-    RUNTIME DESTINATION lib/paraview
-    LIBRARY DESTINATION lib/paraview
-    ARCHIVE DESTINATION lib/paraview
+    RUNTIME DESTINATION lib${LIB_SUFFIX}/paraview
+    LIBRARY DESTINATION lib${LIB_SUFFIX}/paraview
+    ARCHIVE DESTINATION lib${LIB_SUFFIX}/paraview
 )

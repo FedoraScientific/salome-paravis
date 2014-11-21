@@ -82,9 +82,9 @@ PROJECT( ParaMEDCorba )
       ENDIF()
     ENDIF(WIN32)
 
-    INSTALL(TARGETS ParaMEDCorbaPlugin DESTINATION lib/paraview)
+    INSTALL(TARGETS ParaMEDCorbaPlugin DESTINATION lib${LIB_SUFFIX}/paraview)
 
-    INSTALL(TARGETS ParaMEDMEM2VTK DESTINATION lib/salome)
+    INSTALL(TARGETS ParaMEDMEM2VTK DESTINATION ${SALOME_INSTALL_LIBS})
     
     ADD_EXECUTABLE( testParaMEDCorba
       ${ParaMEDCorba_SOURCE_DIR}/testParaMEDCorba.cxx
@@ -95,7 +95,7 @@ PROJECT( ParaMEDCorba )
       ParaMEDCorbaPlugin
       )
     
-    INSTALL(FILES ParaMEDCorbaServerManager.xml DESTINATION share)
+    INSTALL(FILES ParaMEDCorbaServerManager.xml DESTINATION lib${LIB_SUFFIX}/paraview)
     
   
   ENDIF( ParaView_FOUND )

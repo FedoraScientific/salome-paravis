@@ -79,9 +79,9 @@ TARGET_LINK_LIBRARIES(MEDReaderPlugin vtkMEDReader vtkMEDReaderCS)
 # Install
 INSTALL(
   TARGETS MEDReaderPlugin
-  RUNTIME DESTINATION lib/paraview
-  LIBRARY DESTINATION lib/paraview
-  ARCHIVE DESTINATION lib/paraview
+  RUNTIME DESTINATION lib${LIB_SUFFIX}/paraview
+  LIBRARY DESTINATION lib${LIB_SUFFIX}/paraview
+  ARCHIVE DESTINATION lib${LIB_SUFFIX}/paraview
   )
 
 

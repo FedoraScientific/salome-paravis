@@ -33,5 +33,5 @@ ADD_PARAVIEW_PLUGIN(EllipseBuilderFilter "1.0"
 
 INSTALL(
 	TARGETS EllipseBuilderFilter
-	DESTINATION lib/paraview
+	DESTINATION lib${LIB_SUFFIX}/paraview
 )
