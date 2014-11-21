@@ -34,7 +34,7 @@ PROJECT( ParaMEDCorba )
     
     INCLUDE( ${PARAVIEW_USE_FILE} )
 
-    FIND_PACKAGE( VTK COMPONENTS vtkClientServer NO_MODULE)
+    FIND_PACKAGE( SalomeVTK 6.1 )
     INCLUDE( ${VTK_USE_FILE} )
 
     SET( PARACORBAPLUG_SRCS
@@ -53,11 +53,12 @@ PROJECT( ParaMEDCorba )
     INCLUDE_DIRECTORIES(${OMNIORB_INCLUDE_DIR} ${MED_ROOT_DIR}/include/salome ${KERNEL_ROOT_DIR}/include/salome)
     ADD_DEFINITIONS(${OMNIORB_DEFINITIONS})
 
+    FIND_LIBRARY(VTK_CLIENT_SERVER vtkClientServer ${VTK_LIBRARY_DIR})
     TARGET_LINK_LIBRARIES(ParaMEDMEM2VTK
       #vtkCommon
       #vtkFiltering
       #vtkGraphics
-      vtkClientServer
+      ${VTK_CLIENT_SERVER}
       vtkPVVTKExtensionsRendering
       VTKViewer
       pqCore
