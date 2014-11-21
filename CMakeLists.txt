@@ -207,7 +207,7 @@ IF(NOT SALOME_LIGHT_ONLY AND NOT SALOME_PARAVIS_MINIMAL_CORBA)
   # TODO: the below requires ParaView in the PYTHONPATH ... not so nice:
   MESSAGE(STATUS "Generating list of wrapped VTK classes ...")
   LIST(GET PARAVIEW_INCLUDE_DIRS 0 PARAVIEW_INCLUDE_DIR0)
-  EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/src/VTKWrapping/getwrapclasses.py ${PARAVIEW_INCLUDE_DIR0}
+  EXECUTE_PROCESS(COMMAND pvpython ${PROJECT_SOURCE_DIR}/src/VTKWrapping/getwrapclasses.py ${PARAVIEW_INCLUDE_DIRS}
       RESULT_VARIABLE _res)
   IF(NOT _res EQUAL 0)
     MESSAGE(FATAL_ERROR "Unable to run the Python script retrieving the list of VTK classes.")

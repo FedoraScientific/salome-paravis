@@ -66,7 +66,7 @@ for a in l2:
 
 dic=dict()
 
-non_wrap_list = ["vtkVariant", "vtkTimeStamp"]
+non_wrap_list = ["vtkVariant", "vtkTimeStamp", "vtkPVImageReader", "vtkCharArray"]
 
 pv_classes_new=classeslistsm
 while len(pv_classes_new):
