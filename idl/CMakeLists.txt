@@ -41,7 +41,7 @@ IF(NOT SALOME_PARAVIS_MINIMAL_CORBA)
   )
   SET(_idl_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${KERNEL_ROOT_DIR}/idl/salome
+    ${KERNEL_ROOT_DIR}/${SALOME_INSTALL_IDLS}
   )
 ELSE()
   SET(SalomeIDLPARAVIS_IDLSOURCES
@@ -49,7 +49,7 @@ ELSE()
   )
   SET(_idl_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/no_wrap
-    ${KERNEL_ROOT_DIR}/idl/salome
+    ${KERNEL_ROOT_DIR}/${SALOME_INSTALL_IDLS}
   )  
 ENDIF()  
 
